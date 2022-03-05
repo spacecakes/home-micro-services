@@ -4,6 +4,9 @@ services:
   traefik:
     container_name: traefik
     image: traefik:latest
+    command:
+      - "--providers.docker"
+      - "--api.insecure=true"
     ports:
       - "444:443"
       - "81:80"
@@ -14,7 +17,6 @@ services:
       traefik.http.middlewares.home-auth.basicauth.users: ${AUTH_USERNAME}:${AUTH_PASSWORD_HASH}
     restart: always
     volumes:
-      - /volume1/docker/traefik/traefik.yml:/etc/traefik/traefik.yml
       - /var/run/docker.sock:/var/run/docker.sock
 
   watchtower:
