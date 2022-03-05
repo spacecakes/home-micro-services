@@ -11,6 +11,7 @@ services:
     labels:
       traefik.http.routers.traefik.rule: Host(`traefik.${DOMAIN_NAME}`)
       traefik.http.services.traefik.loadbalancer.server.port: 8080
+      traefik.http.middlewares.home-auth.basicauth.users: ${AUTH_USERNAME}:${AUTH_PASSWORD_HASH}
     restart: always
     volumes:
       - /volume1/docker/traefik/traefik.yml:/etc/traefik/traefik.yml
@@ -72,16 +73,6 @@ services:
     container_name: plex
     image: plexinc/pms-docker
     hostname: plex
-    ports:
-      - "32400:32400/tcp"
-      - "3005:3005/tcp"
-      - "8324:8324/tcp"
-      - "32469:32469/tcp"
-      #- "1900:1900/udp"
-      - "32410:32410/udp"
-      - "32412:32412/udp"
-      - "32413:32413/udp"
-      - "32414:32414/udp"
     environment:
       - TZ=Europe/Stockholm
       - PLEX_CLAIM=claim-fvy-V1NtmeMssz53nvya
@@ -112,6 +103,7 @@ services:
     labels:
       traefik.http.routers.sabnzbd.rule: Host(`sabnzbd.${DOMAIN_NAME}`)
       traefik.http.services.sabnzbd.loadbalancer.server.port: 8080
+      traefik.http.routers.sabnzbd.middlewares: home-auth
     ports:
       - "8085:8080/tcp"
       - "9090:9090/tcp"
@@ -132,6 +124,7 @@ services:
     labels:
       traefik.http.routers.transmission.rule: Host(`transmission.${DOMAIN_NAME}`)
       traefik.http.services.transmission.loadbalancer.server.port: 9091
+      traefik.http.routers.transmission.middlewares: home-auth
     ports:
       - "9091:9091"
       - "51413:51413"
@@ -154,6 +147,7 @@ services:
     labels:
       traefik.http.routers.sonarr.rule: Host(`sonarr.${DOMAIN_NAME}`)
       traefik.http.services.sonarr.loadbalancer.server.port: 8989
+      traefik.http.routers.sonarr.middlewares: home-auth
     ports:
       - "8989:8989/tcp"
     restart: unless-stopped
@@ -173,6 +167,7 @@ services:
     labels:
       traefik.http.routers.radarr.rule: Host(`radarr.${DOMAIN_NAME}`)
       traefik.http.services.radarr.loadbalancer.server.port: 7878
+      traefik.http.routers.radarr.middlewares: home-auth
     ports:
       - "7878:7878/tcp"
     restart: unless-stopped
@@ -210,6 +205,7 @@ services:
     labels:
       traefik.http.routers.nzbhydra.rule: Host(`nzbhydra.${DOMAIN_NAME}`)
       traefik.http.services.nzbhydra.loadbalancer.server.port: 5076
+      traefik.http.routers.nzbhydra.middlewares: home-auth
     ports:
       - "5076:5076/tcp"
     restart: unless-stopped
@@ -227,6 +223,8 @@ services:
     labels:
       traefik.http.routers.jackett.rule: Host(`jackett.${DOMAIN_NAME}`)
       traefik.http.services.jackett.loadbalancer.server.port: 9117
+      traefik.http.routers.jackett.middlewares: home-auth
+
     ports:
       - "9117:9117/tcp"
     restart: unless-stopped
