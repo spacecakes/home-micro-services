@@ -6,6 +6,8 @@ services:
     image: traefik:latest
     command:
       - "--providers.docker"
+      # Strip stack name and set default route to container name
+      - '--providers.docker.defaultrule=Host(`{{ coalesce (index .Labels "com.docker.compose.service") (normalize .Name) }}.${DOMAIN_NAME}`)'
       - "--api.insecure=true"
       - "--entrypoints.web.address=:80"
       - "--entrypoints.websecure.address=:443"
@@ -18,7 +20,6 @@ services:
       - "80:80"
       - "8080:8080"
     labels:
-      - "traefik.http.routers.traefik.rule=Host(`traefik.${DOMAIN_NAME}`)"
       - "traefik.http.services.traefik.loadbalancer.server.port=8080"
       - "traefik.http.middlewares.myauth.basicauth.users=${AUTH_USERNAME}:${AUTH_PASSWORD_HASH}"
       - "traefik.http.routers.traefik.middlewares=myauth"
@@ -42,7 +43,6 @@ services:
     environment:
       - TZ=Europe/Stockholm
     labels:
-      - "traefik.http.routers.organizr.rule=Host(`organizr.${DOMAIN_NAME}`)"
       - "traefik.http.services.organizr.loadbalancer.server.port=80"
       - "traefik.http.routers.organizr.tls.certresolver=myresolver"
     ports:
@@ -96,7 +96,6 @@ services:
       - PLEX_GID=${GID}
       - PLEX_UID=${UID}
     labels:
-      - "traefik.http.routers.plex.rule=Host(`plex.${DOMAIN_NAME}`)"
       - "traefik.http.services.plex.loadbalancer.server.port=32400"
       - "traefik.http.routers.plex.tls.certresolver=myresolver"
     restart: unless-stopped
@@ -118,7 +117,6 @@ services:
       - PGID=${GID}
       - PUID=${UID}
     labels:
-      - "traefik.http.routers.sabnzbd.rule=Host(`sabnzbd.${DOMAIN_NAME}`)"
       - "traefik.http.services.sabnzbd.loadbalancer.server.port=8080"
       - "traefik.http.routers.sabnzbd.middlewares=myauth"
       - "traefik.http.routers.sabnzbd.tls.certresolver=myresolver"
@@ -141,7 +139,6 @@ services:
       - TZ=Europe/Stockholm
     labels:
       - "traefik.http.services.transmission.loadbalancer.server.port=9091"
-      - "traefik.http.routers.transmission.rule=Host(`transmission.${DOMAIN_NAME}`)"
       - "traefik.http.routers.transmission.middlewares=myauth"
       - "traefik.http.routers.transmission.tls.certresolver=myresolver"
     ports:
@@ -164,7 +161,6 @@ services:
       - PGID=${GID}
       - PUID=${UID}
     labels:
-      - "traefik.http.routers.sonarr.rule=Host(`sonarr.${DOMAIN_NAME}`)"
       - "traefik.http.services.sonarr.loadbalancer.server.port=8989"
       - "traefik.http.routers.sonarr.middlewares=myauth"
       - "traefik.http.routers.sonarr.tls.certresolver=myresolver"
@@ -185,7 +181,6 @@ services:
       - PUID=${UID}
       - TZ=Europe/Stockholm
     labels:
-      - "traefik.http.routers.radarr.rule=Host(`radarr.${DOMAIN_NAME}`)"
       - "traefik.http.services.radarr.loadbalancer.server.port=7878"
       - "traefik.http.routers.radarr.middlewares=myauth"
       - "traefik.http.routers.radarr.tls.certresolver=myresolver"
@@ -206,7 +201,6 @@ services:
       - PGID=${GID}
       - PUID=${UID}
     labels:
-      - "traefik.http.routers.bazarr.rule=Host(`bazarr.${DOMAIN_NAME}`)"
       - "traefik.http.services.bazarr.loadbalancer.server.port=6767"
       - "traefik.http.routers.bazarr.middlewares=myauth"
       - "traefik.http.routers.bazarr.tls.certresolver=myresolver"
@@ -226,7 +220,6 @@ services:
       - PUID=${UID}
       - TZ=Europe/Stockholm
     labels:
-      - "traefik.http.routers.nzbhydra.rule=Host(`nzbhydra.${DOMAIN_NAME}`)"
       - "traefik.http.services.nzbhydra.loadbalancer.server.port=5076"
       - "traefik.http.routers.nzbhydra.middlewares=myauth"
       - "traefik.http.routers.nzbhydra.tls.certresolver=myresolver"
@@ -245,7 +238,6 @@ services:
     environment:
       - TZ=Europe/Stockholm
     labels:
-      - "traefik.http.routers.jackett.rule=Host(`jackett.${DOMAIN_NAME}`)"
       - "traefik.http.services.jackett.loadbalancer.server.port=9117"
       - "traefik.http.routers.jackett.middlewares=myauth"
       - "traefik.http.routers.jackett.tls.certresolver=myresolver"
