@@ -4,17 +4,6 @@ services:
   traefik:
     container_name: traefik
     image: traefik:latest
-    command:
-      - "--providers.docker"
-      # Strip stack name and set default route to container name
-      - '--providers.docker.defaultrule=Host(`{{ coalesce (index .Labels "com.docker.compose.service") (normalize .Name) }}.${DOMAIN_NAME}`)'
-      - "--api.insecure=true"
-      - "--entrypoints.web.address=:80"
-      - "--entrypoints.websecure.address=:443"
-      - "--entrypoints.web.http.redirections.entrypoint.to=websecure"
-      - "--certificatesresolvers.myresolver.acme.tlschallenge=true"
-      - "--certificatesresolvers.myresolver.acme.email=g.lundmark@gmail.com"
-      - "--certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json"
     ports:
       - "443:443"
       - "80:80"
@@ -25,8 +14,11 @@ services:
       - "traefik.http.routers.traefik.middlewares=myauth"
       - "traefik.http.routers.traefik.tls.certresolver=myresolver"
     restart: always
+    environment:
+      - DOMAIN_NAME=${DOMAIN_NAME}
     volumes:
       - /volume1/docker/traefik/letsencrypt:/letsencrypt
+      - /volume1/docker/traefik/traefik.yml:/etc/traefik/traefik.yml
       - /var/run/docker.sock:/var/run/docker.sock
 
   watchtower:
@@ -41,7 +33,7 @@ services:
     image: organizr/organizr:latest
     hostname: organizr
     environment:
-      - TZ=Europe/Stockholm
+      - TZ=${TZ}
     labels:
       - "traefik.http.services.organizr.loadbalancer.server.port=80"
       - "traefik.http.routers.organizr.tls.certresolver=myresolver"
@@ -68,7 +60,7 @@ services:
     environment:
       - HOMEBRIDGE_CONFIG_UI=1
       - HOMEBRIDGE_CONFIG_UI_PORT=8581
-      - TZ=Europe/Stockholm
+      - TZ=${TZ}
     network_mode: host
     restart: unless-stopped
     volumes:
@@ -113,7 +105,7 @@ services:
     image: linuxserver/sabnzbd:latest
     hostname: sabnzbd
     environment:
-      - TZ=Europe/Stockholm
+      - TZ=${TZ}
       - PGID=${GID}
       - PUID=${UID}
     labels:
@@ -136,7 +128,7 @@ services:
     environment:
       - PGID=${GID}
       - PUID=${UID}
-      - TZ=Europe/Stockholm
+      - TZ=${TZ}
     labels:
       - "traefik.http.services.transmission.loadbalancer.server.port=9091"
       - "traefik.http.routers.transmission.middlewares=myauth"
@@ -157,7 +149,7 @@ services:
     image: linuxserver/sonarr:latest
     hostname: sonarr
     environment:
-      - TZ=Europe/Stockholm
+      - TZ=${TZ}
       - PGID=${GID}
       - PUID=${UID}
     labels:
@@ -179,7 +171,7 @@ services:
     environment:
       - PGID=${GID}
       - PUID=${UID}
-      - TZ=Europe/Stockholm
+      - TZ=${TZ}
     labels:
       - "traefik.http.services.radarr.loadbalancer.server.port=7878"
       - "traefik.http.routers.radarr.middlewares=myauth"
@@ -197,7 +189,7 @@ services:
     image: linuxserver/bazarr:latest
     hostname: bazarr
     environment:
-      - TZ=Europe/Stockholm
+      - TZ=${TZ}
       - PGID=${GID}
       - PUID=${UID}
     labels:
@@ -218,7 +210,7 @@ services:
     environment:
       - PGID=${GID}
       - PUID=${UID}
-      - TZ=Europe/Stockholm
+      - TZ=${TZ}
     labels:
       - "traefik.http.services.nzbhydra.loadbalancer.server.port=5076"
       - "traefik.http.routers.nzbhydra.middlewares=myauth"
@@ -236,7 +228,7 @@ services:
     image: linuxserver/jackett:latest
     hostname: jackett
     environment:
-      - TZ=Europe/Stockholm
+      - TZ=${TZ}
     labels:
       - "traefik.http.services.jackett.loadbalancer.server.port=9117"
       - "traefik.http.routers.jackett.middlewares=myauth"
