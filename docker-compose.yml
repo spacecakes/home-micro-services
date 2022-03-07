@@ -7,6 +7,9 @@ services:
     container_name: traefik
     image: traefik:latest
 
+    extra_hosts:
+      - "host.docker.internal:172.17.0.1"
+
     ports:
       - "443:443"
       - "80:80"
@@ -57,6 +60,9 @@ services:
     restart: unless-stopped
     labels:
       - "traefik.http.services.homeassistant.loadbalancer.server.port=8123"
+      - "traefik.http.services.homeassistant.loadbalancer.passHostHeader=true"
+      - "traefik.http.routers.homeassistant.middlewares=secured@file"
+      - "traefik.http.routers.homeassistant.tls.certresolver=myresolver"
     volumes:
       - /volume1/docker/homeassistant:/config
 
@@ -72,6 +78,9 @@ services:
     restart: unless-stopped
     labels:
       - "traefik.http.services.homebridge.loadbalancer.server.port=8581"
+      - "traefik.http.services.homebridge.loadbalancer.passHostHeader=true"
+      - "traefik.http.routers.homebridge.middlewares=secured@file,auth@file"
+      - "traefik.http.routers.homebridge.tls.certresolver=myresolver"
     volumes:
       - /volume1/docker/homebridge:/homebridge
 
