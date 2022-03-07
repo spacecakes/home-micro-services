@@ -21,6 +21,7 @@ services:
     restart: always
     environment:
       - DOMAIN_NAME=${DOMAIN_NAME}
+      - EMAIL=${EMAIL}
       - AUTH_USERNAME=${AUTH_USERNAME}
       - AUTH_PASSWORD_HASH=${AUTH_PASSWORD_HASH}
     volumes:
