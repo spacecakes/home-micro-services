@@ -1,5 +1,10 @@
 http:
   middlewares:
+    myauth:
+      basicauth:
+        users:
+          - '{{env "AUTH_USERNAME"}}:{{env "AUTH_PASSWORD_HASH"}}'
+
     https-redirect:
       redirectScheme:
         scheme: https
@@ -26,3 +31,4 @@ http:
         middlewares:
           - default-whitelist
           - default-headers
+          - myauth
