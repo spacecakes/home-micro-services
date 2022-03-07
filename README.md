@@ -1,3 +1,3 @@
 # Home Micro Services
 
-My Docker Compose setup for my micro-services at home.
+My Docker and reverse proxy setup for micro-services at home.
