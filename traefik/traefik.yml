@@ -18,6 +18,7 @@ providers:
     defaultrule: 'Host(`{{ coalesce (index .Labels "com.docker.compose.service") (normalize .Name) }}.{{env "DOMAIN_NAME"}}`)'
   file:
     filename: /config.yml
+    watch: true
 
 certificatesResolvers:
   myresolver:

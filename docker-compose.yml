@@ -51,6 +51,8 @@ services:
     hostname: homeassistant
     network_mode: host
     restart: unless-stopped
+    labels:
+      - "traefik.http.services.homeassistant.loadbalancer.server.port=8123"
     volumes:
       - /volume1/docker/homeassistant:/config
 
@@ -64,6 +66,8 @@ services:
       - TZ=${TZ}
     network_mode: host
     restart: unless-stopped
+    labels:
+      - "traefik.http.services.homebridge.loadbalancer.server.port=8581"
     volumes:
       - /volume1/docker/homebridge:/homebridge
 
