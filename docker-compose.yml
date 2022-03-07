@@ -18,7 +18,8 @@ services:
       - DOMAIN_NAME=${DOMAIN_NAME}
     volumes:
       - /volume1/docker/traefik/letsencrypt:/letsencrypt
-      - /volume1/docker/traefik/traefik.yml:/etc/traefik/traefik.yml
+      - /volume1/docker/traefik/traefik.yml:/traefik.yml
+      - /volume1/docker/traefik/config.yml:/config.yml
       - /var/run/docker.sock:/var/run/docker.sock
 
   watchtower:
