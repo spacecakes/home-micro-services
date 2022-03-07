@@ -35,13 +35,10 @@ http:
         middlewares:
           - default-whitelist
           - default-headers
-          - auth
 
+  # External routes not on Docker network
   routers:
     pihole:
-      entryPoints:
-        - "web"
-        - "websecure"
       rule: 'Host(`pihole.{{env "DOMAIN_NAME"}}`)'
       middlewares:
         - addprefix-pihole
@@ -51,9 +48,6 @@ http:
       service: pihole
 
     synology:
-      entryPoints:
-        - "web"
-        - "websecure"
       rule: 'Host(`dsm.{{env "DOMAIN_NAME"}}`)'
       middlewares:
         - default-headers

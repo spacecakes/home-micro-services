@@ -1,16 +1,19 @@
 version: "3.9"
+
 services:
   # Server tools
+
   traefik:
     container_name: traefik
     image: traefik:latest
+
     ports:
       - "443:443"
       - "80:80"
       - "8080:8080"
     labels:
       - "traefik.http.services.traefik.loadbalancer.server.port=8080"
-      - "traefik.http.routers.traefik.middlewares=secured@file"
+      - "traefik.http.routers.traefik.middlewares=secured@file,auth@file"
       - "traefik.http.routers.traefik.tls.certresolver=myresolver"
     restart: always
     environment:
@@ -116,7 +119,7 @@ services:
       - PUID=${UID}
     labels:
       - "traefik.http.services.sabnzbd.loadbalancer.server.port=8080"
-      - "traefik.http.routers.sabnzbd.middlewares=secured@file"
+      - "traefik.http.routers.sabnzbd.middlewares=secured@file,auth@file"
       - "traefik.http.routers.sabnzbd.tls.certresolver=myresolver"
     ports:
       - "8085:8080/tcp"
@@ -137,7 +140,7 @@ services:
       - TZ=${TZ}
     labels:
       - "traefik.http.services.transmission.loadbalancer.server.port=9091"
-      - "traefik.http.routers.transmission.middlewares=secured@file"
+      - "traefik.http.routers.transmission.middlewares=secured@file,auth@file"
       - "traefik.http.routers.transmission.tls.certresolver=myresolver"
     ports:
       - "9091:9091"
@@ -160,7 +163,7 @@ services:
       - PUID=${UID}
     labels:
       - "traefik.http.services.sonarr.loadbalancer.server.port=8989"
-      - "traefik.http.routers.sonarr.middlewares=secured@file"
+      - "traefik.http.routers.sonarr.middlewares=secured@file,auth@file"
       - "traefik.http.routers.sonarr.tls.certresolver=myresolver"
     ports:
       - "8989:8989/tcp"
@@ -180,7 +183,7 @@ services:
       - TZ=${TZ}
     labels:
       - "traefik.http.services.radarr.loadbalancer.server.port=7878"
-      - "traefik.http.routers.radarr.middlewares=secured@file"
+      - "traefik.http.routers.radarr.middlewares=secured@file,auth@file"
       - "traefik.http.routers.radarr.tls.certresolver=myresolver"
     ports:
       - "7878:7878/tcp"
@@ -200,7 +203,7 @@ services:
       - PUID=${UID}
     labels:
       - "traefik.http.services.bazarr.loadbalancer.server.port=6767"
-      - "traefik.http.routers.bazarr.middlewares=secured@file"
+      - "traefik.http.routers.bazarr.middlewares=secured@file,auth@file"
       - "traefik.http.routers.bazarr.tls.certresolver=myresolver"
     ports:
       - "6767:6767/tcp"
@@ -219,7 +222,7 @@ services:
       - TZ=${TZ}
     labels:
       - "traefik.http.services.nzbhydra.loadbalancer.server.port=5076"
-      - "traefik.http.routers.nzbhydra.middlewares=secured@file"
+      - "traefik.http.routers.nzbhydra.middlewares=secured@file,auth@file"
       - "traefik.http.routers.nzbhydra.tls.certresolver=myresolver"
     ports:
       - "5076:5076/tcp"
@@ -237,7 +240,7 @@ services:
       - TZ=${TZ}
     labels:
       - "traefik.http.services.jackett.loadbalancer.server.port=9117"
-      - "traefik.http.routers.jackett.middlewares=secured@file"
+      - "traefik.http.routers.jackett.middlewares=secured@file,auth@file"
       - "traefik.http.routers.jackett.tls.certresolver=myresolver"
     ports:
       - "9117:9117/tcp"
