@@ -4,6 +4,10 @@ http:
       addPrefix:
         prefix: "/admin"
 
+    addprefix-unifi:
+      addPrefix:
+        prefix: "/login?redirect=%2F"
+
     auth:
       basicauth:
         users:
@@ -55,6 +59,15 @@ http:
         certResolver: myresolver
       service: synology
 
+    unifi:
+      rule: 'Host(`unifi.{{env "DOMAIN_NAME"}}`)'
+      middlewares:
+        - addprefix-unifi
+        - default-headers
+      tls:
+        certResolver: myresolver
+      service: unifi
+
   services:
     pihole:
       loadBalancer:
@@ -66,4 +79,10 @@ http:
       loadBalancer:
         servers:
           - url: "http://172.17.0.1:5000"
+        passHostHeader: true
+
+    unifi:
+      loadBalancer:
+        servers:
+          - url: "http://10.0.1.1"
         passHostHeader: true
