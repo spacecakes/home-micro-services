@@ -24,5 +24,5 @@ certificatesResolvers:
   myresolver:
     acme:
       tlschallenge: true
-      email: '{{env "EMAIL"}}'
-      storage: "/letsencrypt/acme.json"
+      email: g.lundmark@gmail.com
+      storage: /letsencrypt/acme.json

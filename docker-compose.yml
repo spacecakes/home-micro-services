@@ -6,10 +6,8 @@ services:
   traefik:
     container_name: traefik
     image: traefik:latest
-
     extra_hosts:
       - "host.docker.internal:172.17.0.1"
-
     ports:
       - "443:443"
       - "80:80"
@@ -21,7 +19,6 @@ services:
     restart: always
     environment:
       - DOMAIN_NAME=${DOMAIN_NAME}
-      - EMAIL=${EMAIL}
       - AUTH_USERNAME=${AUTH_USERNAME}
       - AUTH_PASSWORD_HASH=${AUTH_PASSWORD_HASH}
     volumes:
