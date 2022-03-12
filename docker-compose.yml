@@ -60,8 +60,9 @@ services:
     labels:
       - "traefik.http.services.organizr.loadbalancer.server.port=80"
       - "traefik.http.routers.organizr.tls.certresolver=myresolver"
+      - "traefik.http.routers.organizr.rule=Host(`${DOMAIN_NAME}`)"
     ports:
-      - "100:80"
+      - "80:80"
     restart: always
     volumes:
       - /volume1/docker/organizr:/config
