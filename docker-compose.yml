@@ -61,6 +61,22 @@ services:
     volumes:
       - /volume1/docker/organizr:/config
 
+  ombi:
+    container_name: ombi
+    image: linuxserver/ombi:latest
+    hostname: ombi
+    environment:
+      - PGID=${GID}
+      - PUID=${UID}
+      - TZ=${TZ}
+    restart: unless-stopped
+    labels:
+      - "traefik.http.services.ombi.loadbalancer.server.port=3579"
+      - "traefik.http.routers.ombi.tls.certresolver=myresolver"
+      - "traefik.http.routers.ombi.rule=Host(`${DOMAIN_NAME}`)"
+    volumes:
+      - /volume1/docker/ombi:/config
+
   # Home automation
   homeassistant:
     container_name: homeassistant
