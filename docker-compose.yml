@@ -27,6 +27,21 @@ services:
       - /volume1/docker/traefik/config.yml:/config.yml
       - /var/run/docker.sock:/var/run/docker.sock
 
+  portainer:
+    container_name: portainer
+    image: portainer/portainer-ce:latest
+    ports:
+      - "8000:8000"
+      - "9000:9000"
+    labels:
+      - "traefik.http.services.portainer.loadbalancer.server.port=9000"
+      - "traefik.http.routers.portainer.middlewares=secured@file"
+      - "traefik.http.routers.portainer.tls.certresolver=myresolver"
+    restart: always
+    volumes:
+      - /volume1/docker/portainer:/data
+      - /var/run/docker.sock:/var/run/docker.sock
+
   watchtower:
     container_name: watchtower
     image: containrrr/watchtower:latest
