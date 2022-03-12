@@ -56,6 +56,7 @@ services:
     labels:
       - "traefik.http.services.organizr.loadbalancer.server.port=80"
       - "traefik.http.routers.organizr.tls.certresolver=myresolver"
+      - "traefik.http.routers.organizr.middlewares=secured@file"
       - "traefik.http.routers.organizr.rule=Host(`${DOMAIN_NAME}`)"
     restart: always
     volumes:
@@ -72,8 +73,8 @@ services:
     restart: unless-stopped
     labels:
       - "traefik.http.services.ombi.loadbalancer.server.port=3579"
+      - "traefik.http.routers.ombi.middlewares=secured@file,auth@file"
       - "traefik.http.routers.ombi.tls.certresolver=myresolver"
-      - "traefik.http.routers.ombi.rule=Host(`${DOMAIN_NAME}`)"
     volumes:
       - /volume1/docker/ombi:/config
 
@@ -86,7 +87,6 @@ services:
     restart: unless-stopped
     labels:
       - "traefik.http.services.homeassistant.loadbalancer.server.port=8123"
-      - "traefik.http.services.homeassistant.loadbalancer.passHostHeader=true"
       - "traefik.http.routers.homeassistant.middlewares=secured@file"
       - "traefik.http.routers.homeassistant.tls.certresolver=myresolver"
     volumes:
@@ -104,7 +104,6 @@ services:
     restart: unless-stopped
     labels:
       - "traefik.http.services.homebridge.loadbalancer.server.port=8581"
-      - "traefik.http.services.homebridge.loadbalancer.passHostHeader=true"
       - "traefik.http.routers.homebridge.middlewares=secured@file,auth@file"
       - "traefik.http.routers.homebridge.tls.certresolver=myresolver"
     volumes:
