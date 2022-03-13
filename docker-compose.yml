@@ -73,7 +73,7 @@ services:
     restart: unless-stopped
     labels:
       - "traefik.http.services.ombi.loadbalancer.server.port=3579"
-      - "traefik.http.routers.ombi.middlewares=secured@file,auth@file"
+      - "traefik.http.routers.ombi.middlewares=secured@file"
       - "traefik.http.routers.ombi.tls.certresolver=myresolver"
     volumes:
       - /volume1/docker/ombi:/config
