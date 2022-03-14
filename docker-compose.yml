@@ -17,6 +17,8 @@ services:
       - "traefik.http.routers.traefik.tls.certresolver=myresolver"
     restart: always
     environment:
+      - TRAEFIK_CERTIFICATESRESOLVERS_MYRESOLVER_ACME_EMAIL=${EMAIL}
+      - TRAEFIK_PILOT_TOKEN=${TRAEFIK_PILOT_TOKEN}
       - DOMAIN_NAME=${DOMAIN_NAME}
       - AUTH_USERNAME=${AUTH_USERNAME}
       - AUTH_PASSWORD_HASH=${AUTH_PASSWORD_HASH}

@@ -24,5 +24,4 @@ certificatesResolvers:
   myresolver:
     acme:
       tlschallenge: true
-      email: g.lundmark@gmail.com
       storage: /letsencrypt/acme.json
