@@ -64,6 +64,19 @@ services:
     restart: always
     volumes:
       - /volume1/docker/organizr:/config
+
+  nginx:
+    container_name: nginx
+    image: nginx
+    labels:
+      - "traefik.http.services.nginx.loadbalancer.server.port=80"
+      - "traefik.http.routers.nginx.tls.certresolver=myresolver"
+      - "traefik.http.routers.nginx.middlewares=secured@file"
+      - "traefik.http.routers.nginx.rule=Host(`${DOMAIN_NAME_HOME}`)"
+    restart: always
+    volumes:
+      - /volume1/docker/nginx:/usr/share/nginx/html:ro
+
   ombi:
     container_name: ombi
     image: linuxserver/ombi:latest
