@@ -25,3 +25,6 @@ certificatesResolvers:
     acme:
       tlschallenge: true
       storage: /letsencrypt/acme.json
+
+serversTransport:
+  insecureSkipVerify: true
