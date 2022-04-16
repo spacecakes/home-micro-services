@@ -19,7 +19,8 @@ services:
     environment:
       - TRAEFIK_CERTIFICATESRESOLVERS_MYRESOLVER_ACME_EMAIL=${EMAIL}
       - TRAEFIK_PILOT_TOKEN=${TRAEFIK_PILOT_TOKEN}
-      - DOMAIN_NAME=${DOMAIN_NAME}
+      - DOMAIN_NAME_APPS=${DOMAIN_NAME_APPS}
+      - DOMAIN_NAME_HOME=${DOMAIN_NAME_HOME}
       - AUTH_USERNAME=${AUTH_USERNAME}
       - AUTH_PASSWORD_HASH=${AUTH_PASSWORD_HASH}
     volumes:
@@ -59,11 +60,10 @@ services:
       - "traefik.http.services.organizr.loadbalancer.server.port=80"
       - "traefik.http.routers.organizr.tls.certresolver=myresolver"
       - "traefik.http.routers.organizr.middlewares=secured@file"
-      - "traefik.http.routers.organizr.rule=Host(`${DOMAIN_NAME}`)"
+      - "traefik.http.routers.organizr.rule=Host(`${DOMAIN_NAME_APPS}`)"
     restart: always
     volumes:
       - /volume1/docker/organizr:/config
-
   ombi:
     container_name: ombi
     image: linuxserver/ombi:latest
@@ -84,7 +84,6 @@ services:
   homeassistant:
     container_name: homeassistant
     image: homeassistant/home-assistant:latest
-    hostname: homeassistant
     network_mode: host
     restart: unless-stopped
     labels:

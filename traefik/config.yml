@@ -44,7 +44,7 @@ http:
   # External routes not on Docker network
   routers:
     pihole:
-      rule: 'Host(`pihole.{{env "DOMAIN_NAME"}}`)'
+      rule: 'Host(`pihole.{{env "DOMAIN_NAME_APPS"}}`)'
       middlewares:
         - addprefix-pihole
         - secured
@@ -53,7 +53,7 @@ http:
       service: pihole
 
     synology:
-      rule: 'Host(`dsm.{{env "DOMAIN_NAME"}}`)'
+      rule: 'Host(`dsm.{{env "DOMAIN_NAME_APPS"}}`)'
       middlewares:
         - default-headers
       tls:
@@ -61,7 +61,7 @@ http:
       service: synology
 
     unifi:
-      rule: 'Host(`unifi.{{env "DOMAIN_NAME"}}`)'
+      rule: 'Host(`unifi.{{env "DOMAIN_NAME_APPS"}}`)'
       middlewares:
         - addprefix-unifi
         - default-headers

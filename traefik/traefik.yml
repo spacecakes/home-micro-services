@@ -15,7 +15,7 @@ entryPoints:
 providers:
   docker:
     # Strip stack name and set default route to container name
-    defaultrule: 'Host(`{{ coalesce (index .Labels "com.docker.compose.service") (normalize .Name) }}.{{env "DOMAIN_NAME"}}`)'
+    defaultrule: 'Host(`{{ coalesce (index .Labels "com.docker.compose.service") (normalize .Name) }}.{{env "DOMAIN_NAME_APPS"}}`)'
   file:
     filename: /config.yml
     watch: true
