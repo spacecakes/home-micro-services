@@ -196,6 +196,26 @@ services:
       - /volume1/downloads:/watch
       - /volume1/docker/transmission:/config
 
+  transmission-seeder:
+    container_name: transmission-seeder
+    image: piec/transmission-magnet:latest
+    environment:
+      - PGID=${GID}
+      - PUID=${UID}
+      - TZ=${TZ}
+    labels:
+      - "traefik.http.services.transmission-seeder.loadbalancer.server.port=9091"
+      - "traefik.http.routers.transmission-seeder.middlewares=secured@file"
+      - "traefik.http.routers.transmission-seeder.tls.certresolver=myresolver"
+    ports:
+      - "51414:51414"
+      - "51414:51414/udp"
+    restart: unless-stopped
+    volumes:
+      - /volume1/seeding:/downloads
+      - /volume1/seeding:/watch
+      - /volume1/docker/transmission-seeder:/config
+
   # Media management
   sonarr:
     container_name: sonarr
