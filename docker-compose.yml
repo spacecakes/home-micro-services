@@ -187,8 +187,8 @@ services:
     labels:
       - "traefik.http.services.transmission-seeder.loadbalancer.server.port=9091"
     ports:
-      - "51414:51414"
-      - "51414:51414/udp"
+      - "51413:51414"
+      - "51413:51414/udp"
     restart: unless-stopped
     volumes:
       - /volume1/seeding:/downloads
