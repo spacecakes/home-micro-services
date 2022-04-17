@@ -11,6 +11,11 @@ entryPoints:
           to: websecure
   websecure:
     address: ":443"
+    http:
+      tls:
+        certResolver: myresolver
+      middlewares:
+        - secured@file
 
 providers:
   docker:

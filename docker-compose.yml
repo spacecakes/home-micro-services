@@ -13,8 +13,6 @@ services:
       - "80:80"
     labels:
       - "traefik.http.services.traefik.loadbalancer.server.port=8080"
-      - "traefik.http.routers.traefik.middlewares=secured@file"
-      - "traefik.http.routers.traefik.tls.certresolver=myresolver"
     restart: always
     environment:
       - TRAEFIK_CERTIFICATESRESOLVERS_MYRESOLVER_ACME_EMAIL=${EMAIL}
@@ -34,8 +32,6 @@ services:
     image: portainer/portainer-ce:latest
     labels:
       - "traefik.http.services.portainer.loadbalancer.server.port=9000"
-      - "traefik.http.routers.portainer.middlewares=secured@file"
-      - "traefik.http.routers.portainer.tls.certresolver=myresolver"
     restart: always
     volumes:
       - /volume1/docker/portainer:/data
@@ -58,8 +54,6 @@ services:
       - TZ=${TZ}
     labels:
       - "traefik.http.services.organizr.loadbalancer.server.port=80"
-      - "traefik.http.routers.organizr.tls.certresolver=myresolver"
-      - "traefik.http.routers.organizr.middlewares=secured@file"
       - "traefik.http.routers.organizr.rule=Host(`${DOMAIN_NAME_APPS}`)"
     restart: always
     volumes:
@@ -70,8 +64,6 @@ services:
     image: nginx
     labels:
       - "traefik.http.services.nginx.loadbalancer.server.port=80"
-      - "traefik.http.routers.nginx.tls.certresolver=myresolver"
-      - "traefik.http.routers.nginx.middlewares=secured@file"
       - "traefik.http.routers.nginx.rule=Host(`${DOMAIN_NAME_HOME}`)"
     restart: always
     volumes:
@@ -88,8 +80,6 @@ services:
     restart: unless-stopped
     labels:
       - "traefik.http.services.ombi.loadbalancer.server.port=3579"
-      - "traefik.http.routers.ombi.middlewares=secured@file"
-      - "traefik.http.routers.ombi.tls.certresolver=myresolver"
     volumes:
       - /volume1/docker/ombi:/config
 
@@ -101,8 +91,6 @@ services:
     restart: unless-stopped
     labels:
       - "traefik.http.services.homeassistant.loadbalancer.server.port=8123"
-      - "traefik.http.routers.homeassistant.middlewares=secured@file"
-      - "traefik.http.routers.homeassistant.tls.certresolver=myresolver"
     volumes:
       - /volume1/docker/homeassistant:/config
 
@@ -118,8 +106,6 @@ services:
     restart: unless-stopped
     labels:
       - "traefik.http.services.homebridge.loadbalancer.server.port=8581"
-      - "traefik.http.routers.homebridge.middlewares=secured@file"
-      - "traefik.http.routers.homebridge.tls.certresolver=myresolver"
     volumes:
       - /volume1/docker/homebridge:/homebridge
 
@@ -146,7 +132,6 @@ services:
       - PLEX_UID=${UID}
     labels:
       - "traefik.http.services.plex.loadbalancer.server.port=32400"
-      - "traefik.http.routers.plex.tls.certresolver=myresolver"
     restart: unless-stopped
     volumes:
       - /volume1/docker/plex/config:/config
@@ -167,8 +152,6 @@ services:
       - PUID=${UID}
     labels:
       - "traefik.http.services.sabnzbd.loadbalancer.server.port=8080"
-      - "traefik.http.routers.sabnzbd.middlewares=secured@file"
-      - "traefik.http.routers.sabnzbd.tls.certresolver=myresolver"
     restart: always
     volumes:
       - /volume1/docker/sabnzbd:/config
@@ -185,8 +168,6 @@ services:
       - TZ=${TZ}
     labels:
       - "traefik.http.services.transmission.loadbalancer.server.port=9091"
-      - "traefik.http.routers.transmission.middlewares=secured@file"
-      - "traefik.http.routers.transmission.tls.certresolver=myresolver"
     ports:
       - "51413:51413"
       - "51413:51413/udp"
@@ -205,8 +186,6 @@ services:
       - TZ=${TZ}
     labels:
       - "traefik.http.services.transmission-seeder.loadbalancer.server.port=9091"
-      - "traefik.http.routers.transmission-seeder.middlewares=secured@file"
-      - "traefik.http.routers.transmission-seeder.tls.certresolver=myresolver"
     ports:
       - "51414:51414"
       - "51414:51414/udp"
@@ -227,8 +206,6 @@ services:
       - PUID=${UID}
     labels:
       - "traefik.http.services.sonarr.loadbalancer.server.port=8989"
-      - "traefik.http.routers.sonarr.middlewares=secured@file"
-      - "traefik.http.routers.sonarr.tls.certresolver=myresolver"
     restart: unless-stopped
     volumes:
       - /volume1/docker/sonarr:/config
@@ -245,8 +222,6 @@ services:
       - TZ=${TZ}
     labels:
       - "traefik.http.services.radarr.loadbalancer.server.port=7878"
-      - "traefik.http.routers.radarr.middlewares=secured@file"
-      - "traefik.http.routers.radarr.tls.certresolver=myresolver"
     restart: unless-stopped
     volumes:
       - /volume1/docker/radarr:/config
@@ -263,8 +238,6 @@ services:
       - PUID=${UID}
     labels:
       - "traefik.http.services.bazarr.loadbalancer.server.port=6767"
-      - "traefik.http.routers.bazarr.middlewares=secured@file"
-      - "traefik.http.routers.bazarr.tls.certresolver=myresolver"
     restart: unless-stopped
     volumes:
       - /volume1/docker/bazarr:/config
@@ -280,8 +253,6 @@ services:
       - TZ=${TZ}
     labels:
       - "traefik.http.services.nzbhydra.loadbalancer.server.port=5076"
-      - "traefik.http.routers.nzbhydra.middlewares=secured@file"
-      - "traefik.http.routers.nzbhydra.tls.certresolver=myresolver"
     restart: unless-stopped
     volumes:
       - /volume1/docker/nzbhydra:/config
@@ -296,8 +267,6 @@ services:
       - TZ=${TZ}
     labels:
       - "traefik.http.services.jackett.loadbalancer.server.port=9117"
-      - "traefik.http.routers.jackett.middlewares=secured@file"
-      - "traefik.http.routers.jackett.tls.certresolver=myresolver"
     restart: unless-stopped
     volumes:
       - /volume1/docker/jackett:/config
