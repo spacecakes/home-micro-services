@@ -55,7 +55,7 @@ services:
     labels:
       - "traefik.http.services.organizr.loadbalancer.server.port=80"
       - "traefik.http.routers.organizr.rule=Host(`${DOMAIN_NAME_APPS}`)"
-    restart: always
+    restart: unless-stopped
     volumes:
       - /volume1/docker/organizr:/config
 
@@ -65,7 +65,7 @@ services:
     labels:
       - "traefik.http.services.nginx.loadbalancer.server.port=80"
       - "traefik.http.routers.nginx.rule=Host(`${DOMAIN_NAME_HOME}`)"
-    restart: always
+    restart: unless-stopped
     volumes:
       - /volume1/docker/nginx:/usr/share/nginx/html:ro
 
@@ -114,19 +114,10 @@ services:
     container_name: plex
     image: plexinc/pms-docker
     hostname: plex
-    ports:
-      - "32400:32400/tcp"
-      - "3005:3005/tcp"
-      - "8324:8324/tcp"
-      - "32469:32469/tcp"
-      #- "1900:1900/udp"
-      - "32410:32410/udp"
-      - "32412:32412/udp"
-      - "32413:32413/udp"
-      - "32414:32414/udp"
+    network_mode: host
     environment:
       - TZ="Europe/Stockholm"
-      - PLEX_CLAIM="claim-fvy-V1NtmeMssz53nvya"
+      - PLEX_CLAIM="${PLEX_CLAIM}"
       - ADVERTISE_IP="http://10.0.1.2:32400/""
       - PLEX_GID=${GID}
       - PLEX_UID=${UID}
