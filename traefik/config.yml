@@ -47,34 +47,21 @@ http:
       rule: 'Host(`pihole.{{env "DOMAIN_NAME_APPS"}}`)'
       middlewares:
         - addprefix-pihole
-        - secured
-      tls:
-        certResolver: myresolver
       service: pihole
 
     plex:
       rule: 'Host(`plex.{{env "DOMAIN_NAME_APPS"}}`)'
       middlewares:
-        - secured
-      tls:
-        certResolver: myresolver
-      service: pihole
+      service: plex
 
     synology:
       rule: 'Host(`dsm.{{env "DOMAIN_NAME_APPS"}}`)'
-      middlewares:
-        - secured
-      tls:
-        certResolver: myresolver
       service: synology
 
     unifi:
       rule: 'Host(`unifi.{{env "DOMAIN_NAME_APPS"}}`)'
       middlewares:
         - addprefix-unifi
-        - secured
-      tls:
-        certResolver: myresolver
       service: unifi
 
   services:
