@@ -187,6 +187,21 @@ services:
       - /volume1/docker/transmission-seeder:/config
 
   # Media management
+  handbrake:
+    container_name: handbrake
+    image: jlesage/handbrake
+    environment:
+      - GROUP_ID=${GID}
+      - GROUP_ID=${UID}
+      - TZ=${TZ}
+    labels:
+      - "traefik.http.services.handbrake.loadbalancer.server.port=5800"
+    volumes:
+      - "/volume1/docker/handbrake/config:/config:rw"
+      - "/volume1/docker/handbrake/storage:/storage:ro"
+      - "/volume1/docker/handbrake/watch:/watch:rw"
+      - "/volume1/docker/handbrake/output:/output:rw"
+
   sonarr:
     container_name: sonarr
     image: linuxserver/sonarr:latest
