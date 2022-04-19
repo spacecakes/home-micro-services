@@ -28,7 +28,7 @@ providers:
 certificatesResolvers:
   letsencrypt:
     acme:
-      storage: /acme.json
+      storage: /letsencrypt/acme-dns-01.json
       dnsChallenge:
         provider: joker
 
