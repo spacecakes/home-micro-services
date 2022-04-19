@@ -11,7 +11,7 @@ http:
     auth:
       basicauth:
         users:
-          - '{{env "AUTH_USERNAME"}}:{{env "AUTH_PASSWORD_HASH"}}'
+          - '{{env "BASIC_AUTH_USERNAME"}}:{{env "BASIC_AUTH_PASSWORD_HASH"}}'
 
     https-redirect:
       redirectScheme:

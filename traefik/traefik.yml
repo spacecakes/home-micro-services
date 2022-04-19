@@ -26,10 +26,16 @@ providers:
     watch: true
 
 certificatesResolvers:
+  letsencrypt:
+    acme:
+      storage: /acme.json
+      dnsChallenge:
+        provider: joker
+
   myresolver:
     acme:
-      tlschallenge: true
       storage: /letsencrypt/acme.json
+      tlschallenge: true
 
 serversTransport:
   insecureSkipVerify: true

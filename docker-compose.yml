@@ -19,8 +19,11 @@ services:
       - TRAEFIK_PILOT_TOKEN=${TRAEFIK_PILOT_TOKEN}
       - DOMAIN_NAME_APPS=${DOMAIN_NAME_APPS}
       - DOMAIN_NAME_HOME=${DOMAIN_NAME_HOME}
-      - AUTH_USERNAME=${AUTH_USERNAME}
-      - AUTH_PASSWORD_HASH=${AUTH_PASSWORD_HASH}
+      - BASIC_AUTH_USERNAME=${BASIC_AUTH_USERNAME}
+      - BASIC_AUTH_PASSWORD_HASH=${BASIC_AUTH_PASSWORD_HASH}
+      - JOKER_API_MODE=SVC
+      - JOKER_USERNAME=${JOKER_DDNS_USERNAME}
+      - JOKER_PASSWORD=${JOKER_DDNS_PASSWORD}
     volumes:
       - /volume1/docker/traefik/letsencrypt:/letsencrypt
       - /volume1/docker/traefik/traefik.yml:/traefik.yml
