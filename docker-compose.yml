@@ -168,7 +168,7 @@ services:
       - /volume1/downloads:/watch
       - /volume1/docker/transmission:/config
 
-  transmission-seeder:
+  transmission-seedbox:
     container_name: transmission-seedbox
     image: piec/transmission-magnet:latest
     environment:
