@@ -194,6 +194,7 @@ services:
       - GROUP_ID=${GID}
       - USER_ID=${UID}
       - TZ=${TZ}
+      - AUTOMATED_CONVERSION_KEEP_SOURCE=0
     labels:
       - "traefik.http.services.handbrake.loadbalancer.server.port=5800"
     volumes:
