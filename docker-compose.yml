@@ -126,11 +126,11 @@ services:
     restart: unless-stopped
     volumes:
       - /volume1/docker/plex/config:/config
-      - /volume1/docker/plex/transcode:/transcode
       - /volume1/media:/media
       - "/volume1/home video:/home video"
       - /volume1/music:/music
       - /volume1/video:/video
+      - /volume1/transcode/plex:/transcode
 
   # Downloaders
   sabnzbd:
