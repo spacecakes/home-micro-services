@@ -13,14 +13,19 @@ entryPoints:
     address: ":443"
     http:
       tls:
-        certResolver: myresolver
+        certResolver: letsencrypt
+        domains:
+          - main: "home.gabriellundmark.com"
+          - main: "apps.gabriellundmark.com"
+            sans:
+              - "*.apps.gabriellundmark.com"
       middlewares:
         - secured@file
 
 providers:
   docker:
     # Strip stack name and set default route to container name
-    defaultrule: 'Host(`{{ coalesce (index .Labels "com.docker.compose.service") (normalize .Name) }}.{{env "DOMAIN_NAME_APPS"}}`)'
+    defaultrule: 'Host(`{{ coalesce (index .Labels "com.docker.compose.service") (normalize .Name) }}.app.gabriellundmark.com`)'
   file:
     filename: /config.yml
     watch: true
@@ -28,14 +33,10 @@ providers:
 certificatesResolvers:
   letsencrypt:
     acme:
-      storage: /letsencrypt/acme-dns-01.json
+      email: g.lundmark@gmail.com
+      storage: /letsencrypt/acme.json
       dnsChallenge:
         provider: joker
-
-  myresolver:
-    acme:
-      storage: /letsencrypt/acme.json
-      tlschallenge: true
 
 serversTransport:
   insecureSkipVerify: true

@@ -15,10 +15,7 @@ services:
       - "traefik.http.services.traefik.loadbalancer.server.port=8080"
     restart: always
     environment:
-      - TRAEFIK_CERTIFICATESRESOLVERS_MYRESOLVER_ACME_EMAIL=${EMAIL}
       - TRAEFIK_PILOT_TOKEN=${TRAEFIK_PILOT_TOKEN}
-      - DOMAIN_NAME_APPS=${DOMAIN_NAME_APPS}
-      - DOMAIN_NAME_HOME=${DOMAIN_NAME_HOME}
       - BASIC_AUTH_USERNAME=${BASIC_AUTH_USERNAME}
       - BASIC_AUTH_PASSWORD_HASH=${BASIC_AUTH_PASSWORD_HASH}
       - JOKER_API_MODE=SVC
@@ -57,7 +54,7 @@ services:
       - TZ=${TZ}
     labels:
       - "traefik.http.services.organizr.loadbalancer.server.port=80"
-      - "traefik.http.routers.organizr.rule=Host(`${DOMAIN_NAME_APPS}`)"
+      - "traefik.http.routers.organizr.rule=Host(`app.gabriellundmark.com`)"
     restart: unless-stopped
     volumes:
       - /volume1/docker/organizr:/config
@@ -67,7 +64,7 @@ services:
     image: nginx
     labels:
       - "traefik.http.services.nginx.loadbalancer.server.port=80"
-      - "traefik.http.routers.nginx.rule=Host(`${DOMAIN_NAME_HOME}`)"
+      - "traefik.http.routers.nginx.rule=Host(`home.gabriellundmark.com`)"
     restart: unless-stopped
     volumes:
       - /volume1/docker/nginx:/usr/share/nginx/html:ro

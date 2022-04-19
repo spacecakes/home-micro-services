@@ -44,22 +44,22 @@ http:
   # External routes not on Docker network
   routers:
     pihole:
-      rule: 'Host(`pihole.{{env "DOMAIN_NAME_APPS"}}`)'
+      rule: "Host(`pihole.app.gabriellundmark.com`)"
       middlewares:
         - addprefix-pihole
       service: pihole
 
     plex:
-      rule: 'Host(`plex.{{env "DOMAIN_NAME_APPS"}}`)'
+      rule: "Host(`plex.app.gabriellundmark.com`)"
       middlewares:
       service: plex
 
     synology:
-      rule: 'Host(`dsm.{{env "DOMAIN_NAME_APPS"}}`)'
+      rule: "Host(`dsm.app.gabriellundmark.com`)"
       service: synology
 
     unifi:
-      rule: 'Host(`unifi.{{env "DOMAIN_NAME_APPS"}}`)'
+      rule: "Host(`unifi.app.gabriellundmark.com`)"
       middlewares:
         - addprefix-unifi
       service: unifi
