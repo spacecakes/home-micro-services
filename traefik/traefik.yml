@@ -16,9 +16,9 @@ entryPoints:
         certResolver: letsencrypt
         domains:
           - main: "home.gabriellundmark.com"
-          - main: "apps.gabriellundmark.com"
+          - main: "app.gabriellundmark.com"
             sans:
-              - "*.apps.gabriellundmark.com"
+              - "*.app.gabriellundmark.com"
       middlewares:
         - secured@file
 
