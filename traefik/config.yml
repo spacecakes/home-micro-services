@@ -49,11 +49,6 @@ http:
         - addprefix-pihole
       service: pihole
 
-    plex:
-      rule: "Host(`plex.app.gabriellundmark.com`)"
-      middlewares:
-      service: plex
-
     synology:
       rule: "Host(`dsm.app.gabriellundmark.com`)"
       service: synology
@@ -69,12 +64,6 @@ http:
       loadBalancer:
         servers:
           - url: "http://10.0.1.3:80"
-        passHostHeader: true
-
-    plex:
-      loadBalancer:
-        servers:
-          - url: "http://172.17.0.1:32400"
         passHostHeader: true
 
     synology:
