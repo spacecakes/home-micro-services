@@ -195,7 +195,7 @@ services:
     image: jlesage/handbrake
     environment:
       - GROUP_ID=${GID}
-      - GROUP_ID=${UID}
+      - USER_ID=${UID}
       - TZ=${TZ}
     labels:
       - "traefik.http.services.handbrake.loadbalancer.server.port=5800"
