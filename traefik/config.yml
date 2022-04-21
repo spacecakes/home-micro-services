@@ -4,10 +4,6 @@ http:
       addPrefix:
         prefix: "/admin"
 
-    addprefix-unifi:
-      addPrefix:
-        prefix: "/login?redirect=%2F"
-
     auth:
       basicauth:
         users:
@@ -55,8 +51,6 @@ http:
 
     unifi:
       rule: "Host(`unifi.app.gabriellundmark.com`)"
-      middlewares:
-        - addprefix-unifi
       service: unifi
 
   services:
