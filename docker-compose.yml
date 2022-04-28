@@ -67,7 +67,7 @@ services:
       - "traefik.http.routers.nginx.rule=Host(`home.gabriellundmark.com`)"
     restart: unless-stopped
     volumes:
-      - /volume1/docker/nginx:/usr/share/nginx/html:ro
+      - /volume1/web:/usr/share/nginx/html:ro
 
   ombi:
     container_name: ombi
