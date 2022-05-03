@@ -93,6 +93,8 @@ services:
       - "traefik.http.services.homeassistant.loadbalancer.server.port=8123"
     volumes:
       - /volume1/docker/homeassistant:/config
+    devices:
+      - /dev/ttyUSB0:/dev/ttyUSB0
 
   homebridge:
     container_name: homebridge
