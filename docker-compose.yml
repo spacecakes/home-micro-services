@@ -169,24 +169,7 @@ services:
       - /volume1/media/downloads:/downloads
       - /volume1/downloads:/watch
       - /volume1/docker/transmission:/config
-
-  transmission-seedbox:
-    container_name: transmission-seedbox
-    image: piec/transmission-magnet:latest
-    environment:
-      - PGID=${GID}
-      - PUID=${UID}
-      - TZ=${TZ}
-    labels:
-      - "traefik.http.services.transmission-seedbox.loadbalancer.server.port=9091"
-    ports:
-      - "51414:51413"
-      - "51414:51413/udp"
-    restart: unless-stopped
-    volumes:
-      - /volume1/seeding:/downloads
-      - /volume1/seeding:/watch
-      - /volume1/docker/transmission-seedbox:/config
+      - /volume1/seeding:/seeding
 
   # Media management
   handbrake:
