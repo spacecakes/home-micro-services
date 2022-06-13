@@ -204,6 +204,20 @@ services:
       - /volume1/downloads:/downloads
       - /volume1/media:/media
 
+  prowlarr:
+    container_name: prowlarr
+    image: linuxserver/prowlarr:develop
+    hostname: prowlarr
+    environment:
+      - PGID=${GID}
+      - PUID=${UID}
+      - TZ=${TZ}
+    labels:
+      - "traefik.http.services.prowlarr.loadbalancer.server.port=9696"
+    restart: unless-stopped
+    volumes:
+      - /volume1/docker/prowlarr:/config
+
   radarr:
     container_name: radarr
     image: linuxserver/radarr:latest
