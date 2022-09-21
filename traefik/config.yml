@@ -69,5 +69,5 @@ http:
     unifi:
       loadBalancer:
         servers:
-          - url: "http://10.0.1.1"
+          - url: "https://10.0.1.1"
         passHostHeader: true
