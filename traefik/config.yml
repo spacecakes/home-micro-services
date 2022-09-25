@@ -22,7 +22,6 @@ http:
         forceSTSHeader: true
         stsIncludeSubdomains: true
         stsPreload: true
-        # STSSeconds: "315360000"
 
     default-whitelist:
       ipWhiteList:
