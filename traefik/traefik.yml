@@ -2,6 +2,17 @@ api:
   dashboard: true
   insecure: true
 
+experimental:
+  hub: true
+
+hub:
+  tls:
+    insecure: true
+
+metrics:
+  prometheus:
+    addRoutersLabels: true
+
 entryPoints:
   web:
     address: ":80"
