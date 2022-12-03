@@ -249,6 +249,22 @@ services:
       - /volume1/downloads:/downloads
       - /volume1/media:/media
 
+  readarr:
+    container_name: readarr
+    image: linuxserver/readarr:develop
+    hostname: readarr
+    environment:
+      - TZ=${TZ}
+      - PGID=${GID}
+      - PUID=${UID}
+    labels:
+      - "traefik.http.services.readarr.loadbalancer.server.port=8787"
+    restart: unless-stopped
+    volumes:
+      - /volume1/docker/readarr:/config
+      - /volume1/downloads:/downloads
+      - /volume1/media:/media
+
   bazarr:
     container_name: bazarr
     image: linuxserver/bazarr:latest
