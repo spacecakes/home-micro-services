@@ -36,8 +36,8 @@ http:
           - default-whitelist
           - default-headers
 
-  # External routes not on Docker network
   routers:
+    # Apps that are not containerized
     pihole:
       rule: "Host(`pihole.app.gabriellundmark.com`)"
       middlewares:
