@@ -106,7 +106,6 @@ services:
     restart: unless-stopped
     labels:
       - "traefik.http.services.homeassistant.loadbalancer.server.port=8123"
-      - "traefik.http.routers.homeassistant.rule=Host(`homeassistant.app.gabriellundmark.com`) || Host(`homeassistant.gabriellundmark.com`)"
     volumes:
       - /volume1/docker/homeassistant:/config
     devices:
@@ -141,7 +140,6 @@ services:
       - PLEX_UID=${UID}
     labels:
       - "traefik.http.services.plex.loadbalancer.server.port=32400"
-      - "traefik.http.routers.plex.rule=Host(`plex.app.gabriellundmark.com`) || Host(`plex.gabriellundmark.com`)"
 
     restart: unless-stopped
     volumes:
