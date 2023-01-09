@@ -184,7 +184,8 @@ services:
       - "51413:51413/udp"
     restart: unless-stopped
     volumes:
-      - /volume1/media/downloads:/downloads
+      - /volume1/downloads:/downloads
+      - /volume1/media:/media
       - /volume1/downloads:/watch
       - /volume1/docker/transmission:/config
       - /volume1/seeding:/seeding
