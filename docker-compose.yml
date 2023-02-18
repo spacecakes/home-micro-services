@@ -129,6 +129,20 @@ services:
       - /volume1/docker/homebridge:/homebridge
 
   # Media servers
+  roonserver:
+    image: steefdebruijn/docker-roonserver:latest
+    container_name: roonserver
+    hostname: roonserver
+    network_mode: host
+    environment:
+      TZ: "Europe/Stockholm"
+    volumes:
+      - /volume1/docker/roon/app:/app
+      - /volume1/docker/roon/data:/data
+      - /volume1/docker/roon/backup:/backup
+      - /volume1/music:/music
+    restart: always
+
   plex:
     container_name: plex
     image: plexinc/pms-docker
