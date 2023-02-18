@@ -142,6 +142,8 @@ services:
       - /volume1/docker/roon/backup:/backup
       - /volume1/music:/music
     restart: always
+    labels:
+      - "traefik.enable=false"
 
   plex:
     container_name: plex
