@@ -129,10 +129,10 @@ services:
       - /volume1/docker/homebridge:/homebridge
 
   # Media servers
-  roonserver:
+  roon:
     image: steefdebruijn/docker-roonserver:latest
-    container_name: roonserver
-    hostname: roonserver
+    container_name: roon
+    hostname: roon
     network_mode: host
     environment:
       TZ: "Europe/Stockholm"
@@ -143,7 +143,7 @@ services:
       - /volume1/music:/music
     restart: always
     labels:
-      - "traefik.enable=false"
+      - "traefik.http.services.roon.loadbalancer.server.port=9330"
 
   plex:
     container_name: plex
