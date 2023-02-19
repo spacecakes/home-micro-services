@@ -110,6 +110,7 @@ services:
       - "traefik.http.services.homeassistant.loadbalancer.server.port=8123"
     volumes:
       - /volume1/docker/homeassistant:/config
+      - /volume1/music:/music
     devices:
       - /dev/ttyUSB0:/dev/ttyUSB0
 
