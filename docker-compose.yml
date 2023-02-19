@@ -144,6 +144,7 @@ services:
     restart: always
     labels:
       - "traefik.http.services.roon.loadbalancer.server.port=9330"
+      - "traefik.http.middlewares.roon.addprefix.prefix=/display"
 
   plex:
     container_name: plex
