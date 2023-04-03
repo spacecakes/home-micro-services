@@ -27,7 +27,7 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
 
   traefik-hub-agent:
-    image: ghcr.io/traefik/hub-agent-traefik:v0.8.0
+    image: ghcr.io/traefik/hub-agent-traefik:experimental
     pull_policy: always
     container_name: traefik-hub-agent
     restart: "on-failure"
