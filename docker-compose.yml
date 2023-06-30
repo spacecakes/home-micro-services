@@ -26,22 +26,6 @@ services:
       - /volume1/docker/traefik/config.yml:/config.yml
       - /var/run/docker.sock:/var/run/docker.sock
 
-  traefik-hub-agent:
-    image: ghcr.io/traefik/hub-agent-traefik:experimental
-    pull_policy: always
-    container_name: traefik-hub-agent
-    restart: "on-failure"
-    command:
-      - run
-      - --hub.token=${TRAEFIK_HUB_TOKEN}
-      - --auth-server.advertise-url=http://hub-agent
-      - --traefik.host=traefik
-      - --traefik.tls.insecure=true
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-    depends_on:
-      - traefik
-
   portainer:
     container_name: portainer
     image: portainer/portainer-ce:latest

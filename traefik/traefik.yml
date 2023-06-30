@@ -2,36 +2,29 @@ api:
   dashboard: true
   insecure: true
 
-experimental:
-  hub: true
-
-hub:
-  tls:
-    insecure: true
-
 metrics:
   prometheus:
     addRoutersLabels: true
 
 entryPoints:
   web:
-    address: ":80"
+    address: ':80'
     http:
       redirections:
         entrypoint:
           to: websecure
   websecure:
-    address: ":443"
+    address: ':443'
     http:
       tls:
         certResolver: letsencrypt
         domains:
-          - main: "home.gabriellundmark.com"
-          - main: "homeassistant.gabriellundmark.com"
-          - main: "plex.gabriellundmark.com"
-          - main: "app.gabriellundmark.com"
+          - main: 'home.gabriellundmark.com'
+          - main: 'homeassistant.gabriellundmark.com'
+          - main: 'plex.gabriellundmark.com'
+          - main: 'app.gabriellundmark.com'
             sans:
-              - "*.app.gabriellundmark.com"
+              - '*.app.gabriellundmark.com'
       middlewares:
         - secured@file
 
