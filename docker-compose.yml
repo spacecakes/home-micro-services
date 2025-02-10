@@ -90,6 +90,8 @@ services:
     ports:
       - 53:53/tcp
       - 53:53/udp
+    labels:
+      - "traefik.http.services.adguardhome.loadbalancer.server.port=80"
     volumes:
       - /volume1/docker/adguardhome/work:/opt/adguardhome/work
       - /volume1/docker/adguardhome/config:/opt/adguardhome/conf
