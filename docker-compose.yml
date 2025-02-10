@@ -84,6 +84,17 @@ services:
     volumes:
       - /volume1/docker/ombi:/config
 
+  adguardhome:
+    container_name: adguardhome
+    image: adguard/adguardhome
+    ports:
+      - 53:53/tcp
+      - 53:53/udp
+    volumes:
+      - /volume1/docker/adguardhome/work:/opt/adguardhome/work
+      - /volume1/docker/adguardhome/config:/opt/adguardhome/conf
+    restart: unless-stopped
+
   # Home automation
   homeassistant:
     container_name: homeassistant
