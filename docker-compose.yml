@@ -111,39 +111,7 @@ services:
     devices:
       - /dev/ttyUSB0:/dev/ttyUSB0
 
-  homebridge:
-    container_name: homebridge
-    hostname: homebridge
-    image: oznu/homebridge:latest
-    environment:
-      - HOMEBRIDGE_CONFIG_UI=1
-      - HOMEBRIDGE_CONFIG_UI_PORT=8581
-      - TZ=${TZ}
-    network_mode: host
-    restart: unless-stopped
-    labels:
-      - "traefik.http.services.homebridge.loadbalancer.server.port=8581"
-    volumes:
-      - /volume1/docker/homebridge:/homebridge
-
   # Media servers
-  roon:
-    image: steefdebruijn/docker-roonserver:latest
-    container_name: roon
-    hostname: roon
-    network_mode: host
-    environment:
-      TZ: "Europe/Stockholm"
-    volumes:
-      - /volume1/docker/roon/app:/app
-      - /volume1/docker/roon/data:/data
-      - /volume1/docker/roon/backup:/backup
-      - /volume1/music:/music
-    restart: unless-stopped
-    labels:
-      - "traefik.http.services.roon.loadbalancer.server.port=9330"
-      - "traefik.http.middlewares.roon.addprefix.prefix=/display"
-
   plex:
     container_name: plex
     image: plexinc/pms-docker
