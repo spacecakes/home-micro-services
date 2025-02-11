@@ -87,11 +87,12 @@ services:
   adguardhome:
     container_name: adguardhome
     image: adguard/adguardhome
-    ports:
-      - 53:53/tcp
-      - 53:53/udp
+    # ports:
+    #   - 53:53/tcp
+    #   - 53:53/udp
+    network_mode: host
     labels:
-      - "traefik.http.services.adguardhome.loadbalancer.server.port=80"
+      - "traefik.http.services.adguardhome.loadbalancer.server.port=3000"
     volumes:
       - /volume1/docker/adguardhome/work:/opt/adguardhome/work
       - /volume1/docker/adguardhome/config:/opt/adguardhome/conf
