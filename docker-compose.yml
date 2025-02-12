@@ -178,6 +178,7 @@ services:
   handbrake:
     container_name: handbrake
     image: jlesage/handbrake
+    restart: 'no'
     environment:
       - GROUP_ID=${GID}
       - USER_ID=${UID}
