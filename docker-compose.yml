@@ -39,7 +39,7 @@ services:
   watchtower:
     container_name: watchtower
     image: containrrr/watchtower:latest
-    restart: unless-stopped
+    restart: 'no'
     environment:
       - WATCHTOWER_CLEANUP=true
     labels:
