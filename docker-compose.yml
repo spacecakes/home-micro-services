@@ -13,6 +13,7 @@ services:
       - "80:80"
     labels:
       - "traefik.http.services.traefik.loadbalancer.server.port=8080"
+      - "traefik.http.routers.traefik.rule=Host(`traefik.app.gabriellundmark.com`)" # Pin URL so it works while playing around with defaultRule
     restart: always
     environment:
       - BASIC_AUTH_USERNAME=${BASIC_AUTH_USERNAME}
