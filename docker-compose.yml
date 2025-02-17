@@ -21,8 +21,8 @@ services:
       - JOKER_PASSWORD=${JOKER_DDNS_PASSWORD}
     volumes:
       - /volume1/docker/traefik/letsencrypt:/letsencrypt
-      - /volume1/docker/traefik/traefik.yml:/traefik.yml
-      - /volume1/docker/traefik/dynamic.yml:/dynamic.yml
+      - /volume1/docker/home-micro-services/traefik/traefik.yml:/traefik.yml
+      - /volume1/docker/home-micro-services/traefik/dynamic.yml:/dynamic.yml
       - /var/run/docker.sock:/var/run/docker.sock
 
   portainer:
