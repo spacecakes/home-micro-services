@@ -1,9 +1,5 @@
 http:
   middlewares:
-    addprefix-pihole:
-      addPrefix:
-        prefix: '/admin'
-
     auth:
       basicauth:
         users:
@@ -38,12 +34,6 @@ http:
 
   routers:
     # Apps that are not containerized
-    pihole:
-      rule: 'Host(`pihole.app.gabriellundmark.com`)'
-      middlewares:
-        - addprefix-pihole
-      service: pihole
-
     synology:
       rule: 'Host(`dsm.app.gabriellundmark.com`)'
       service: synology
@@ -53,12 +43,6 @@ http:
       service: unifi
 
   services:
-    pihole:
-      loadBalancer:
-        servers:
-          - url: 'http://10.0.1.3:80'
-        passHostHeader: true
-
     synology:
       loadBalancer:
         servers:
