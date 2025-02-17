@@ -47,18 +47,33 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
 
-  organizr:
-    container_name: organizr
-    image: organizr/organizr:latest
-    hostname: organizr
+  # organizr:
+  #   container_name: organizr
+  #   image: organizr/organizr:latest
+  #   hostname: organizr
+  #   environment:
+  #     - TZ=${TZ}
+  #   labels:
+  #     - "traefik.http.services.organizr.loadbalancer.server.port=80"
+  #     - "traefik.http.routers.organizr.rule=Host(`app.gabriellundmark.com`)"
+  #   restart: unless-stopped
+  #   volumes:
+  #     - /volume1/docker/organizr:/config
+
+  homepage:
+    image: ghcr.io/gethomepage/homepage:latest
+    container_name: homepage
+    restart: unless-stopped
     environment:
+      - PGID=${GID}
+      - PUID=${UID}
       - TZ=${TZ}
     labels:
-      - "traefik.http.services.organizr.loadbalancer.server.port=80"
-      - "traefik.http.routers.organizr.rule=Host(`app.gabriellundmark.com`)"
-    restart: unless-stopped
+      - "traefik.http.services.homepage.loadbalancer.server.port=3000"
+      - "traefik.http.routers.homepage.rule=Host(`app.gabriellundmark.com`)"
     volumes:
-      - /volume1/docker/organizr:/config
+      - /volume1/docker/homepage:/config
+      - /var/run/docker.sock:/var/run/docker.sock
 
   nginx:
     container_name: nginx
