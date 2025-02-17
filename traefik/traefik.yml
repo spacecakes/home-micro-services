@@ -33,7 +33,7 @@ providers:
     # Strip stack name and set default route to service.app.gabriellundmark.com
     defaultRule: 'Host(`{{ coalesce (index .Labels "com.docker.compose.service") (normalize .Name) }}.app.gabriellundmark.com`)'
   file:
-    filename: /config.yml
+    filename: /dynamic.yml
     watch: true
 
 certificatesResolvers:
