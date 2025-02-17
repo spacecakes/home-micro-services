@@ -58,11 +58,6 @@ services:
     labels:
       - "traefik.http.services.homepage.loadbalancer.server.port=3000"
       - "traefik.http.routers.homepage.rule=Host(`app.gabriellundmark.com`)"
-      - homepage.group=Media
-      - homepage.name=Plex
-      - homepage.icon=plex.png
-      - homepage.href=https://plex.app.gabriellundmark.com/
-      - homepage.description=Media server
     volumes:
       - /volume1/docker/homepage/config:/config
       - /volume1/docker/homepage/images:/app/public/images
@@ -131,7 +126,6 @@ services:
       - PLEX_UID=${UID}
     labels:
       - "traefik.http.services.plex.loadbalancer.server.port=32400"
-
     restart: unless-stopped
     volumes:
       - /volume1/docker/plex:/config
