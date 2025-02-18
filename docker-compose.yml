@@ -285,14 +285,3 @@ services:
       - /volume1/downloads:/downloads
       - /volume1/media:/media
 
-  jackett:
-    container_name: jackett
-    image: linuxserver/jackett:latest
-    hostname: jackett
-    environment:
-      - TZ=${TZ}
-    labels:
-      - "traefik.http.services.jackett.loadbalancer.server.port=9117"
-    restart: unless-stopped
-    volumes:
-      - /volume1/docker/jackett:/config
