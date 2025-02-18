@@ -62,7 +62,7 @@ services:
       - /volume1/docker/homepage/config:/config
       - /volume1/docker/homepage/images:/app/public/images
       - /volume1/docker/homepage/icons:/app/public/icons
-      - /var/run/docker.sock:/var/run/docker.sock
+      - /var/run/docker.sock:/var/run/docker.sock:ro
     depends_on:
       - traefik
 
