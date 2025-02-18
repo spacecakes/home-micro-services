@@ -1,4 +1,4 @@
-version: "3.9"
+version: '3.9'
 
 services:
   # Server tools
@@ -6,12 +6,12 @@ services:
     container_name: traefik
     image: traefik:3.3.3
     extra_hosts:
-      - "host.docker.internal:172.17.0.1"
+      - 'host.docker.internal:172.17.0.1'
     ports:
-      - "443:443"
-      - "80:80"
+      - '443:443'
+      - '80:80'
     labels:
-      - "traefik.http.services.traefik.loadbalancer.server.port=8080"
+      - 'traefik.http.services.traefik.loadbalancer.server.port=8080'
     restart: always
     environment:
       - BASIC_AUTH_USERNAME=${BASIC_AUTH_USERNAME}
@@ -29,11 +29,13 @@ services:
     container_name: portainer
     image: portainer/portainer-ce:latest
     labels:
-      - "traefik.http.services.portainer.loadbalancer.server.port=9000"
+      - 'traefik.http.services.portainer.loadbalancer.server.port=9000'
     restart: always
     volumes:
       - /volume1/docker/portainer:/data
       - /var/run/docker.sock:/var/run/docker.sock
+    depends_on:
+      - traefik
 
   watchtower:
     container_name: watchtower
@@ -42,10 +44,9 @@ services:
     environment:
       - WATCHTOWER_CLEANUP=true
     labels:
-      - "traefik.enable=false"
+      - 'traefik.enable=false'
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-
 
   homepage:
     image: ghcr.io/gethomepage/homepage:latest
@@ -56,20 +57,22 @@ services:
       - PUID=${UID}
       - TZ=${TZ}
     labels:
-      - "traefik.http.services.homepage.loadbalancer.server.port=3000"
-      - "traefik.http.routers.homepage.rule=Host(`app.gabriellundmark.com`)"
+      - 'traefik.http.services.homepage.loadbalancer.server.port=3000'
+      - 'traefik.http.routers.homepage.rule=Host(`app.gabriellundmark.com`)'
     volumes:
       - /volume1/docker/homepage/config:/config
       - /volume1/docker/homepage/images:/app/public/images
       - /volume1/docker/homepage/icons:/app/public/icons
       - /var/run/docker.sock:/var/run/docker.sock
+    depends_on:
+      - traefik
 
   nginx:
     container_name: nginx
     image: nginx
     labels:
-      - "traefik.http.services.nginx.loadbalancer.server.port=80"
-      - "traefik.http.routers.nginx.rule=Host(`home.gabriellundmark.com`)"
+      - 'traefik.http.services.nginx.loadbalancer.server.port=80'
+      - 'traefik.http.routers.nginx.rule=Host(`home.gabriellundmark.com`)'
     restart: unless-stopped
     volumes:
       - /volume1/web:/usr/share/nginx/html:ro
@@ -84,20 +87,24 @@ services:
       - TZ=${TZ}
     restart: unless-stopped
     labels:
-      - "traefik.http.services.ombi.loadbalancer.server.port=3579"
+      - 'traefik.http.services.ombi.loadbalancer.server.port=3579'
     volumes:
       - /volume1/docker/ombi:/config
+    depends_on:
+      - traefik
 
   adguardhome:
     container_name: adguardhome
     image: adguard/adguardhome
     network_mode: host
     labels:
-      - "traefik.http.services.adguardhome.loadbalancer.server.port=3000"
+      - 'traefik.http.services.adguardhome.loadbalancer.server.port=3000'
     volumes:
       - /volume1/docker/adguardhome/work:/opt/adguardhome/work
       - /volume1/docker/adguardhome/config:/opt/adguardhome/conf
     restart: unless-stopped
+    depends_on:
+      - traefik
 
   # Home automation
   homeassistant:
@@ -106,12 +113,14 @@ services:
     network_mode: host
     restart: unless-stopped
     labels:
-      - "traefik.http.services.homeassistant.loadbalancer.server.port=8123"
+      - 'traefik.http.services.homeassistant.loadbalancer.server.port=8123'
     volumes:
       - /volume1/docker/homeassistant:/config
       - /volume1/music:/music
     devices:
       - /dev/ttyUSB0:/dev/ttyUSB0
+    depends_on:
+      - traefik
 
   # Media servers
   plex:
@@ -126,17 +135,18 @@ services:
       - PLEX_GID=${GID}
       - PLEX_UID=${UID}
     labels:
-      - "traefik.http.services.plex.loadbalancer.server.port=32400"
+      - 'traefik.http.services.plex.loadbalancer.server.port=32400'
     restart: unless-stopped
     volumes:
       - /volume1/docker/plex:/config
       - /volume1/media:/media
-      - "/volume1/home video:/home video"
+      - '/volume1/home video:/home video'
       - /volume1/music:/music
       - /volume1/video:/video
       - /volume1/transcode/plex:/transcode
+    depends_on:
+      - traefik
 
-  # Downloaders
   sabnzbd:
     container_name: sabnzbd
     image: linuxserver/sabnzbd:latest
@@ -146,12 +156,14 @@ services:
       - PGID=${GID}
       - PUID=${UID}
     labels:
-      - "traefik.http.services.sabnzbd.loadbalancer.server.port=8080"
+      - 'traefik.http.services.sabnzbd.loadbalancer.server.port=8080'
     restart: always
     volumes:
       - /volume1/docker/sabnzbd:/config
       - /volume1/downloads:/downloads
       - /volume1/media:/media
+    depends_on:
+      - traefik
 
   transmission:
     container_name: transmission
@@ -162,10 +174,10 @@ services:
       - PUID=${UID}
       - TZ=${TZ}
     labels:
-      - "traefik.http.services.transmission.loadbalancer.server.port=9091"
+      - 'traefik.http.services.transmission.loadbalancer.server.port=9091'
     ports:
-      - "51413:51413"
-      - "51413:51413/udp"
+      - '51413:51413'
+      - '51413:51413/udp'
     restart: unless-stopped
     volumes:
       - /volume1/downloads:/downloads
@@ -173,8 +185,9 @@ services:
       - /volume1/downloads:/watch
       - /volume1/docker/transmission:/config
       - /volume1/seeding:/seeding
+    depends_on:
+      - traefik
 
-  # Media management
   handbrake:
     container_name: handbrake
     image: jlesage/handbrake
@@ -185,12 +198,14 @@ services:
       - TZ=${TZ}
       - AUTOMATED_CONVERSION_KEEP_SOURCE=0
     labels:
-      - "traefik.http.services.handbrake.loadbalancer.server.port=5800"
+      - 'traefik.http.services.handbrake.loadbalancer.server.port=5800'
     volumes:
-      - "/volume1/docker/handbrake:/config:rw"
-      - "/volume1/media:/storage:ro"
-      - "/volume1/transcode/watch:/watch:rw"
-      - "/volume1/transcode/output:/output:rw"
+      - '/volume1/docker/handbrake:/config:rw'
+      - '/volume1/media:/storage:ro'
+      - '/volume1/transcode/watch:/watch:rw'
+      - '/volume1/transcode/output:/output:rw'
+    depends_on:
+      - traefik
 
   sonarr:
     container_name: sonarr
@@ -201,26 +216,18 @@ services:
       - PGID=${GID}
       - PUID=${UID}
     labels:
-      - "traefik.http.services.sonarr.loadbalancer.server.port=8989"
+      - 'traefik.http.services.sonarr.loadbalancer.server.port=8989'
     restart: unless-stopped
     volumes:
       - /volume1/docker/sonarr:/config
       - /volume1/downloads:/downloads
       - /volume1/media:/media
-
-  prowlarr:
-    container_name: prowlarr
-    image: linuxserver/prowlarr:develop
-    hostname: prowlarr
-    environment:
-      - PGID=${GID}
-      - PUID=${UID}
-      - TZ=${TZ}
-    labels:
-      - "traefik.http.services.prowlarr.loadbalancer.server.port=9696"
-    restart: unless-stopped
-    volumes:
-      - /volume1/docker/prowlarr:/config
+    depends_on:
+      - traefik
+      - prowlarr
+      - nzbhydra
+      - sabnzbd
+      - transmission
 
   radarr:
     container_name: radarr
@@ -231,12 +238,18 @@ services:
       - PUID=${UID}
       - TZ=${TZ}
     labels:
-      - "traefik.http.services.radarr.loadbalancer.server.port=7878"
+      - 'traefik.http.services.radarr.loadbalancer.server.port=7878'
     restart: unless-stopped
     volumes:
       - /volume1/docker/radarr:/config
       - /volume1/downloads:/downloads
       - /volume1/media:/media
+    depends_on:
+      - traefik
+      - prowlarr
+      - nzbhydra
+      - sabnzbd
+      - transmission
 
   readarr:
     container_name: readarr
@@ -247,12 +260,18 @@ services:
       - PGID=${GID}
       - PUID=${UID}
     labels:
-      - "traefik.http.services.readarr.loadbalancer.server.port=8787"
+      - 'traefik.http.services.readarr.loadbalancer.server.port=8787'
     restart: unless-stopped
     volumes:
       - /volume1/docker/readarr:/config
       - /volume1/downloads:/downloads
       - /volume1/media:/media
+    depends_on:
+      - traefik
+      - prowlarr
+      - nzbhydra
+      - sabnzbd
+      - transmission
 
   bazarr:
     container_name: bazarr
@@ -263,11 +282,13 @@ services:
       - PGID=${GID}
       - PUID=${UID}
     labels:
-      - "traefik.http.services.bazarr.loadbalancer.server.port=6767"
+      - 'traefik.http.services.bazarr.loadbalancer.server.port=6767'
     restart: unless-stopped
     volumes:
       - /volume1/docker/bazarr:/config
       - /volume1/media:/media
+    depends_on:
+      - traefik
 
   nzbhydra:
     container_name: nzbhydra
@@ -278,10 +299,27 @@ services:
       - PUID=${UID}
       - TZ=${TZ}
     labels:
-      - "traefik.http.services.nzbhydra.loadbalancer.server.port=5076"
+      - 'traefik.http.services.nzbhydra.loadbalancer.server.port=5076'
     restart: unless-stopped
     volumes:
       - /volume1/docker/nzbhydra:/config
       - /volume1/downloads:/downloads
       - /volume1/media:/media
+    depends_on:
+      - traefik
 
+  prowlarr:
+    container_name: prowlarr
+    image: linuxserver/prowlarr:develop
+    hostname: prowlarr
+    environment:
+      - PGID=${GID}
+      - PUID=${UID}
+      - TZ=${TZ}
+    labels:
+      - 'traefik.http.services.prowlarr.loadbalancer.server.port=9696'
+    restart: unless-stopped
+    volumes:
+      - /volume1/docker/prowlarr:/config
+    depends_on:
+      - traefik
