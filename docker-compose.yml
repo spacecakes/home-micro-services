@@ -12,6 +12,7 @@ services:
       - '80:80'
     labels:
       - 'traefik.http.services.traefik.loadbalancer.server.port=8080'
+      - 'com.centurylinklabs.watchtower.enable=false'
     restart: always
     environment:
       - BASIC_AUTH_USERNAME=${BASIC_AUTH_USERNAME}
@@ -30,6 +31,7 @@ services:
     image: portainer/portainer-ce:latest
     labels:
       - 'traefik.http.services.portainer.loadbalancer.server.port=9000'
+      - 'com.centurylinklabs.watchtower.enable=false'
     restart: always
     volumes:
       - /volume1/docker/portainer:/data
@@ -58,6 +60,7 @@ services:
     labels:
       - 'traefik.http.services.homepage.loadbalancer.server.port=3000'
       - 'traefik.http.routers.homepage.rule=Host(`app.gabriellundmark.com`)'
+      - 'com.centurylinklabs.watchtower.enable=false'
     volumes:
       - /volume1/docker/homepage/config:/config
       - /volume1/docker/homepage/images:/app/public/images
@@ -98,6 +101,7 @@ services:
     network_mode: host
     labels:
       - 'traefik.http.services.adguardhome.loadbalancer.server.port=3000'
+      - 'com.centurylinklabs.watchtower.enable=false'
     volumes:
       - /volume1/docker/adguardhome/work:/opt/adguardhome/work
       - /volume1/docker/adguardhome/config:/opt/adguardhome/conf
@@ -113,6 +117,7 @@ services:
     restart: unless-stopped
     labels:
       - 'traefik.http.services.homeassistant.loadbalancer.server.port=8123'
+      - 'com.centurylinklabs.watchtower.enable=false'
     volumes:
       - /volume1/docker/homeassistant:/config
       - /volume1/music:/music
