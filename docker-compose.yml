@@ -81,6 +81,7 @@ services:
       - /volume1/docker/homepage/icons:/app/public/icons
     depends_on:
       - traefik
+      - dockerproxy
 
   nginx:
     container_name: nginx
