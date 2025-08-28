@@ -123,6 +123,33 @@ services:
     depends_on:
       - traefik
 
+  icloudpd:
+    image: icloudpd/icloudpd:latest
+    container_name: icloudpd
+    environment:
+      - UID=${UID}
+      - GID=${GID}
+      - TZ=${TZ}
+    volumes:
+      - /volume1/docker/icloudpd:/config
+      - /volume1/photos/icloud:/data
+    restart: 'unless-stopped'
+    command:
+      - icloudpd
+      - --directory
+      - /data
+      - --cookie-directory
+      - /config
+      - --username
+      - ${APPLE_ID}
+      - --password-provider
+      - webui
+      - --mfa-provider
+      - webui
+      - --watch-with-interval
+      - '3600'
+      - --auto-delete
+
   # Home automation
   homeassistant:
     container_name: homeassistant
