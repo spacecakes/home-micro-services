@@ -132,7 +132,7 @@ services:
       - TZ=${TZ}
     volumes:
       - /volume1/docker/icloudpd:/config
-      - /volume1/photos/icloud:/data
+      - /volume1/photos/icloud/personal:/data
     restart: 'unless-stopped'
     command:
       - icloudpd
@@ -149,6 +149,36 @@ services:
       - --watch-with-interval
       - '3600'
       - --auto-delete
+
+  icloudpd-shared:
+    image: icloudpd/icloudpd:latest
+    container_name: icloudpd-shared
+    environment:
+      - UID=${UID}
+      - GID=${GID}
+      - TZ=${TZ}
+      - SHARED=${ICLOUD_SHARED_LIBRARY}
+    volumes:
+      - /volume1/docker/icloudpd-shared:/config
+      - /volume1/photos/icloud/shared:/data
+    restart: 'unless-stopped'
+    command:
+      - icloudpd
+      - --directory
+      - /data
+      - --cookie-directory
+      - /config
+      - --username
+      - ${APPLE_ID}
+      - --password-provider
+      - webui
+      - --mfa-provider
+      - webui
+      - --watch-with-interval
+      - '3600'
+      - --auto-delete
+      - --library
+      - ${SHARED}
 
   # Home automation
   homeassistant:
