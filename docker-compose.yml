@@ -157,7 +157,6 @@ services:
       - UID=${UID}
       - GID=${GID}
       - TZ=${TZ}
-      - SHARED=${ICLOUD_SHARED_LIBRARY}
     volumes:
       - /volume1/docker/icloudpd-shared:/config
       - /volume1/photos/icloud-shared:/data
@@ -178,7 +177,7 @@ services:
       - '3600'
       - --auto-delete
       - --library
-      - ${SHARED}
+      - ${ICLOUD_SHARED_LIBRARY}
 
   # Home automation
   homeassistant:
