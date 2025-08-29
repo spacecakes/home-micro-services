@@ -132,7 +132,7 @@ services:
       - TZ=${TZ}
     volumes:
       - /volume1/docker/icloudpd:/config
-      - /volume1/photos/icloud/personal:/data
+      - /volume1/photos/icloud:/data
     restart: 'unless-stopped'
     command:
       - icloudpd
@@ -160,7 +160,7 @@ services:
       - SHARED=${ICLOUD_SHARED_LIBRARY}
     volumes:
       - /volume1/docker/icloudpd-shared:/config
-      - /volume1/photos/icloud/shared:/data
+      - /volume1/photos/icloud-shared:/data
     restart: 'unless-stopped'
     command:
       - icloudpd
