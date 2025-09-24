@@ -219,8 +219,10 @@ services:
     network_mode: host
     environment:
       - TZ="Europe/Stockholm"
+      # To reclaim, visit https://www.plex.tv/claim/ to get a new token
+      # then set it in your .env file and restart the container within 4 minutes.
       - PLEX_CLAIM="${PLEX_CLAIM}"
-      - ADVERTISE_IP="http://10.0.1.2:32400/""
+      - ADVERTISE_IP="http://10.0.1.2:32400/"
       - PLEX_GID=${GID}
       - PLEX_UID=${UID}
     labels:
