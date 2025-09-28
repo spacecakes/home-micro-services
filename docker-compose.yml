@@ -71,6 +71,7 @@ services:
     environment:
       PGID: ${GID}
       PUID: ${UID}
+      HOMEPAGE_ALLOWED_HOSTS: 'app.gabriellundmark.com'
     labels:
       - 'traefik.http.services.homepage.loadbalancer.server.port=3000'
       - 'traefik.http.routers.homepage.rule=Host(`app.gabriellundmark.com`)'
