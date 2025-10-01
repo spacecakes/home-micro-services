@@ -197,21 +197,6 @@ services:
     depends_on:
       - traefik
 
-  homebridge:
-    container_name: homebridge
-    hostname: homebridge
-    image: oznu/homebridge:latest
-    environment:
-      - HOMEBRIDGE_CONFIG_UI=1
-      - HOMEBRIDGE_CONFIG_UI_PORT=8581
-      - TZ=${TZ}
-    network_mode: host
-    restart: unless-stopped
-    labels:
-      - 'traefik.http.services.homebridge.loadbalancer.server.port=8581'
-    volumes:
-      - /volume1/docker/homebridge:/homebridge
-
   # Media servers
   plex:
     container_name: plex
