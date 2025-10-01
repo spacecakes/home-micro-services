@@ -197,10 +197,8 @@ services:
   homebridge:
     container_name: homebridge
     hostname: homebridge
-    image: oznu/homebridge:latest
+    image: homebridge/homebridge:latest
     environment:
-      - HOMEBRIDGE_CONFIG_UI=1
-      - HOMEBRIDGE_CONFIG_UI_PORT=8581
       - TZ=${TZ}
     network_mode: host
     restart: unless-stopped
