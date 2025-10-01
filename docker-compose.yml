@@ -200,7 +200,7 @@ services:
     network_mode: host
     restart: unless-stopped
     labels:
-      - 'traefik.http.services.scrypted.loadbalancer.server.port=10443'
+      - 'traefik.http.services.scrypted.loadbalancer.server.port=11080' # Use insecure port; Traefik handles SSL
     volumes:
       - /volume1/docker/scrypted:/server/volume
     depends_on:
