@@ -26,6 +26,19 @@ services:
       - /volume1/docker/home-micro-services/traefik/dynamic.yml:/dynamic.yml
       - /var/run/docker.sock:/var/run/docker.sock
 
+  traefik-certs-dumper:
+    image: ldez/traefik-certs-dumper:v2.9.3
+    entrypoint: sh -c '
+      while ! [ -e /data/acme.json ]
+      || ! [ `jq ".[] | .Certificates | length" /data/acme.json | jq -s "add" ` != 0 ]; do
+      sleep 1
+      ; done
+      && traefik-certs-dumper file --version v2 --watch
+      --source /data/acme.json --dest /data/certs'
+    volumes:
+      - /volume1/docker/traefik/letsencrypt:/data
+    network_mode: 'none'
+
   dockerproxy:
     image: ghcr.io/tecnativa/docker-socket-proxy:latest
     container_name: dockerproxy
