@@ -39,6 +39,23 @@ services:
       - /volume1/docker/traefik/letsencrypt:/data
     network_mode: 'none'
 
+  tailscale:
+    image: tailscale/tailscale:stable
+    hostname: tailscale-docker
+    container_name: tailscale
+    network_mode: 'host'
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+      - SYS_MODULE
+    volumes:
+      - /volume1/docker/tailscale:/var/lib/tailscale
+    restart: unless-stopped
+    command: >
+      sh -c "tailscaled &
+      sleep 5 &&
+      tailscale up --advertise-routes=10.0.1.0/24 --accept-routes"
+
   dockerproxy:
     image: ghcr.io/tecnativa/docker-socket-proxy:latest
     container_name: dockerproxy
