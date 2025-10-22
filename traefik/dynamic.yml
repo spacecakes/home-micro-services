@@ -16,12 +16,12 @@ http:
         stsPreload: true
         stsSeconds: 31536000
 
-    default-whitelist:
-      ipWhiteList:
-        sourceRange:
-          - '10.0.0.0/24'
-          - '192.168.0.0/16'
-          - '172.0.0.0/8'
+    # default-whitelist:
+    #   ipWhiteList:
+    #     sourceRange:
+    #       - '10.0.0.0/24'
+    #       - '192.168.0.0/16'
+    #       - '172.0.0.0/8'
 
   routers:
     global-headers:
