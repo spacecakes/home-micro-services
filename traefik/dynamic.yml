@@ -46,7 +46,7 @@ http:
     synology:
       loadBalancer:
         servers:
-          - url: 'http://172.17.0.1:5000'
+          - url: 'https://10.0.1.2:5001'
         passHostHeader: true
 
     unifi:
