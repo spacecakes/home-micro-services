@@ -9,10 +9,6 @@ metrics:
 entryPoints:
   web:
     address: ':80'
-    http:
-      redirections:
-        entrypoint:
-          to: websecure
   websecure:
     address: ':443'
     http:
@@ -25,8 +21,6 @@ entryPoints:
           - main: 'app.gabriellundmark.com'
             sans:
               - '*.app.gabriellundmark.com'
-      middlewares:
-        - secured@file
 
 providers:
   docker:

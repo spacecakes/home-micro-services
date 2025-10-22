@@ -1,13 +1,9 @@
 http:
   middlewares:
-    auth:
-      basicauth:
-        users:
-          - '{{env "BASIC_AUTH_USERNAME"}}:{{env "BASIC_AUTH_PASSWORD_HASH"}}'
-
-    https-redirect:
-      redirectScheme:
-        scheme: https
+    # auth:
+    #   basicauth:
+    #     users:
+    #       - '{{env "BASIC_AUTH_USERNAME"}}:{{env "BASIC_AUTH_PASSWORD_HASH"}}'
 
     default-headers:
       headers:
@@ -18,6 +14,7 @@ http:
         forceSTSHeader: true
         stsIncludeSubdomains: true
         stsPreload: true
+        stsSeconds: 31536000
 
     default-whitelist:
       ipWhiteList:
@@ -26,14 +23,15 @@ http:
           - '192.168.0.0/16'
           - '172.0.0.0/8'
 
-    secured:
-      chain:
-        middlewares:
-          - default-whitelist
-          - default-headers
-
   routers:
-    # Apps that are not containerized
+    global-headers:
+      rule: 'HostRegexp(`{any:.+}`)'
+      entryPoints:
+        - websecure
+      middlewares:
+        - default-headers
+      service: noop@internal
+
     synology:
       rule: 'Host(`dsm.app.gabriellundmark.com`)'
       service: synology
