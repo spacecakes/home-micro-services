@@ -114,9 +114,11 @@ Verify it's running:
 docker ps
 ```
 
-## 7. Optional Quality of Life Improvements
+## 7. Misc settings
 
-### Automatic System Updates
+Follow this guide to free port 53 on Ubuntu: https://adguard-dns.io/kb/adguard-home/faq/#bindinuse
+
+### Automatic System Updates (optional)
 
 Enable unattended upgrades for security patches:
 
@@ -131,12 +133,3 @@ Use `rsync` or `borgbackup` to back up your Docker data to your NAS:
 ```bash
 rsync -avh /srv/docker/ /mnt/nas/docker_backup/
 ```
-
-## Summary
-
-You now have:
-
-- Ubuntu Server running directly on bare metal (no virtualization overhead)
-- NFS shares cleanly mounted from your NAS
-- Plex with hardware transcoding working natively
-- All containers managed with `docker compose`
