@@ -20,7 +20,7 @@ services:
       - JOKER_USERNAME=${JOKER_DDNS_USERNAME}
       - JOKER_PASSWORD=${JOKER_DDNS_PASSWORD}
     volumes:
-      - ${DOCKER_DATA_PATH}/traefik/letsencrypt:/letsencrypt
+      - ${DATA_PATH}/traefik/letsencrypt:/letsencrypt
       - ${COMPOSE_PATH}/traefik/traefik.yml:/traefik.yml
       - ${COMPOSE_PATH}/traefik/dynamic.yml:/dynamic.yml
       - /var/run/docker.sock:/var/run/docker.sock
@@ -35,7 +35,7 @@ services:
       && traefik-certs-dumper file --version v2 --watch
       --source /data/acme.json --dest /data/certs'
     volumes:
-      - ${DOCKER_DATA_PATH}/traefik/letsencrypt:/data
+      - ${DATA_PATH}/traefik/letsencrypt:/data
     network_mode: 'none'
 
   # tailscale:
@@ -48,7 +48,7 @@ services:
   #     - NET_RAW
   #     - SYS_MODULE
   #   volumes:
-  #     - ${DOCKER_DATA_PATH}/tailscale:/var/lib/tailscale
+  #     - ${DATA_PATH}/tailscale:/var/lib/tailscale
   #   restart: unless-stopped
   #   command: >
   #     sh -c "tailscaled &
@@ -78,7 +78,7 @@ services:
       - 'traefik.http.services.portainer.loadbalancer.server.port=9000'
     restart: always
     volumes:
-      - ${DOCKER_DATA_PATH}/portainer:/data
+      - ${DATA_PATH}/portainer:/data
       - /var/run/docker.sock:/var/run/docker.sock
     depends_on:
       - traefik
@@ -106,9 +106,9 @@ services:
       - 'traefik.http.services.homepage.loadbalancer.server.port=3000'
       - 'traefik.http.routers.homepage.rule=Host(`app.gabriellundmark.com`)'
     volumes:
-      - ${DOCKER_DATA_PATH}/homepage/config:/config
-      - ${DOCKER_DATA_PATH}/homepage/images:/app/public/images
-      - ${DOCKER_DATA_PATH}/homepage/icons:/app/public/icons
+      - ${DATA_PATH}/homepage/config:/config
+      - ${DATA_PATH}/homepage/images:/app/public/images
+      - ${DATA_PATH}/homepage/icons:/app/public/icons
     depends_on:
       - traefik
       - dockerproxy
@@ -121,7 +121,7 @@ services:
       - 'traefik.http.routers.nginx.rule=Host(`home.gabriellundmark.com`)'
     restart: unless-stopped
     volumes:
-      - ${DOCKER_DATA_PATH}/nginx:/usr/share/nginx/html:ro
+      - ${DATA_PATH}/nginx:/usr/share/nginx/html:ro
 
   overseerr:
     image: sctx/overseerr:latest
@@ -131,8 +131,8 @@ services:
     labels:
       - 'traefik.http.services.overseerr.loadbalancer.server.port=5055'
     volumes:
-      - ${DOCKER_DATA_PATH}/overseerr/config:/app/config
-      - ${DOCKER_DATA_PATH}/adguardhome/config:/opt/adguardhome/conf
+      - ${DATA_PATH}/overseerr/config:/app/config
+      - ${DATA_PATH}/adguardhome/config:/opt/adguardhome/conf
     restart: unless-stopped
     depends_on:
       - traefik
@@ -146,8 +146,8 @@ services:
     labels:
       - 'traefik.http.services.adguardhome.loadbalancer.server.port=3000'
     volumes:
-      - ${DOCKER_DATA_PATH}/adguardhome/work:/opt/adguardhome/work
-      - ${DOCKER_DATA_PATH}/adguardhome/config:/opt/adguardhome/conf
+      - ${DATA_PATH}/adguardhome/work:/opt/adguardhome/work
+      - ${DATA_PATH}/adguardhome/config:/opt/adguardhome/conf
     restart: unless-stopped
     depends_on:
       - traefik
@@ -160,7 +160,7 @@ services:
       - GID=${GID}
       - TZ=${TZ}
     volumes:
-      - ${DOCKER_DATA_PATH}/icloudpd:/config
+      - ${DATA_PATH}/icloudpd:/config
       - ${MOUNTS_PATH}/photos/icloud:/data
     restart: 'unless-stopped'
     command:
@@ -187,7 +187,7 @@ services:
       - GID=${GID}
       - TZ=${TZ}
     volumes:
-      - ${DOCKER_DATA_PATH}/icloudpd-shared:/config
+      - ${DATA_PATH}/icloudpd-shared:/config
       - ${MOUNTS_PATH}/photos/icloud-shared:/data
     restart: 'unless-stopped'
     command:
@@ -218,7 +218,7 @@ services:
       - 'traefik.http.services.homeassistant.loadbalancer.server.port=8123'
       - 'com.centurylinklabs.watchtower.enable=false'
     volumes:
-      - ${DOCKER_DATA_PATH}/homeassistant:/config
+      - ${DATA_PATH}/homeassistant:/config
       - ${MOUNTS_PATH}/music:/music
     devices:
       - /dev/ttyUSB0:/dev/ttyUSB0
@@ -236,7 +236,7 @@ services:
     labels:
       - 'traefik.http.services.homebridge.loadbalancer.server.port=8581'
     volumes:
-      - ${DOCKER_DATA_PATH}/homebridge:/homebridge
+      - ${DATA_PATH}/homebridge:/homebridge
 
   scrypted:
     container_name: scrypted
@@ -246,32 +246,32 @@ services:
     labels:
       - 'traefik.http.services.scrypted.loadbalancer.server.port=11080' # Use insecure port; Traefik handles SSL
     volumes:
-      - ${DOCKER_DATA_PATH}/scrypted:/server/volume
+      - ${DATA_PATH}/scrypted:/server/volume
     depends_on:
       - traefik
 
   # Media servers
   plex:
     container_name: plex
-    image: plexinc/pms-docker
+    image: linuxserver/plex
     hostname: plex
     network_mode: host
     environment:
+      - PGID=${GID}
+      - PUID=${UID}
       - TZ="Europe/Stockholm"
       # To reclaim, visit https://www.plex.tv/claim/ to get a new token
       # then set it in your .env file and restart the container within 4 minutes.
       - PLEX_CLAIM="${PLEX_CLAIM}"
-      - ADVERTISE_IP="http://10.0.1.2:32400/"
-      - PLEX_GID=${GID}
-      - PLEX_UID=${UID}
+
     devices:
       - /dev/dri:/dev/dri # Intel Quick Sync
     labels:
       - 'traefik.http.services.plex.loadbalancer.server.port=32400'
     restart: unless-stopped
     volumes:
-      - ${DOCKER_DATA_PATH}/plex/:/config
-      - ${DOCKER_TEMP_PATH}:/transcode
+      - ${DATA_PATH}/plex:/config
+      - ${TEMP_PATH}/plex:/transcode
       - ${MOUNTS_PATH}/media:/media
       - ${MOUNTS_PATH}/home_video:/home_video
       - ${MOUNTS_PATH}/music:/music
@@ -291,8 +291,8 @@ services:
       - 'traefik.http.services.sabnzbd.loadbalancer.server.port=8080'
     restart: always
     volumes:
-      - ${DOCKER_DATA_PATH}/sabnzbd:/config
-      - ${MOUNTS_PATH}/downloads:/downloads
+      - ${DATA_PATH}/sabnzbd:/config
+      - ${DOWNLOADS_PATH}:/downloads
       - ${MOUNTS_PATH}/media:/media
     depends_on:
       - traefik
@@ -312,11 +312,10 @@ services:
       - '51413:51413/udp'
     restart: unless-stopped
     volumes:
-      - ${MOUNTS_PATH}/downloads:/downloads
-      - ${MOUNTS_PATH}/media:/media
-      - ${MOUNTS_PATH}/downloads:/watch
-      - ${DOCKER_DATA_PATH}/transmission:/config
-      - ${MOUNTS_PATH}/seeding:/seeding
+      - ${DATA_PATH}/transmission:/config
+      - ${DOWNLOADS_PATH}:/downloads
+      - ${DOWNLOADS_PATH}:/downloads/watch
+      - ${DOWNLOADS_PATH}/downloads/seeding:/seeding
     depends_on:
       - traefik
 
@@ -332,10 +331,10 @@ services:
     labels:
       - 'traefik.http.services.handbrake.loadbalancer.server.port=5800'
     volumes:
-      - '${DOCKER_DATA_PATH}/handbrake:/config:rw'
-      - '/srv/docker/transcode/watch:/watch:rw'
-      - '/srv/docker/transcode/output:/output:rw'
-      - '/mnt/media:/storage:ro'
+      - '${DATA_PATH}/handbrake:/config:rw'
+      - '${TEMP_PATH}/handbrake/watch:/watch:rw'
+      - '${TEMP_PATH}/handbrake/output:/output:rw'
+      - '${MOUNTS_PATH}/media:/storage:ro'
     depends_on:
       - traefik
 
@@ -351,8 +350,8 @@ services:
       - 'traefik.http.services.sonarr.loadbalancer.server.port=8989'
     restart: unless-stopped
     volumes:
-      - ${DOCKER_DATA_PATH}/sonarr:/config
-      - ${MOUNTS_PATH}/downloads:/downloads
+      - ${DATA_PATH}/sonarr:/config
+      - ${DOWNLOADS_PATH}:/downloads
       - ${MOUNTS_PATH}/media:/media
     depends_on:
       - traefik
@@ -373,8 +372,8 @@ services:
       - 'traefik.http.services.radarr.loadbalancer.server.port=7878'
     restart: unless-stopped
     volumes:
-      - ${DOCKER_DATA_PATH}/radarr:/config
-      - ${MOUNTS_PATH}/downloads:/downloads
+      - ${DATA_PATH}/radarr:/config
+      - ${DOWNLOADS_PATH}:/downloads
       - ${MOUNTS_PATH}/media:/media
     depends_on:
       - traefik
@@ -395,7 +394,7 @@ services:
       - 'traefik.http.services.bazarr.loadbalancer.server.port=6767'
     restart: unless-stopped
     volumes:
-      - ${DOCKER_DATA_PATH}/bazarr:/config
+      - ${DATA_PATH}/bazarr:/config
       - ${MOUNTS_PATH}/media:/media
     depends_on:
       - traefik
@@ -412,8 +411,8 @@ services:
       - 'traefik.http.services.nzbhydra.loadbalancer.server.port=5076'
     restart: unless-stopped
     volumes:
-      - ${DOCKER_DATA_PATH}/nzbhydra:/config
-      - ${MOUNTS_PATH}/downloads:/downloads
+      - ${DATA_PATH}/nzbhydra:/config
+      - ${DOWNLOADS_PATH}:/downloads
       - ${MOUNTS_PATH}/media:/media
     depends_on:
       - traefik
@@ -430,6 +429,6 @@ services:
       - 'traefik.http.services.prowlarr.loadbalancer.server.port=9696'
     restart: unless-stopped
     volumes:
-      - ${DOCKER_DATA_PATH}/prowlarr:/config
+      - ${DATA_PATH}/prowlarr:/config
     depends_on:
       - traefik
