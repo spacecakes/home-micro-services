@@ -264,6 +264,8 @@ services:
       - ADVERTISE_IP="http://10.0.1.2:32400/"
       - PLEX_GID=${GID}
       - PLEX_UID=${UID}
+    devices:
+      - /dev/dri:/dev/dri # Intel Quick Sync
     labels:
       - 'traefik.http.services.plex.loadbalancer.server.port=32400'
     restart: unless-stopped
