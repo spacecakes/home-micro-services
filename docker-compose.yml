@@ -1,3 +1,5 @@
+name: 'home-micro-services'
+
 services:
   # Server tools
   traefik:
@@ -27,6 +29,9 @@ services:
 
   traefik-certs-dumper:
     image: ldez/traefik-certs-dumper:v2.9.3
+    container_name: traefik-certs-dumper
+    labels:
+      - traefik.enable=false
     entrypoint: sh -c '
       while ! [ -e /data/acme.json ]
       || ! [ `jq ".[] | .Certificates | length" /data/acme.json | jq -s "add" ` != 0 ]; do
@@ -51,6 +56,31 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
     restart: unless-stopped
+
+  backrest:
+    image: garethgeorge/backrest:latest
+    container_name: backrest
+    hostname: backrest
+    labels:
+      - 'traefik.http.services.backrest.loadbalancer.server.port=9898'
+    security_opt:
+      - apparmor=unconfined
+    volumes:
+      - ${DOCKER_PATH}/backrest/data:/data
+      - ${DOCKER_PATH}/backrest/config:/config
+      - ${DOCKER_PATH}/backrest/cache:/cache
+      - ${DOCKER_PATH}:/userdata # [optional] mount local paths to backup here.
+      - ${MOUNTS_PATH}/repos:/repos # [optional] mount repos if using local storage, not necessary for remotes e.g. B2, S3, etc.
+    environment:
+      - BACKREST_DATA=/data # path for backrest data. restic binary and the database are placed here.
+      - BACKREST_CONFIG=/config/config.json # path for the backrest config file.
+      - XDG_CACHE_HOME=/cache # path for the restic cache which greatly improves performance.
+      - TMPDIR=/tmp
+      - TZ=${TZ}
+    restart: unless-stopped
+    ports:
+      - 9898:9898
+
 
   portainer:
     ports:
@@ -229,7 +259,16 @@ services:
     container_name: plex
     image: linuxserver/plex
     hostname: plex
-    network_mode: host
+    ports:
+      - "32400:32400"
+      - "1900:1900/udp"
+      - "5353:5353/udp"
+      - "8324:8324"
+      - "32410:32410/udp"
+      - "32412:32412/udp"
+      - "32413:32413/udp"
+      - "32414:32414/udp"
+      - "32469:32469"
     environment:
       - PGID=${GID}
       - PUID=${UID}
