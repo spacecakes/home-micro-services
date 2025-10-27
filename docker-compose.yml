@@ -69,8 +69,8 @@ services:
       - ${DOCKER_PATH}/data/backrest/data:/data
       - ${DOCKER_PATH}/data/backrest/config:/config
       - ${DOCKER_PATH}/data/backrest/cache:/cache
-      - ${DOCKER_PATH}:/userdata # [optional] mount local paths to backup here.
-      - ${MOUNTS_PATH}/repos:/repos # [optional] mount repos if using local storage, not necessary for remotes e.g. B2, S3, etc.
+      - ${DOCKER_PATH}/data:/userdata/docker-data # [optional] mount local paths to backup here.
+      - ${MOUNTS_PATH}/backup-homeserver:/repos # [optional] mount repos if using local storage, not necessary for remotes e.g. B2, S3, etc.
     environment:
       - BACKREST_DATA=/data # path for backrest data. restic binary and the database are placed here.
       - BACKREST_CONFIG=/config/config.json # path for the backrest config file.
@@ -78,9 +78,6 @@ services:
       - TMPDIR=/tmp
       - TZ=${TZ}
     restart: unless-stopped
-    ports:
-      - 9898:9898
-
 
   portainer:
     ports:
