@@ -20,7 +20,6 @@ entryPoints:
       tls:
         certResolver: letsencrypt
         domains:
-          - main: 'home.gabriellundmark.com'
           - main: 'homeassistant.gabriellundmark.com'
           - main: 'plex.gabriellundmark.com'
           - main: 'app.gabriellundmark.com'

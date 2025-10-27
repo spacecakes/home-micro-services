@@ -16,12 +16,12 @@ http:
         stsPreload: true
         stsSeconds: 31536000
 
-    # default-whitelist:
-    #   ipWhiteList:
-    #     sourceRange:
-    #       - '10.0.0.0/24'
-    #       - '192.168.0.0/16'
-    #       - '172.0.0.0/8'
+    default-whitelist:
+      ipWhiteList:
+        sourceRange:
+          - '10.0.0.0/24'
+          - '192.168.0.0/16'
+          - '172.0.0.0/8'
 
   routers:
     global-headers:
@@ -30,6 +30,7 @@ http:
         - websecure
       middlewares:
         - default-headers
+        - default-whitelist
       service: noop@internal
 
     synology:
@@ -39,10 +40,6 @@ http:
     unifi:
       rule: 'Host(`unifi.app.gabriellundmark.com`)'
       service: unifi
-
-    proxmox:
-      rule: 'Host(`proxmox.app.gabriellundmark.com`)'
-      service: proxmox
 
   services:
     synology:
@@ -57,8 +54,3 @@ http:
           - url: 'https://10.0.1.1'
         passHostHeader: true
 
-    proxmox:
-      loadBalancer:
-        servers:
-          - url: 'https://10.0.1.6:8006'
-        passHostHeader: true
