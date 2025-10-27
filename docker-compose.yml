@@ -66,9 +66,9 @@ services:
     security_opt:
       - apparmor=unconfined
     volumes:
-      - ${DOCKER_PATH}/backrest/data:/data
-      - ${DOCKER_PATH}/backrest/config:/config
-      - ${DOCKER_PATH}/backrest/cache:/cache
+      - ${DOCKER_PATH}/data/backrest/data:/data
+      - ${DOCKER_PATH}/data/backrest/config:/config
+      - ${DOCKER_PATH}/data/backrest/cache:/cache
       - ${DOCKER_PATH}:/userdata # [optional] mount local paths to backup here.
       - ${MOUNTS_PATH}/repos:/repos # [optional] mount repos if using local storage, not necessary for remotes e.g. B2, S3, etc.
     environment:
