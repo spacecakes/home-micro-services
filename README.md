@@ -112,6 +112,7 @@ sudo mount -t nfs 10.0.1.2:/volume1/docker /mnt/nas
 Then add a line to `/etc/fstab`:
 
 ```bash
+10.0.1.2:/volume1/backup-homeserver  /mnt/nas/backup-homeserver  nfs  defaults,_netdev  0  0
 10.0.1.2:/volume1/docker  /mnt/nas/docker  nfs  defaults,_netdev  0  0
 10.0.1.2:/volume1/media  /mnt/nas/media  nfs  defaults,_netdev  0  0
 10.0.1.2:/volume1/music  /mnt/nas/music  nfs  defaults,_netdev  0  0

@@ -128,8 +128,18 @@ sudo apt install unattended-upgrades
 
 ## 8. Backup Strategy
 
-Use `rsync` or `borgbackup` to back up your Docker data to your NAS:
+Add `docker-data-backup.sh` as hourly cron job:
 
 ```bash
-rsync -avh /srv/docker/ /mnt/nas/docker_backup/
+sudo crontab -e
+```
+
+```cron
+sudo cp /srv/docker/compose/scripts/docker_data_backup.sh /etc/cron.hourly/docker_data_backup
+```
+
+Test run it:
+
+```bash
+sudo run-parts /etc/cron.hourly
 ```
