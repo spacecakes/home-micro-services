@@ -57,27 +57,27 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock:ro
     restart: unless-stopped
 
-  backrest:
-    image: garethgeorge/backrest:latest
-    container_name: backrest
-    hostname: backrest
-    labels:
-      - 'traefik.http.services.backrest.loadbalancer.server.port=9898'
-    security_opt:
-      - apparmor=unconfined
-    volumes:
-      - ${DOCKER_PATH}/data/backrest/data:/data
-      - ${DOCKER_PATH}/data/backrest/config:/config
-      - ${DOCKER_PATH}/data/backrest/cache:/cache
-      - ${DOCKER_PATH}/data:/userdata/docker-data # [optional] mount local paths to backup here.
-      - ${MOUNTS_PATH}/backup-homeserver:/repos # [optional] mount repos if using local storage, not necessary for remotes e.g. B2, S3, etc.
-    environment:
-      - BACKREST_DATA=/data # path for backrest data. restic binary and the database are placed here.
-      - BACKREST_CONFIG=/config/config.json # path for the backrest config file.
-      - XDG_CACHE_HOME=/cache # path for the restic cache which greatly improves performance.
-      - TMPDIR=/tmp
-      - TZ=${TZ}
-    restart: unless-stopped
+  # backrest:
+  #   image: garethgeorge/backrest:latest
+  #   container_name: backrest
+  #   hostname: backrest
+  #   labels:
+  #     - 'traefik.http.services.backrest.loadbalancer.server.port=9898'
+  #   security_opt:
+  #     - apparmor=unconfined
+  #   volumes:
+  #     - ${DOCKER_PATH}/data/backrest/data:/data
+  #     - ${DOCKER_PATH}/data/backrest/config:/config
+  #     - ${DOCKER_PATH}/data/backrest/cache:/cache
+  #     - ${DOCKER_PATH}/data:/userdata/docker-data # [optional] mount local paths to backup here.
+  #     - ${MOUNTS_PATH}/backup-homeserver:/repos # [optional] mount repos if using local storage, not necessary for remotes e.g. B2, S3, etc.
+  #   environment:
+  #     - BACKREST_DATA=/data # path for backrest data. restic binary and the database are placed here.
+  #     - BACKREST_CONFIG=/config/config.json # path for the backrest config file.
+  #     - XDG_CACHE_HOME=/cache # path for the restic cache which greatly improves performance.
+  #     - TMPDIR=/tmp
+  #     - TZ=${TZ}
+  #   restart: unless-stopped
 
   portainer:
     ports:
@@ -148,7 +148,7 @@ services:
       - 'traefik.http.services.adguardhome.loadbalancer.server.port=3000'
     volumes:
       - ${DOCKER_PATH}/data/adguardhome/work:/opt/adguardhome/work
-      - ${DOCKER_PATH}/data/adguardhome/config:/opt/adguardhome/conf
+      - ${DOCKER_PATH}f/data/adguardhome/config:/opt/adguardhome/conf
     restart: unless-stopped
     depends_on:
       - traefik
