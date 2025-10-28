@@ -143,3 +143,13 @@ Test run it:
 ```bash
 sudo run-parts /etc/cron.hourly
 ```
+
+Check logs:
+
+```bash
+grep CRON /var/log/syslog
+```
+
+```bash
+cat /var/log/docker_data_backup.log
+```
