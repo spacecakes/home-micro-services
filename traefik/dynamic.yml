@@ -23,6 +23,12 @@ http:
           - '192.168.0.0/16'
           - '172.0.0.0/8'
 
+    add-syno-drive-param:
+      redirectRegex:
+        regex: "^https?://drive\\.app\\.gabriellundmark\\.com/$"
+        replacement: "https://drive.app.gabriellundmark.com/?launchApp=SYNO.SDS.Drive.Application"
+        permanent: true
+
   routers:
     global-headers:
       rule: 'HostRegexp(`{any:.+}`)'
@@ -33,16 +39,28 @@ http:
         - default-whitelist
       service: noop@internal
 
-    synology:
+    dsm:
       rule: 'Host(`dsm.app.gabriellundmark.com`)'
-      service: synology
+      service: synology-dsm
+
+    drive:
+      rule: 'Host(`drive.app.gabriellundmark.com`)'
+      middlewares:
+        - add-syno-drive-param
+      service: synology-drive
 
     unifi:
       rule: 'Host(`unifi.app.gabriellundmark.com`)'
       service: unifi
 
   services:
-    synology:
+    synology-dsm:
+      loadBalancer:
+        servers:
+          - url: 'https://10.0.1.2:5001'
+        passHostHeader: true
+
+    synology-drive:
       loadBalancer:
         servers:
           - url: 'https://10.0.1.2:5001'
@@ -53,4 +71,3 @@ http:
         servers:
           - url: 'https://10.0.1.1'
         passHostHeader: true
-
