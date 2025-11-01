@@ -35,6 +35,12 @@ http:
         replacement: "https://drive.app.gabriellundmark.com/?launchApp=SYNO.SDS.Drive.Application"
         permanent: true
 
+    add-syno-abb-param:
+      redirectRegex:
+        regex: "^https?://abb\\.app\\.gabriellundmark\\.com/$"
+        replacement: "https://abb.app.gabriellundmark.com/?launchApp=SYNO.SDS.ActiveBackupPortal.Application"
+        permanent: true
+
   routers:
     global-headers:
       rule: 'HostRegexp(`{any:.+}`)'
@@ -55,6 +61,12 @@ http:
         - add-syno-drive-param
       service: synology-drive
 
+    abb:
+      rule: 'Host(`abb.app.gabriellundmark.com`)'
+      middlewares:
+        - add-syno-abb-param
+      service: synology-abb
+
     unifi:
       rule: 'Host(`unifi.app.gabriellundmark.com`)'
       service: unifi
@@ -63,6 +75,8 @@ http:
     synology-dsm: *synology-service
 
     synology-drive: *synology-service
+
+    synology-abb: *synology-service
 
     unifi:
       loadBalancer:
