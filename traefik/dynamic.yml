@@ -1,3 +1,9 @@
+x-synology-service: &synology-service
+  loadBalancer:
+    servers:
+      - url: "https://10.0.1.2:5001"
+    passHostHeader: true
+
 http:
   middlewares:
     # auth:
@@ -54,17 +60,9 @@ http:
       service: unifi
 
   services:
-    synology-dsm:
-      loadBalancer:
-        servers:
-          - url: 'https://10.0.1.2:5001'
-        passHostHeader: true
+    synology-dsm: *synology-service
 
-    synology-drive:
-      loadBalancer:
-        servers:
-          - url: 'https://10.0.1.2:5001'
-        passHostHeader: true
+    synology-drive: *synology-service
 
     unifi:
       loadBalancer:
