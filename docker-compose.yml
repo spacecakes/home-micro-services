@@ -259,6 +259,9 @@ services:
     container_name: plex
     image: linuxserver/plex
     hostname: plex
+    dns:
+      - 1.1.1.1  # Cloudflare DNS
+      - 8.8.8.8  # Google DNS
     ports:
       - "32400:32400"
       - "1900:1900/udp"
@@ -355,6 +358,9 @@ services:
     container_name: sonarr
     image: linuxserver/sonarr:latest
     hostname: sonarr
+    dns:
+      - 1.1.1.1  # Cloudflare DNS
+      - 8.8.8.8  # Google DNS
     environment:
       - TZ=${TZ}
       - PGID=${GID}
@@ -377,6 +383,9 @@ services:
     container_name: radarr
     image: linuxserver/radarr:latest
     hostname: radarr
+    dns:
+      - 1.1.1.1  # Cloudflare DNS
+      - 8.8.8.8  # Google DNS
     environment:
       - PGID=${GID}
       - PUID=${UID}
