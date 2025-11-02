@@ -126,6 +126,9 @@ services:
   overseerr:
     image: sctx/overseerr:latest
     container_name: overseerr
+    dns:
+      - 1.1.1.1  # Cloudflare DNS
+      - 8.8.8.8  # Google DNS
     environment:
       - TZ=${TZ}
     labels:
@@ -148,7 +151,7 @@ services:
       - 'traefik.http.services.adguardhome.loadbalancer.server.port=3000'
     volumes:
       - ${DOCKER_PATH}/data/adguardhome/work:/opt/adguardhome/work
-      - ${DOCKER_PATH}f/data/adguardhome/config:/opt/adguardhome/conf
+      - ${DOCKER_PATH}/data/adguardhome/config:/opt/adguardhome/conf
     restart: unless-stopped
     depends_on:
       - traefik
