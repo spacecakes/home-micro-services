@@ -1,7 +1,7 @@
 x-synology-service: &synology-service
   loadBalancer:
     servers:
-      - url: "https://10.0.1.2:5001"
+      - url: 'https://10.0.1.2:5001'
     passHostHeader: true
 
 http:
@@ -10,6 +10,30 @@ http:
     #   basicauth:
     #     users:
     #       - '{{env "BASIC_AUTH_USERNAME"}}:{{env "BASIC_AUTH_PASSWORD_HASH"}}'
+
+    add-drive-prefix:
+      addPrefix:
+        prefix: '/drive'
+
+    add-backup-prefix:
+      addPrefix:
+        prefix: '/backup'
+
+    add-photos-prefix:
+      addPrefix:
+        prefix: '/photos'
+
+    add-downloads-prefix:
+      addPrefix:
+        prefix: '/downloads'
+
+    add-files-prefix:
+      addPrefix:
+        prefix: '/files'
+
+    add-vm-prefix:
+      addPrefix:
+        prefix: '/vm'
 
     default-headers:
       headers:
@@ -29,18 +53,6 @@ http:
           - '192.168.0.0/16'
           - '172.0.0.0/8'
 
-    add-syno-drive-param:
-      redirectRegex:
-        regex: "^https?://drive\\.app\\.gabriellundmark\\.com/$"
-        replacement: "https://drive.app.gabriellundmark.com/?launchApp=SYNO.SDS.Drive.Application"
-        permanent: true
-
-    add-syno-abb-param:
-      redirectRegex:
-        regex: "^https?://abb\\.app\\.gabriellundmark\\.com/$"
-        replacement: "https://abb.app.gabriellundmark.com/?launchApp=SYNO.SDS.ActiveBackupPortal.Application"
-        permanent: true
-
   routers:
     global-headers:
       rule: 'HostRegexp(`{any:.+}`)'
@@ -58,14 +70,37 @@ http:
     drive:
       rule: 'Host(`drive.app.gabriellundmark.com`)'
       middlewares:
-        - add-syno-drive-param
+        - add-drive-prefix
       service: synology-drive
 
-    abb:
+    active-backup:
       rule: 'Host(`abb.app.gabriellundmark.com`)'
       middlewares:
-        - add-syno-abb-param
-      service: synology-abb
+        - add-backup-prefix
+      service: synology-active-backup
+
+    download-station:
+      rule: 'Host(`downloads.app.gabriellundmark.com`)'
+      middlewares:
+        - add-downloads-prefix
+      service: synology-download-station
+
+    synology-photos:
+      rule: 'Host(`photos.app.gabriellundmark.com`)'
+      middlewares:
+        - add-photos-prefix
+      service: synology-photos
+
+    file-station:
+      rule: 'Host(`files.app.gabriellundmark.com`)'
+      middlewares:
+        - add-files-prefix
+      service: synology-file-station
+    vm-manager:
+      rule: 'Host(`vm.app.gabriellundmark.com`)'
+      middlewares:
+        - add-vm-prefix
+      service: synology-vm
 
     unifi:
       rule: 'Host(`unifi.app.gabriellundmark.com`)'
@@ -73,10 +108,12 @@ http:
 
   services:
     synology-dsm: *synology-service
-
     synology-drive: *synology-service
-
-    synology-abb: *synology-service
+    synology-active-backup: *synology-service
+    synology-download-station: *synology-service
+    synology-photos: *synology-service
+    synology-file-station: *synology-service
+    synology-vm: *synology-service
 
     unifi:
       loadBalancer:
