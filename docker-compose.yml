@@ -23,8 +23,8 @@ services:
       - JOKER_PASSWORD=${JOKER_DDNS_PASSWORD}
     volumes:
       - ${DOCKER_PATH}/data/traefik/letsencrypt:/letsencrypt
-      - ${DOCKER_PATH}/repo/traefik/traefik.yml:/traefik.yml
-      - ${DOCKER_PATH}/repo/traefik/dynamic.yml:/dynamic.yml
+      - ${DOCKER_PATH}/traefik/traefik.yml:/traefik.yml
+      - ${DOCKER_PATH}/traefik/dynamic.yml:/dynamic.yml
       - /var/run/docker.sock:/var/run/docker.sock
 
   traefik-certs-dumper:
