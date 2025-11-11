@@ -193,9 +193,13 @@ services:
   # Home automation
   homeassistant:
     container_name: homeassistant
-    image: homeassistant/home-assistant:latest
+    image: linuxserver/homeassistant:latest
     network_mode: host
     restart: unless-stopped
+    environment:
+      - TZ=${TZ}
+      - PUID=${UID}
+      - PGID=${GID}
     labels:
       - 'traefik.http.services.homeassistant.loadbalancer.server.port=8123'
       - 'com.centurylinklabs.watchtower.enable=false'
@@ -241,11 +245,10 @@ services:
     dns:
       - 1.1.1.1 # Cloudflare DNS
       - 8.8.8.8 # Google DNS
-
     environment:
       - PGID=${GID}
       - PUID=${UID}
-      - TZ="Europe/Stockholm"
+      - TZ=${TZ}
       # To reclaim, visit https://www.plex.tv/claim/ to get a new token
       # then set it in your .env file and restart the container within 4 minutes.
       - PLEX_CLAIM="${PLEX_CLAIM}"
