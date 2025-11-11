@@ -4,7 +4,7 @@ services:
   # Server tools
   traefik:
     container_name: traefik
-    image: traefik:3.3.3
+    image: traefik:3.6
     extra_hosts:
       - 'host.docker.internal:172.17.0.1'
     ports:
