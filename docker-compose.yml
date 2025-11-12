@@ -119,20 +119,20 @@ services:
       - sonarr
       - radarr
 
-  # adguardhome:
-  #   container_name: adguardhome
-  #   image: adguard/adguardhome
-  #   ports:
-  #     - 53:53/tcp
-  #     - 53:53/udp
-  #   labels:
-  #     - 'traefik.http.services.adguardhome.loadbalancer.server.port=3000'
-  #   volumes:
-  #     - ${DOCKER_PATH}/data/adguardhome/work:/opt/adguardhome/work
-  #     - ${DOCKER_PATH}/data/adguardhome/config:/opt/adguardhome/conf
-  #   restart: unless-stopped
-  #   depends_on:
-  #     - traefik
+  adguardhome:
+    container_name: adguardhome
+    image: adguard/adguardhome
+    ports:
+      - 53:53/tcp
+      - 53:53/udp
+    labels:
+      - 'traefik.http.services.adguardhome.loadbalancer.server.port=3000'
+    volumes:
+      - ${DOCKER_PATH}/data/adguardhome/work:/opt/adguardhome/work
+      - ${DOCKER_PATH}/data/adguardhome/config:/opt/adguardhome/conf
+    restart: always
+    depends_on:
+      - traefik
 
   icloudpd:
     image: icloudpd/icloudpd:latest
