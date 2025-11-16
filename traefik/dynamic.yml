@@ -113,6 +113,10 @@ http:
       rule: 'Host(`icloudpd-shared.app.gabriellundmark.com`)'
       service: icloudpd
 
+    portainer:
+      rule: 'Host(`portainer-homecloud.app.gabriellundmark.com`)'
+      service: portainer
+
     # UniFi Controller
     unifi:
       rule: 'Host(`unifi.app.gabriellundmark.com`)'
@@ -137,6 +141,12 @@ http:
       loadBalancer:
         servers:
           - url: 'http://10.0.1.2:8081'
+        passHostHeader: true
+
+    portainer:
+      loadBalancer:
+        servers:
+          - url: 'http://10.0.1.2:9000'
         passHostHeader: true
 
     unifi:
