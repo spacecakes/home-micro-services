@@ -117,6 +117,10 @@ http:
       rule: 'Host(`portainer-homecloud.app.gabriellundmark.com`)'
       service: portainer
 
+    adguardhome:
+      rule: 'Host(`dns2.app.gabriellundmark.com`)'
+      service: adguardhome
+
     # UniFi Controller
     unifi:
       rule: 'Host(`unifi.app.gabriellundmark.com`)'
@@ -147,6 +151,12 @@ http:
       loadBalancer:
         servers:
           - url: 'http://10.0.1.2:9000'
+        passHostHeader: true
+
+    adguardhome:
+      loadBalancer:
+        servers:
+          - url: 'http://10.0.1.2:3000'
         passHostHeader: true
 
     unifi:
