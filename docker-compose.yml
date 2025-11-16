@@ -311,7 +311,7 @@ services:
   handbrake:
     container_name: handbrake
     image: jlesage/handbrake
-    restart: 'no'
+    restart: unless-stopped
     environment:
       - GROUP_ID=${GID}
       - USER_ID=${UID}
