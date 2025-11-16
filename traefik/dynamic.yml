@@ -63,6 +63,7 @@ http:
         - default-whitelist
       service: noop@internal
 
+    # Synology apps
     dsm:
       rule: 'Host(`dsm.app.gabriellundmark.com`)'
       service: synology-dsm
@@ -96,12 +97,23 @@ http:
       middlewares:
         - add-files-prefix
       service: synology-file-station
+
     vm-manager:
       rule: 'Host(`vm.app.gabriellundmark.com`)'
       middlewares:
         - add-vm-prefix
       service: synology-vm
 
+    # Synology containers
+    icloudpd:
+      rule: 'Host(`icloudpd.app.gabriellundmark.com`)'
+      service: icloudpd
+
+    icloudpd-shared:
+      rule: 'Host(`icloudpd-shared.app.gabriellundmark.com`)'
+      service: icloudpd
+
+    # UniFi Controller
     unifi:
       rule: 'Host(`unifi.app.gabriellundmark.com`)'
       service: unifi
@@ -114,6 +126,18 @@ http:
     synology-photos: *synology-service
     synology-file-station: *synology-service
     synology-vm: *synology-service
+
+    icloudpd:
+      loadBalancer:
+        servers:
+          - url: 'http://10.0.1.2:8080'
+        passHostHeader: true
+
+    icloudpd-shared:
+      loadBalancer:
+        servers:
+          - url: 'http://10.0.1.2:8081'
+        passHostHeader: true
 
     unifi:
       loadBalancer:

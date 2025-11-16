@@ -1,4 +1,4 @@
-name: 'home-micro-services'
+name: 'homeserver-services'
 
 services:
   # Server tools
@@ -133,62 +133,6 @@ services:
     restart: always
     depends_on:
       - traefik
-
-  icloudpd:
-    image: icloudpd/icloudpd:latest
-    container_name: icloudpd
-    environment:
-      - UID=${UID}
-      - GID=${GID}
-      - TZ=${TZ}
-    volumes:
-      - ${DOCKER_PATH}/data/icloudpd:/config
-      - ${MOUNTS_PATH}/photos/icloud:/data
-    restart: 'unless-stopped'
-    command:
-      - icloudpd
-      - --directory
-      - /data
-      - --cookie-directory
-      - /config
-      - --username
-      - ${APPLE_ID}
-      - --password-provider
-      - webui
-      - --mfa-provider
-      - webui
-      - --watch-with-interval
-      - '3600'
-      - --auto-delete
-
-  icloudpd-shared:
-    image: icloudpd/icloudpd:latest
-    container_name: icloudpd-shared
-    environment:
-      - UID=${UID}
-      - GID=${GID}
-      - TZ=${TZ}
-    volumes:
-      - ${DOCKER_PATH}/data/icloudpd-shared:/config
-      - ${MOUNTS_PATH}/photos/icloud-shared:/data
-    restart: 'unless-stopped'
-    command:
-      - icloudpd
-      - --directory
-      - /data
-      - --cookie-directory
-      - /config
-      - --username
-      - ${APPLE_ID}
-      - --password-provider
-      - webui
-      - --mfa-provider
-      - webui
-      - --watch-with-interval
-      - '3600'
-      - --auto-delete
-      - --library
-      - ${ICLOUD_SHARED_LIBRARY}
 
   # Home automation
   homeassistant:
