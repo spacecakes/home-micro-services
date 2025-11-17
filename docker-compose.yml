@@ -91,7 +91,6 @@ services:
       PUID: ${UID}
       HOMEPAGE_ALLOWED_HOSTS: 'app.gabriellundmark.com'
     labels:
-      - 'traefik.http.services.homepage.loadbalancer.server.port=3000'
       - 'traefik.http.routers.homepage.rule=Host(`app.gabriellundmark.com`)'
     volumes:
       - ${DOCKER_PATH}/data/homepage/config:/config
@@ -109,8 +108,6 @@ services:
       - 8.8.8.8 # Google DNS
     environment:
       - TZ=${TZ}
-    labels:
-      - 'traefik.http.services.overseerr.loadbalancer.server.port=5055'
     volumes:
       - ${DOCKER_PATH}/data/overseerr/config:/app/config
     restart: unless-stopped
@@ -211,6 +208,20 @@ services:
     depends_on:
       - traefik
 
+  tautulli:
+    image: lscr.io/linuxserver/tautulli:latest
+    container_name: tautulli
+    environment:
+      - PUID=${UID}
+      - PGID=${GID}
+      - TZ=${TZ}
+    volumes:
+      - ${DOCKER_PATH}/data/tautulli:/config
+    restart: unless-stopped
+    depends_on:
+      - plex
+      - traefik
+
   sabnzbd:
     container_name: sabnzbd
     image: linuxserver/sabnzbd:latest
@@ -219,8 +230,6 @@ services:
       - TZ=${TZ}
       - PGID=${GID}
       - PUID=${UID}
-    labels:
-      - 'traefik.http.services.sabnzbd.loadbalancer.server.port=8080'
     restart: always
     volumes:
       - ${DOCKER_PATH}/data/sabnzbd:/config
@@ -261,8 +270,6 @@ services:
       - USER_ID=${UID}
       - TZ=${TZ}
       - AUTOMATED_CONVERSION_KEEP_SOURCE=0
-    labels:
-      - 'traefik.http.services.handbrake.loadbalancer.server.port=5800'
     volumes:
       - '${DOCKER_PATH}/data/handbrake:/config:rw'
       - '${DOCKER_PATH}/temp/handbrake/watch:/watch:rw'
@@ -282,8 +289,6 @@ services:
       - TZ=${TZ}
       - PGID=${GID}
       - PUID=${UID}
-    labels:
-      - 'traefik.http.services.sonarr.loadbalancer.server.port=8989'
     restart: unless-stopped
     volumes:
       - ${DOCKER_PATH}/data/sonarr:/config
@@ -307,8 +312,6 @@ services:
       - PGID=${GID}
       - PUID=${UID}
       - TZ=${TZ}
-    labels:
-      - 'traefik.http.services.radarr.loadbalancer.server.port=7878'
     restart: unless-stopped
     volumes:
       - ${DOCKER_PATH}/data/radarr:/config
@@ -325,12 +328,13 @@ services:
     container_name: bazarr
     image: linuxserver/bazarr:latest
     hostname: bazarr
+    dns:
+      - 1.1.1.1 # Cloudflare DNS
+      - 8.8.8.8 # Google DNS
     environment:
       - TZ=${TZ}
       - PGID=${GID}
       - PUID=${UID}
-    labels:
-      - 'traefik.http.services.bazarr.loadbalancer.server.port=6767'
     restart: unless-stopped
     volumes:
       - ${DOCKER_PATH}/data/bazarr:/config
@@ -346,8 +350,6 @@ services:
       - PGID=${GID}
       - PUID=${UID}
       - TZ=${TZ}
-    labels:
-      - 'traefik.http.services.nzbhydra.loadbalancer.server.port=5076'
     restart: unless-stopped
     volumes:
       - ${DOCKER_PATH}/data/nzbhydra:/config
@@ -365,8 +367,6 @@ services:
       - PGID=${GID}
       - PUID=${UID}
       - TZ=${TZ}
-    labels:
-      - 'traefik.http.services.prowlarr.loadbalancer.server.port=9696'
     restart: unless-stopped
     volumes:
       - ${DOCKER_PATH}/data/prowlarr:/config
