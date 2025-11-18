@@ -27,6 +27,14 @@ services:
       - ${DOCKER_PATH}/traefik/dynamic.yml:/dynamic.yml
       - /var/run/docker.sock:/var/run/docker.sock
 
+  traefik-deny:
+    image: nginx:alpine
+    container_name: traefik-deny
+    labels:
+      - traefik.enable=false
+    command: sh -c 'echo "server { listen 80; location / { return 403 \"Access denied\"; } }" > /etc/nginx/conf.d/default.conf && nginx -g "daemon off;"'
+    restart: unless-stopped
+
   traefik-certs-dumper:
     image: ldez/traefik-certs-dumper:v2.9.3
     container_name: traefik-certs-dumper
