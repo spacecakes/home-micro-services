@@ -65,65 +65,65 @@ http:
 
     # Synology apps
     dsm:
-      rule: 'Host(`dsm.app.gabriellundmark.com`)'
+      rule: 'Host(`dsm.lundmark.tech`)'
       service: synology-dsm
 
     drive:
-      rule: 'Host(`drive.app.gabriellundmark.com`)'
+      rule: 'Host(`drive.lundmark.tech`)'
       middlewares:
         - add-drive-prefix
       service: synology-drive
 
     active-backup:
-      rule: 'Host(`abb.app.gabriellundmark.com`)'
+      rule: 'Host(`abb.lundmark.tech`)'
       middlewares:
         - add-backup-prefix
       service: synology-active-backup
 
     download-station:
-      rule: 'Host(`downloads.app.gabriellundmark.com`)'
+      rule: 'Host(`downloads.lundmark.tech`)'
       middlewares:
         - add-downloads-prefix
       service: synology-download-station
 
     synology-photos:
-      rule: 'Host(`photos.app.gabriellundmark.com`)'
+      rule: 'Host(`photos.lundmark.tech`)'
       middlewares:
         - add-photos-prefix
       service: synology-photos
 
     file-station:
-      rule: 'Host(`files.app.gabriellundmark.com`)'
+      rule: 'Host(`files.lundmark.tech`)'
       middlewares:
         - add-files-prefix
       service: synology-file-station
 
     vm-manager:
-      rule: 'Host(`vm.app.gabriellundmark.com`)'
+      rule: 'Host(`vm.lundmark.tech`)'
       middlewares:
         - add-vm-prefix
       service: synology-vm
 
     # Synology containers
     icloudpd:
-      rule: 'Host(`icloudpd.app.gabriellundmark.com`)'
+      rule: 'Host(`icloudpd.lundmark.tech`)'
       service: icloudpd
 
     icloudpd-shared:
-      rule: 'Host(`icloudpd-shared.app.gabriellundmark.com`)'
+      rule: 'Host(`icloudpd-shared.lundmark.tech`)'
       service: icloudpd
 
     portainer:
-      rule: 'Host(`portainer-homecloud.app.gabriellundmark.com`)'
+      rule: 'Host(`portainer-homecloud.lundmark.tech`)'
       service: portainer
 
     adguardhome:
-      rule: 'Host(`dns2.app.gabriellundmark.com`)'
+      rule: 'Host(`dns2.lundmark.tech`)'
       service: adguardhome
 
     # UniFi Controller
     unifi:
-      rule: 'Host(`unifi.app.gabriellundmark.com`)'
+      rule: 'Host(`unifi.lundmark.tech`)'
       service: unifi
 
   services:

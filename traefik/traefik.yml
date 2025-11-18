@@ -20,16 +20,16 @@ entryPoints:
       tls:
         certResolver: letsencrypt
         domains:
-          - main: 'homeassistant.gabriellundmark.com'
-          - main: 'plex.gabriellundmark.com'
-          - main: 'app.gabriellundmark.com'
+          - main: 'homeassistant.lundmark.tech'
+          - main: 'plex.lundmark.tech'
+          - main: 'lundmark.tech'
             sans:
-              - '*.app.gabriellundmark.com'
+              - '*.lundmark.tech'
 
 providers:
   docker:
-    # Strip stack name and set default route to service.app.gabriellundmark.com
-    defaultRule: 'Host(`{{ coalesce (index .Labels "com.docker.compose.service") (normalize .Name) }}.app.gabriellundmark.com`)'
+    # Strip stack name and set default route to service.lundmark.tech
+    defaultRule: 'Host(`{{ coalesce (index .Labels "com.docker.compose.service") (normalize .Name) }}.lundmark.tech`)'
   file:
     filename: /dynamic.yml
     watch: true

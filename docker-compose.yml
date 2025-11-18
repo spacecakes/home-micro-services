@@ -89,9 +89,9 @@ services:
     environment:
       PGID: ${GID}
       PUID: ${UID}
-      HOMEPAGE_ALLOWED_HOSTS: 'app.gabriellundmark.com'
+      HOMEPAGE_ALLOWED_HOSTS: 'lundmark.tech'
     labels:
-      - 'traefik.http.routers.homepage.rule=Host(`app.gabriellundmark.com`)'
+      - 'traefik.http.routers.homepage.rule=Host(`lundmark.tech`)'
     volumes:
       - ${DOCKER_PATH}/data/homepage/config:/config
       - ${DOCKER_PATH}/data/homepage/images:/app/public/images
