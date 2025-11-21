@@ -120,7 +120,7 @@ http:
 
     icloudpd-shared:
       rule: 'Host(`icloudpd-shared.lundmark.tech`)'
-      service: icloudpd
+      service: icloudpd-shared
 
     portainer:
       rule: 'Host(`portainer-homecloud.lundmark.tech`)'
