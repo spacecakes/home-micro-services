@@ -249,7 +249,7 @@ services:
 
   transmission:
     container_name: transmission
-    image: piec/transmission-magnet:latest
+    image: linuxserver/transmission:latest
     hostname: transmission
     environment:
       - PGID=${GID}
@@ -266,6 +266,7 @@ services:
       - ${DOCKER_PATH}/downloads:/downloads
       - ${MOUNTS_PATH}/downloads:/downloads-nas
       - ${MOUNTS_PATH}/downloads/seeding:/seeding
+      - ${MOUNTS_PATH}/downloads/watch:/watch
     depends_on:
       - traefik
 
