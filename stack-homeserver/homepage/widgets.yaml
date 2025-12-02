@@ -1,0 +1,18 @@
+---
+# For configuration options and examples, please see:
+# https://gethomepage.dev/configs/info-widgets/
+
+- resources:
+    cpu: true
+    memory: true
+    disk: /
+
+- search:
+    provider: duckduckgo
+    target: _blank
+
+- unifi_console:
+    url: https://10.0.1.1
+    username: homepage
+    # prettier-ignore
+    password: {{HOMEPAGE_VAR_UNIFI_PASSWORD}}

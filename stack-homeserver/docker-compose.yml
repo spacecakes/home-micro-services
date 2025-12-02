@@ -23,8 +23,8 @@ services:
       - JOKER_PASSWORD=${JOKER_DDNS_PASSWORD}
     volumes:
       - ${DOCKER_PATH}/data/traefik/letsencrypt:/letsencrypt
-      - ${DOCKER_PATH}/traefik/traefik.yml:/traefik.yml
-      - ${DOCKER_PATH}/traefik/dynamic.yml:/dynamic.yml
+      - ${DOCKER_PATH}/stack-homeserver/traefik/traefik.yml:/traefik.yml
+      - ${DOCKER_PATH}/stack-homeserver/traefik/dynamic.yml:/dynamic.yml
       - /var/run/docker.sock:/var/run/docker.sock
 
   traefik-deny:
@@ -98,10 +98,17 @@ services:
       PGID: ${GID}
       PUID: ${UID}
       HOMEPAGE_ALLOWED_HOSTS: 'lundmark.tech'
+      HOMEPAGE_VAR_UNIFI_PASSWORD: ${HOMEPAGE_UNIFI_PASSWORD}
     labels:
       - 'traefik.http.routers.homepage.rule=Host(`lundmark.tech`)'
     volumes:
-      - ${DOCKER_PATH}/data/homepage/config:/config
+      # Git-tracked config files
+      - ${DOCKER_PATH}/stack-homeserver/homepage/services.yaml:/app/config/services.yaml:ro
+      - ${DOCKER_PATH}/stack-homeserver/homepage/settings.yaml:/app/config/settings.yaml:ro
+      - ${DOCKER_PATH}/stack-homeserver/homepage/widgets.yaml:/app/config/widgets.yaml:ro
+      - ${DOCKER_PATH}/stack-homeserver/homepage/bookmarks.yaml:/app/config/bookmarks.yaml:ro
+      # Runtime data (git-ignored)
+      - ${DOCKER_PATH}/data/homepage/logs:/app/config/logs
       - ${DOCKER_PATH}/data/homepage/images:/app/public/images
       - ${DOCKER_PATH}/data/homepage/icons:/app/public/icons
     depends_on:
@@ -138,6 +145,7 @@ services:
     restart: always
     depends_on:
       - traefik
+
   adguardhome-sync:
     image: lscr.io/linuxserver/adguardhome-sync:latest
     container_name: adguardhome-sync

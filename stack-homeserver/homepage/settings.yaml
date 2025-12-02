@@ -1,0 +1,51 @@
+---
+# For configuration options and examples, please see:
+# https://gethomepage.dev/configs/settings/
+
+providers:
+  openweathermap: openweathermapapikey
+  weatherapi: weatherapiapikey
+
+cardBlur: md
+useEqualHeights: true
+headerStyle: clean
+target: _self
+statusStyle: 'dot'
+hideErrors: true
+title: Gabriel's micro services
+quicklaunch:
+  # hideInternetSearch: true
+  # hideVisitURL: true
+provider: google
+# background:
+#   image: https://images.unsplash.com/photo-1475924156734-496f6cac6ec1?ixid=M3w1MjQwNDl8MHwxfHNlYXJjaHw5fHxiZWFjaHxlbnwwfDB8fHwxNzU5MDg1MjgxfDA&ixlib=rb-4.1.0
+#   blur: xs # sm, "", md, xl... see https://tailwindcss.com/docs/backdrop-blur
+
+layout:
+  Infrastructure & Network:
+    style: row
+    columns: 3
+
+  Files, Backup & Sync:
+    style: row
+    columns: 3
+
+  Home Automation:
+    style: row
+    columns: 3
+
+  Media Management:
+    style: row
+    columns: 4
+
+  Media Streaming:
+    style: column
+    columns: 1
+
+  Download Clients:
+    style: column
+    columns: 1
+
+  Indexers & Search:
+    style: column
+    columns: 1

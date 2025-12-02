@@ -1,0 +1,38 @@
+---
+# For configuration options and examples, please see:
+# https://gethomepage.dev/configs/bookmarks
+
+- Config:
+    - Tailscale Admin Console:
+        - abbr: TS
+          href: https://login.tailscale.com/admin/machines/
+    - NextDNS:
+        - abbr: ND
+          href: https://my.nextdns.io/
+    - C2 Storage:
+        - abbr: C2
+          href: https://eu.c2.synology.com/storage/
+    - Unifi Site Manager:
+        - abbr: UN
+          href: https://unifi.ui.com/
+    - Joker DNS:
+        - abbr: JD
+          href: https://joker.com/user/domains
+
+- Help:
+    - Tailscale docs:
+        - abbr: TD
+          href: https://tailscale.com/kb/
+    - NextDNS docs:
+        - abbr: ND
+          href: https://help.nextdns.io/
+    - Synology docs:
+        - abbr: SD
+          href: https://kb.synology.com/en-global/
+    - Unifi docs:
+        - abbr: UD
+          href: https://help.ui.com/hc/en-us/
+- Developer:
+    - Github Repo:
+        - abbr: GH
+          href: https://github.com/spacecakes/home-micro-services/
