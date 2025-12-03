@@ -102,13 +102,15 @@ services:
     labels:
       - 'traefik.http.routers.homepage.rule=Host(`lundmark.tech`)'
     volumes:
-      # Git-tracked config files
+      # Base config directory (for runtime files like docker.yaml, kubernetes.yaml, etc)
+      - ${DOCKER_PATH}/data/homepage/config:/app/config
+      # Git-tracked config files (override defaults)
       - ${DOCKER_PATH}/stack-homeserver/homepage/services.yaml:/app/config/services.yaml:ro
       - ${DOCKER_PATH}/stack-homeserver/homepage/settings.yaml:/app/config/settings.yaml:ro
       - ${DOCKER_PATH}/stack-homeserver/homepage/widgets.yaml:/app/config/widgets.yaml:ro
       - ${DOCKER_PATH}/stack-homeserver/homepage/bookmarks.yaml:/app/config/bookmarks.yaml:ro
-      # Runtime data (git-ignored)
-      - ${DOCKER_PATH}/data/homepage/logs:/app/config/logs
+      - ${DOCKER_PATH}/stack-homeserver/homepage/docker.yaml:/app/config/docker.yaml:ro
+      # Public assets (git-ignored)
       - ${DOCKER_PATH}/data/homepage/images:/app/public/images
       - ${DOCKER_PATH}/data/homepage/icons:/app/public/icons
     depends_on:
