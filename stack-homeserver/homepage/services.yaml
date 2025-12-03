@@ -81,12 +81,14 @@
         icon: icloud.png
         href: https://icloudpd.lundmark.tech/
         description: iCloudPD - Automatic iCloud photo backup
-        siteMonitor: https://icloudpd.lundmark.tech/
+        container: icloudpd
+        server: homecloud-docker
     - iCloud Photo Backup (Shared):
         icon: icloud.png
         href: https://icloudpd-shared.lundmark.tech/
         description: iCloudPD - Shared library backup
-        siteMonitor: https://icloudpd-shared.lundmark.tech/
+        container: icloudpd-shared
+        server: homecloud-docker
 
 - Home Automation:
     - Smart Home:

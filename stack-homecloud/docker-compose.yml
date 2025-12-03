@@ -10,7 +10,7 @@ services:
       - TASKS=1
       - POST=0
     ports:
-      - 127.0.0.1:2375:2375
+      - 2375:2375
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
     restart: unless-stopped
@@ -57,7 +57,7 @@ services:
       - TZ=${TZ}
     volumes:
       - ${DOCKER_PATH}/data/icloudpd:/config
-      - ${PHOTOS_PATH}/icloud:/data
+      - ${PHOTOS_PATH_PERSONAL}:/data
     restart: 'unless-stopped'
     command:
       - icloudpd
@@ -86,7 +86,7 @@ services:
       - TZ=${TZ}
     volumes:
       - ${DOCKER_PATH}/data/icloudpd-shared:/config
-      - ${PHOTOS_PATH}/icloud-shared:/data
+      - ${PHOTOS_PATH_SHARED}:/data
     restart: 'unless-stopped'
     command:
       - icloudpd

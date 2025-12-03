@@ -3,4 +3,9 @@
 # https://gethomepage.dev/configs/docker/
 
 local-docker:
-  socket: /var/run/docker.sock
+  host: dockerproxy
+  port: 2375
+
+homecloud-docker:
+  host: 10.0.1.2
+  port: 2375
