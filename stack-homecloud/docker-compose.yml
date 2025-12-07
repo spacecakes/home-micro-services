@@ -22,7 +22,7 @@ services:
     image: portainer/portainer-ce:latest
     restart: always
     volumes:
-      - ${DOCKER_PATH}/data/portainer:/data
+      - ${PROJECT_PATH}/data/portainer:/data
       - /var/run/docker.sock:/var/run/docker.sock
 
   watchtower:
@@ -42,8 +42,8 @@ services:
       - 53:53/udp
       - 3000:3000/tcp
     volumes:
-      - ${DOCKER_PATH}/data/adguardhome/work:/opt/adguardhome/work
-      - ${DOCKER_PATH}/data/adguardhome/config:/opt/adguardhome/conf
+      - ${PROJECT_PATH}/data/adguardhome/work:/opt/adguardhome/work
+      - ${PROJECT_PATH}/data/adguardhome/config:/opt/adguardhome/conf
     restart: unless-stopped
 
   icloudpd:
@@ -56,7 +56,7 @@ services:
       - GID=${GID}
       - TZ=${TZ}
     volumes:
-      - ${DOCKER_PATH}/data/icloudpd:/config
+      - ${PROJECT_PATH}/data/icloudpd:/config
       - ${PHOTOS_PATH_PERSONAL}:/data
     restart: 'unless-stopped'
     command:
@@ -85,7 +85,7 @@ services:
       - GID=${GID}
       - TZ=${TZ}
     volumes:
-      - ${DOCKER_PATH}/data/icloudpd-shared:/config
+      - ${PROJECT_PATH}/data/icloudpd-shared:/config
       - ${PHOTOS_PATH_SHARED}:/data
     restart: 'unless-stopped'
     command:

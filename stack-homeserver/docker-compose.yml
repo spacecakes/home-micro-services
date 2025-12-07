@@ -22,9 +22,9 @@ services:
       - JOKER_USERNAME=${JOKER_DDNS_USERNAME}
       - JOKER_PASSWORD=${JOKER_DDNS_PASSWORD}
     volumes:
-      - ${DOCKER_PATH}/data/traefik/letsencrypt:/letsencrypt
-      - ${DOCKER_PATH}/traefik/traefik.yml:/traefik.yml
-      - ${DOCKER_PATH}/traefik/dynamic.yml:/dynamic.yml
+      - ${PROJECT_PATH}/data/traefik/letsencrypt:/letsencrypt
+      - ${PROJECT_PATH}/traefik/traefik.yml:/traefik.yml
+      - ${PROJECT_PATH}/traefik/dynamic.yml:/dynamic.yml
       - /var/run/docker.sock:/var/run/docker.sock
 
   traefik-deny:
@@ -48,7 +48,7 @@ services:
       && traefik-certs-dumper file --version v2 --watch
       --source /data/acme.json --dest /data/certs'
     volumes:
-      - ${DOCKER_PATH}/data/traefik/letsencrypt:/data
+      - ${PROJECT_PATH}/data/traefik/letsencrypt:/data
     network_mode: 'none'
 
   dockerproxy:
@@ -74,7 +74,7 @@ services:
       - 'traefik.http.services.portainer.loadbalancer.server.port=9000'
     restart: always
     volumes:
-      - ${DOCKER_PATH}/data/portainer:/data
+      - ${PROJECT_PATH}/data/portainer:/data
       - /var/run/docker.sock:/var/run/docker.sock
     depends_on:
       - traefik
@@ -103,16 +103,16 @@ services:
       - 'traefik.http.routers.homepage.rule=Host(`lundmark.tech`)'
     volumes:
       # Base config directory (for runtime files like docker.yaml, kubernetes.yaml, etc)
-      - ${DOCKER_PATH}/data/homepage/config:/app/config
+      - ${PROJECT_PATH}/data/homepage/config:/app/config
       # Git-tracked config files (override defaults)
-      - ${DOCKER_PATH}/homepage/services.yaml:/app/config/services.yaml:ro
-      - ${DOCKER_PATH}/homepage/settings.yaml:/app/config/settings.yaml:ro
-      - ${DOCKER_PATH}/homepage/widgets.yaml:/app/config/widgets.yaml:ro
-      - ${DOCKER_PATH}/homepage/bookmarks.yaml:/app/config/bookmarks.yaml:ro
-      - ${DOCKER_PATH}/homepage/docker.yaml:/app/config/docker.yaml:ro
+      - ${PROJECT_PATH}/homepage/services.yaml:/app/config/services.yaml:ro
+      - ${PROJECT_PATH}/homepage/settings.yaml:/app/config/settings.yaml:ro
+      - ${PROJECT_PATH}/homepage/widgets.yaml:/app/config/widgets.yaml:ro
+      - ${PROJECT_PATH}/homepage/bookmarks.yaml:/app/config/bookmarks.yaml:ro
+      - ${PROJECT_PATH}/homepage/docker.yaml:/app/config/docker.yaml:ro
       # Public assets (git-ignored)
-      - ${DOCKER_PATH}/data/homepage/images:/app/public/images
-      - ${DOCKER_PATH}/data/homepage/icons:/app/public/icons
+      - ${PROJECT_PATH}/data/homepage/images:/app/public/images
+      - ${PROJECT_PATH}/data/homepage/icons:/app/public/icons
     depends_on:
       - traefik
       - dockerproxy
@@ -126,7 +126,7 @@ services:
     environment:
       - TZ=${TZ}
     volumes:
-      - ${DOCKER_PATH}/data/overseerr/config:/app/config
+      - ${PROJECT_PATH}/data/overseerr/config:/app/config
     restart: unless-stopped
     depends_on:
       - traefik
@@ -142,8 +142,8 @@ services:
     labels:
       - 'traefik.http.services.adguardhome.loadbalancer.server.port=3000'
     volumes:
-      - ${DOCKER_PATH}/data/adguardhome/work:/opt/adguardhome/work
-      - ${DOCKER_PATH}/data/adguardhome/config:/opt/adguardhome/conf
+      - ${PROJECT_PATH}/data/adguardhome/work:/opt/adguardhome/work
+      - ${PROJECT_PATH}/data/adguardhome/config:/opt/adguardhome/conf
     restart: always
     depends_on:
       - traefik
@@ -157,7 +157,7 @@ services:
       - PGID=${GID}
       - CONFIGFILE=/config/adguardhome-sync.yaml
     volumes:
-      - ${DOCKER_PATH}/data/adguardhome-sync/config:/config
+      - ${PROJECT_PATH}/data/adguardhome-sync/config:/config
     ports:
       - 8082:8080
     restart: unless-stopped
@@ -179,7 +179,7 @@ services:
       - 'traefik.http.services.homeassistant.loadbalancer.server.port=8123'
       - 'com.centurylinklabs.watchtower.enable=false'
     volumes:
-      - ${DOCKER_PATH}/data/homeassistant:/config
+      - ${PROJECT_PATH}/data/homeassistant:/config
       - ${MOUNTS_PATH}/music:/music
     devices:
       - /dev/ttyUSB0:/dev/ttyUSB0
@@ -197,7 +197,7 @@ services:
     labels:
       - 'traefik.http.services.homebridge.loadbalancer.server.port=8581'
     volumes:
-      - ${DOCKER_PATH}/data/homebridge:/homebridge
+      - ${PROJECT_PATH}/data/homebridge:/homebridge
 
   scrypted:
     container_name: scrypted
@@ -207,7 +207,7 @@ services:
     labels:
       - 'traefik.http.services.scrypted.loadbalancer.server.port=11080' # Use insecure port; Traefik handles SSL
     volumes:
-      - ${DOCKER_PATH}/data/scrypted:/server/volume
+      - ${PROJECT_PATH}/data/scrypted:/server/volume
     depends_on:
       - traefik
 
@@ -233,8 +233,8 @@ services:
       - 'traefik.http.services.plex.loadbalancer.server.port=32400'
     restart: unless-stopped
     volumes:
-      - ${DOCKER_PATH}/data/plex:/config
-      - ${DOCKER_PATH}/temp/plex:/transcode
+      - ${PROJECT_PATH}/data/plex:/config
+      - ${ROOT_PATH}/temp/plex:/transcode
       - ${MOUNTS_PATH}/media:/media
       - ${MOUNTS_PATH}/home_video:/home_video
       - ${MOUNTS_PATH}/music:/music
@@ -250,7 +250,7 @@ services:
       - PGID=${GID}
       - TZ=${TZ}
     volumes:
-      - ${DOCKER_PATH}/data/tautulli:/config
+      - ${PROJECT_PATH}/data/tautulli:/config
     restart: unless-stopped
     depends_on:
       - plex
@@ -266,8 +266,8 @@ services:
       - PUID=${UID}
     restart: always
     volumes:
-      - ${DOCKER_PATH}/data/sabnzbd:/config
-      - ${DOCKER_PATH}/downloads:/downloads
+      - ${PROJECT_PATH}/data/sabnzbd:/config
+      - ${ROOT_PATH}/downloads:/downloads
       - ${MOUNTS_PATH}/downloads:/downloads-nas
       - ${MOUNTS_PATH}/media:/media
     depends_on:
@@ -288,8 +288,8 @@ services:
       - '51413:51413/udp'
     restart: unless-stopped
     volumes:
-      - ${DOCKER_PATH}/data/transmission:/config
-      - ${DOCKER_PATH}/downloads:/downloads
+      - ${PROJECT_PATH}/data/transmission:/config
+      - ${ROOT_PATH}/downloads:/downloads
       - ${MOUNTS_PATH}/downloads:/downloads-nas
       - ${MOUNTS_PATH}/downloads/seeding:/seeding
       - ${MOUNTS_PATH}/downloads/watch:/watch
@@ -306,9 +306,9 @@ services:
       - TZ=${TZ}
       - AUTOMATED_CONVERSION_KEEP_SOURCE=0
     volumes:
-      - '${DOCKER_PATH}/data/handbrake:/config:rw'
-      - '${DOCKER_PATH}/temp/handbrake/watch:/watch:rw'
-      - '${DOCKER_PATH}/temp/handbrake/output:/output:rw'
+      - '${PROJECT_PATH}/data/handbrake:/config:rw'
+      - '${ROOT_PATH}/temp/handbrake/watch:/watch:rw'
+      - '${ROOT_PATH}/temp/handbrake/output:/output:rw'
       - '${MOUNTS_PATH}/media:/storage:ro'
     depends_on:
       - traefik
@@ -326,8 +326,8 @@ services:
       - PUID=${UID}
     restart: unless-stopped
     volumes:
-      - ${DOCKER_PATH}/data/sonarr:/config
-      - ${DOCKER_PATH}/downloads:/downloads
+      - ${PROJECT_PATH}/data/sonarr:/config
+      - ${ROOT_PATH}/downloads:/downloads
       - ${MOUNTS_PATH}/media:/media
     depends_on:
       - traefik
@@ -349,8 +349,8 @@ services:
       - TZ=${TZ}
     restart: unless-stopped
     volumes:
-      - ${DOCKER_PATH}/data/radarr:/config
-      - ${DOCKER_PATH}/downloads:/downloads
+      - ${PROJECT_PATH}/data/radarr:/config
+      - ${ROOT_PATH}/downloads:/downloads
       - ${MOUNTS_PATH}/media:/media
     depends_on:
       - traefik
@@ -372,7 +372,7 @@ services:
       - PUID=${UID}
     restart: unless-stopped
     volumes:
-      - ${DOCKER_PATH}/data/bazarr:/config
+      - ${PROJECT_PATH}/data/bazarr:/config
       - ${MOUNTS_PATH}/media:/media
     depends_on:
       - traefik
@@ -387,8 +387,8 @@ services:
       - TZ=${TZ}
     restart: unless-stopped
     volumes:
-      - ${DOCKER_PATH}/data/nzbhydra:/config
-      - ${DOCKER_PATH}/downloads:/downloads
+      - ${PROJECT_PATH}/data/nzbhydra:/config
+      - ${ROOT_PATH}/downloads:/downloads
       - ${MOUNTS_PATH}/downloads:/downloads-nas
       - ${MOUNTS_PATH}/media:/media
     depends_on:
@@ -404,6 +404,6 @@ services:
       - TZ=${TZ}
     restart: unless-stopped
     volumes:
-      - ${DOCKER_PATH}/data/prowlarr:/config
+      - ${PROJECT_PATH}/data/prowlarr:/config
     depends_on:
       - traefik
