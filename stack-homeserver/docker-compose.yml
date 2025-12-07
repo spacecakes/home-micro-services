@@ -5,6 +5,9 @@ services:
   traefik:
     container_name: traefik
     image: traefik:3.6
+    networks:
+      - default
+      - traefik-proxy
     extra_hosts:
       - 'host.docker.internal:172.17.0.1'
     ports:
@@ -407,3 +410,7 @@ services:
       - ${PROJECT_PATH}/data/prowlarr:/config
     depends_on:
       - traefik
+
+networks:
+  traefik-proxy:
+    external: true
