@@ -73,16 +73,16 @@
         description: Synology Drive - File sync & collaboration platform
         siteMonitor: https://drive.lundmark.tech/
     - Photos:
+        icon: immich.png
+        href: https://immich.lundmark.tech/
+        description: Immich - Photo library & sharing
+        container: immich_server
+        server: local-docker
+    - Photos (Synology):
         icon: /icons/synology-photos.png
         href: https://photos.lundmark.tech/
         description: Synology Photos - Photo library & sharing
         siteMonitor: https://photos.lundmark.tech/
-    - Immich:
-        icon: immich.png
-        href: https://immich.lundmark.tech/
-        description: Immich - Personal photo library
-        container: immich_server
-        server: local-docker
     - iCloud Photo Backup:
         icon: icloud.png
         href: https://icloudpd.lundmark.tech/
