@@ -156,42 +156,20 @@ cat /var/log/docker_data_backup.log
 
 # 9. Docker service
 
-Ammend `docker.service` to bind to the mounts so it stops if the NAS goes away and resumes when its back:
+Ammend `docker.service` to wait for mounts:
 
 `sudo systemctl edit docker.service`
 
-```ini
-[Service]
-RestartSec=10
-
-[Unit]
-Description=Docker Application Container Engine
-Documentation=https://docs.docker.com
-After=network-online.target firewalld.service
+```ini[Unit]
+After=network-online.target
 Wants=network-online.target
 
-# --- NFS mount dependencies ---
-BindsTo=mnt-nas-backup\x2dhomeserver.mount \
-        mnt-nas-media.mount \
-        mnt-nas-music.mount \
-        mnt-nas-photos.mount \
-        mnt-nas-video.mount \
-        mnt-nas-downloads.mount \
-        mnt-nas-home_video.mount
+RequiresMountsFor=/mnt/nas/backup-homeserver \
+                  /mnt/nas/media \
+                  /mnt/nas/music \
+                  /mnt/nas/photos \
+                  /mnt/nas/video \
+                  /mnt/nas/downloads \
+                  /mnt/nas/home_video
 
-After=mnt-nas-backup\x2dhomeserver.mount \
-      mnt-nas-media.mount \
-      mnt-nas-music.mount \
-      mnt-nas-photos.mount \
-      mnt-nas-video.mount \
-      mnt-nas-downloads.mount \
-      mnt-nas-home_video.mount
-
-Requires=mnt-nas-backup\x2dhomeserver.mount \
-         mnt-nas-media.mount \
-         mnt-nas-music.mount \
-         mnt-nas-photos.mount \
-         mnt-nas-video.mount \
-         mnt-nas-downloads.mount \
-         mnt-nas-home_video.mount
 ```
