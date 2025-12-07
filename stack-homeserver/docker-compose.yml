@@ -23,8 +23,8 @@ services:
       - JOKER_PASSWORD=${JOKER_DDNS_PASSWORD}
     volumes:
       - ${DOCKER_PATH}/data/traefik/letsencrypt:/letsencrypt
-      - ${DOCKER_PATH}/stack-homeserver/traefik/traefik.yml:/traefik.yml
-      - ${DOCKER_PATH}/stack-homeserver/traefik/dynamic.yml:/dynamic.yml
+      - ${DOCKER_PATH}/traefik/traefik.yml:/traefik.yml
+      - ${DOCKER_PATH}/traefik/dynamic.yml:/dynamic.yml
       - /var/run/docker.sock:/var/run/docker.sock
 
   traefik-deny:
@@ -105,11 +105,11 @@ services:
       # Base config directory (for runtime files like docker.yaml, kubernetes.yaml, etc)
       - ${DOCKER_PATH}/data/homepage/config:/app/config
       # Git-tracked config files (override defaults)
-      - ${DOCKER_PATH}/stack-homeserver/homepage/services.yaml:/app/config/services.yaml:ro
-      - ${DOCKER_PATH}/stack-homeserver/homepage/settings.yaml:/app/config/settings.yaml:ro
-      - ${DOCKER_PATH}/stack-homeserver/homepage/widgets.yaml:/app/config/widgets.yaml:ro
-      - ${DOCKER_PATH}/stack-homeserver/homepage/bookmarks.yaml:/app/config/bookmarks.yaml:ro
-      - ${DOCKER_PATH}/stack-homeserver/homepage/docker.yaml:/app/config/docker.yaml:ro
+      - ${DOCKER_PATH}/homepage/services.yaml:/app/config/services.yaml:ro
+      - ${DOCKER_PATH}/homepage/settings.yaml:/app/config/settings.yaml:ro
+      - ${DOCKER_PATH}/homepage/widgets.yaml:/app/config/widgets.yaml:ro
+      - ${DOCKER_PATH}/homepage/bookmarks.yaml:/app/config/bookmarks.yaml:ro
+      - ${DOCKER_PATH}/homepage/docker.yaml:/app/config/docker.yaml:ro
       # Public assets (git-ignored)
       - ${DOCKER_PATH}/data/homepage/images:/app/public/images
       - ${DOCKER_PATH}/data/homepage/icons:/app/public/icons
