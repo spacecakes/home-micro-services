@@ -34,6 +34,8 @@ services:
     healthcheck:
       disable: false
     labels:
+      - 'traefik.enable=true'
+      - 'traefik.http.routers.immich.rule=Host(`immich.lundmark.tech`)'
       - 'traefik.http.services.immich-server.loadbalancer.server.port=2283'
 
   immich-machine-learning:
