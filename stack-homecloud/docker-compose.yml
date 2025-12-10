@@ -57,7 +57,7 @@ services:
       - TZ=${TZ}
     volumes:
       - ${PROJECT_PATH}/data/icloudpd:/config
-      - ${PHOTOS_PATH_PERSONAL}:/data
+      - ${PHOTOS_PATH}/gabriel:/data
     restart: 'unless-stopped'
     command:
       - icloudpd
@@ -86,7 +86,7 @@ services:
       - TZ=${TZ}
     volumes:
       - ${PROJECT_PATH}/data/icloudpd-shared:/config
-      - ${PHOTOS_PATH_SHARED}:/data
+      - ${PHOTOS_PATH}/shared:/data
     restart: 'unless-stopped'
     command:
       - icloudpd
