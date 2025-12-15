@@ -19,10 +19,6 @@ http:
       addPrefix:
         prefix: '/backup'
 
-    add-photos-prefix:
-      addPrefix:
-        prefix: '/photos'
-
     add-downloads-prefix:
       addPrefix:
         prefix: '/downloads'
@@ -95,12 +91,6 @@ http:
         - add-downloads-prefix
       service: synology-download-station
 
-    synology-photos:
-      rule: 'Host(`photos.lundmark.tech`)'
-      middlewares:
-        - add-photos-prefix
-      service: synology-photos
-
     file-station:
       rule: 'Host(`files.lundmark.tech`)'
       middlewares:
@@ -145,7 +135,6 @@ http:
     synology-drive: *synology-service
     synology-active-backup: *synology-service
     synology-download-station: *synology-service
-    synology-photos: *synology-service
     synology-file-station: *synology-service
     synology-vm: *synology-service
 
