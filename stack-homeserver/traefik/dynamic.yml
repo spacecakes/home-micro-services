@@ -125,6 +125,11 @@ http:
       rule: 'Host(`unifi.lundmark.tech`)'
       service: unifi
 
+      #APC UPS
+    apcupsd:
+      rule: 'Host(`ups.lundmark.tech`)'
+      service: apcupsd
+
   services:
     deny:
       loadBalancer:
@@ -166,4 +171,10 @@ http:
       loadBalancer:
         servers:
           - url: 'https://10.0.1.1'
+        passHostHeader: true
+
+    apcupsd:
+      loadBalancer:
+        servers:
+          - url: 'http://10.0.1.5'
         passHostHeader: true

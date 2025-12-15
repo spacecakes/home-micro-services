@@ -34,11 +34,6 @@
         href: https://portainer-homecloud.lundmark.tech/
         description: Portainer - Docker container management interface
         siteMonitor: https://portainer-homecloud.lundmark.tech/
-    - VMs:
-        icon: /icons/synology-vmm.png
-        href: https://vm.lundmark.tech/
-        siteMonitor: https://vm.lundmark.tech/
-        description: Synology VMM - Virtual machine hosting & management
     - DNS1:
         icon: /icons/adguard-home.png
         href: https://adguardhome.lundmark.tech/
@@ -48,13 +43,23 @@
     - DNS2:
         icon: /icons/adguard-home.png
         href: https://dns2.lundmark.tech/
-        description: AdGuard Home - Network-wide ad blocking & DNS filtering
+        description: AdGuard Home - Secondary DNS synced with primary
         siteMonitor: https://dns2.lundmark.tech/
     - DNS Sync:
         icon: /icons/adguard-home-sync.svg
         href: https://adguardhome-sync.lundmark.tech
         description: Sync Adguard Home instances
         siteMonitor: https://adguardhome-sync.lundmark.tech/
+    - VMs:
+        icon: /icons/synology-vmm.png
+        href: https://vm.lundmark.tech/
+        siteMonitor: https://vm.lundmark.tech/
+        description: Synology VMM - Virtual machine hosting & management
+    - UPS:
+        icon: /icons/apc.svg
+        href: https://ups.lundmark.tech/
+        description: APC UPS - UPS monitoring & management
+        siteMonitor: https://ups.lundmark.tech/
 
 - Files, Backup & Sync:
     - Backup Restore:
