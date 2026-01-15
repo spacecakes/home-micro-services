@@ -22,7 +22,8 @@ services:
       # Do not edit the next line. If you want to change the media storage location on your system, edit the value of UPLOAD_LOCATION in the .env file
       - ${UPLOAD_LOCATION}:/data
       - /etc/localtime:/etc/localtime:ro
-      # - ${MOUNTS_PATH}/photos:/libraries:ro
+      - ${MOUNTS_PATH}/photos/icloud-shared:/libraries/icloud-shared:ro
+      - ${MOUNTS_PATH}/photos/icloud-gabriel:/libraries/icloud-gabriel:ro
     env_file:
       - .env
     ports:
