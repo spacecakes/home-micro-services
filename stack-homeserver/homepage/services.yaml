@@ -58,9 +58,13 @@
     - UPS:
         icon: /icons/apc.svg
         href: https://ups.lundmark.tech/
-        description: APC UPS - UPS monitoring & management
+        description: Backbone rack UPS monitoring & management
         siteMonitor: https://ups.lundmark.tech/
-
+    - UPS2:
+        icon: /icons/apc.svg
+        href: https://ups2.lundmark.tech/
+        description: Desktop UPS monitoring & management
+        siteMonitor: https://ups2.lundmark.tech/
 - Files, Backup & Sync:
     - Backup Restore:
         icon: /icons/synology-abb.png
