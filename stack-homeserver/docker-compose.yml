@@ -109,6 +109,7 @@ services:
       - 'traefik.http.services.uptime-kuma.loadbalancer.server.port=3001'
     volumes:
       - ${PROJECT_PATH}/data/uptime-kuma:/app/data
+      - /var/run/docker.sock:/var/run/docker.sock
     depends_on:
       - traefik
 
