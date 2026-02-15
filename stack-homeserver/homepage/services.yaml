@@ -150,13 +150,13 @@
 - Media Streaming:
     - Requests:
         icon: overseerr.png
-        href: https://overseerr.lundmark.tech/
-        description: Overseerr - Media request & discovery interface
-        container: overseerr
+        href: https://seerr.lundmark.tech/
+        description: Seerr - Media request & discovery interface
+        container: seerr
         server: local-docker
         widget:
           type: overseerr
-          url: http://overseerr:5055
+          url: http://seerr:5055
           key: MTc0MDA4NDk3OTAxNGQ0NzY3NWQ0LTVjZTEtNDAyZi04MzE1LWYxZDljN2NmMGY3MQ==
     - Mediaserver:
         icon: plex.png

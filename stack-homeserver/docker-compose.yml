@@ -144,22 +144,6 @@ services:
       interval: 15s
       retries: 3
 
-  overseerr:
-    image: sctx/overseerr:latest
-    container_name: overseerr
-    dns:
-      - 1.1.1.1 # Cloudflare DNS
-      - 8.8.8.8 # Google DNS
-    environment:
-      - TZ=${TZ}
-    volumes:
-      - ${PROJECT_PATH}/data/overseerr/config:/app/config
-    restart: unless-stopped
-    depends_on:
-      - traefik
-      - sonarr
-      - radarr
-
   adguardhome:
     container_name: adguardhome
     image: adguard/adguardhome
