@@ -41,6 +41,11 @@
         href: https://dns-sync.lundmark.tech
         description: Sync settings between AdGuard Home servers
         siteMonitor: https://dns-sync.lundmark.tech/
+    - Synology VMM:
+        icon: /icons/synology-vmm.png
+        href: https://vm.lundmark.tech/
+        siteMonitor: https://vm.lundmark.tech/
+        description: Virtual machine hosting & management
     - APC UPS (Rack):
         icon: /icons/apc.svg
         href: https://ups1.lundmark.tech/
@@ -51,11 +56,6 @@
         href: https://ups2.lundmark.tech/
         description: Desktop UPS monitoring & management
         siteMonitor: https://ups2.lundmark.tech/
-    - Synology VMM:
-        icon: /icons/synology-vmm.png
-        href: https://vm.lundmark.tech/
-        siteMonitor: https://vm.lundmark.tech/
-        description: Virtual machine hosting & management
 
 - Storage & Backup:
     - Synology DSM (homecloud):
