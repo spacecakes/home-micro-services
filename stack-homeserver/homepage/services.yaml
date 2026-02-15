@@ -57,6 +57,27 @@
         description: Desktop UPS monitoring & management
         siteMonitor: https://ups2.lundmark.tech/
 
+- Home & Security:
+    - Home Assistant:
+        icon: /icons/home-assistant.png
+        href: https://home.lundmark.tech/
+        description: Smart home automation hub
+        siteMonitor: https://home.lundmark.tech/
+        container: homeassistant
+        server: local-docker
+    - Homebridge:
+        icon: homebridge.png
+        href: https://homebridge.lundmark.tech/
+        description: HomeKit bridge for non-Apple devices
+        container: homebridge
+        server: local-docker
+    - Scrypted:
+        icon: scrypted.png
+        href: https://cameras.lundmark.tech/
+        description: Video platform - integrate cameras with HomeKit & HA
+        container: scrypted
+        server: local-docker
+
 - Storage & Backup:
     - Synology DSM (homecloud):
         icon: /icons/synology-dsm.png
@@ -103,27 +124,6 @@
         container: icloudpd-shared
         server: homecloud-docker
 
-- Home & Security:
-    - Home Assistant:
-        icon: /icons/home-assistant.png
-        href: https://home.lundmark.tech/
-        description: Smart home automation hub
-        siteMonitor: https://home.lundmark.tech/
-        container: homeassistant
-        server: local-docker
-    - Homebridge:
-        icon: homebridge.png
-        href: https://homebridge.lundmark.tech/
-        description: HomeKit bridge for non-Apple devices
-        container: homebridge
-        server: local-docker
-    - Scrypted:
-        icon: scrypted.png
-        href: https://cameras.lundmark.tech/
-        description: Video platform - integrate cameras with HomeKit & HA
-        container: scrypted
-        server: local-docker
-
 - Media Library:
     - Plex:
         icon: plex.png
@@ -137,10 +137,10 @@
         description: Request & discover movies/TV shows for Plex
         container: seerr
         server: local-docker
-        widget:
-          type: overseerr
-          url: http://seerr:5055
-          key: MTc0MDA4NDk3OTAxNGQ0NzY3NWQ0LTVjZTEtNDAyZi04MzE1LWYxZDljN2NmMGY3MQ==
+        # widget:
+        #   type: overseerr
+        #   url: http://seerr:5055
+        #   key: MTc0MDA4NDk3OTAxNGQ0NzY3NWQ0LTVjZTEtNDAyZi04MzE1LWYxZDljN2NmMGY3MQ==
     - Tautulli:
         icon: tautulli.png
         href: https://stats.lundmark.tech/
@@ -187,19 +187,19 @@
         description: Torrent downloader for Sonarr & Radarr
         server: local-docker
         container: transmission
-        widget:
-          type: transmission
-          url: http://transmission:9091
+        # widget:
+        #   type: transmission
+        #   url: http://transmission:9091
     - SABnzbd:
         icon: sabnzbd.png
         href: https://usenet.lundmark.tech/
         description: Usenet downloader for Sonarr & Radarr
         container: sabnzbd
         server: local-docker
-        widget:
-          type: sabnzbd
-          url: http://sabnzbd:8080
-          key: ec47452ce1faf0bf61df30ddd986593d
+        # widget:
+        #   type: sabnzbd
+        #   url: http://sabnzbd:8080
+        #   key: ec47452ce1faf0bf61df30ddd986593d
     - NZBHydra2:
         icon: nzbhydra2.png
         href: https://search.lundmark.tech/
@@ -210,9 +210,9 @@
         icon: prowlarr.png
         href: https://indexers.lundmark.tech/
         description: Indexer manager - sync sources to all *arr apps
-        widget:
-          type: prowlarr
-          url: http://prowlarr:9696
-          key: 5bc908a2bc8b471bb0d31ee60c0596e7
+        # widget:
+        #   type: prowlarr
+        #   url: http://prowlarr:9696
+        #   key: 5bc908a2bc8b471bb0d31ee60c0596e7
         container: prowlarr
         server: local-docker
