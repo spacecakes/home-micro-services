@@ -44,7 +44,7 @@ layout:
 
   Media Automation:
     style: row
-    columns: 4
+    columns: 5
 
   Downloads & Indexers:
     style: row

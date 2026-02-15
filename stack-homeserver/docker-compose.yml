@@ -1,5 +1,10 @@
 name: 'homeserver-services'
 
+# Bypass Adguard Home for services that don't need it
+x-dns: &default-dns
+  - 1.1.1.1 # Cloudflare DNS
+  - 8.8.8.8 # Google DNS
+
 services:
   # Server tools
   traefik:
@@ -129,9 +134,7 @@ services:
     environment:
       - LOG_LEVEL=debug
       - TZ=${TZ}
-    dns:
-      - 1.1.1.1 # Cloudflare DNS
-      - 8.8.8.8 # Google DNS
+    dns: *default-dns
     volumes:
       - ${PROJECT_PATH}/data/seerr/config:/app/config
     restart: unless-stopped
@@ -237,9 +240,7 @@ services:
     image: linuxserver/plex
     hostname: plex
     network_mode: host
-    dns:
-      - 1.1.1.1 # Cloudflare DNS
-      - 8.8.8.8 # Google DNS
+    dns: *default-dns
     environment:
       - PGID=${GID}
       - PUID=${UID}
@@ -345,9 +346,7 @@ services:
     container_name: sonarr
     image: linuxserver/sonarr:latest
     hostname: sonarr
-    dns:
-      - 1.1.1.1 # Cloudflare DNS
-      - 8.8.8.8 # Google DNS
+    dns: *default-dns
     environment:
       - TZ=${TZ}
       - PGID=${GID}
@@ -370,9 +369,7 @@ services:
     container_name: radarr
     image: linuxserver/radarr:latest
     hostname: radarr
-    dns:
-      - 1.1.1.1 # Cloudflare DNS
-      - 8.8.8.8 # Google DNS
+    dns: *default-dns
     environment:
       - PGID=${GID}
       - PUID=${UID}
@@ -395,9 +392,7 @@ services:
     container_name: bazarr
     image: linuxserver/bazarr:latest
     hostname: bazarr
-    dns:
-      - 1.1.1.1 # Cloudflare DNS
-      - 8.8.8.8 # Google DNS
+    dns: *default-dns
     environment:
       - TZ=${TZ}
       - PGID=${GID}
@@ -410,6 +405,29 @@ services:
       - ${MOUNTS_PATH}/media:/media
     depends_on:
       - traefik
+
+  lidarr:
+    container_name: lidarr
+    image: linuxserver/lidarr:latest
+    hostname: lidarr
+    dns: *default-dns
+    environment:
+      - TZ=${TZ}
+      - PGID=${GID}
+      - PUID=${UID}
+    restart: unless-stopped
+    labels:
+      - 'traefik.http.routers.lidarr.rule=Host(`music.lundmark.tech`)'
+    volumes:
+      - ${PROJECT_PATH}/data/lidarr:/config
+      - ${ROOT_PATH}/downloads:/downloads
+      - ${MOUNTS_PATH}/music:/music
+    depends_on:
+      - traefik
+      - prowlarr
+      - nzbhydra
+      - sabnzbd
+      - transmission
 
   nzbhydra:
     container_name: nzbhydra

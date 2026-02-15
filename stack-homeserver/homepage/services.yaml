@@ -161,6 +161,12 @@
         description: Movie manager - automated downloading & organization
         container: radarr
         server: local-docker
+    - Lidarr:
+        icon: lidarr.png
+        href: https://music.lundmark.tech/
+        description: Music collection manager - automated downloading & organization
+        container: lidarr
+        server: local-docker
     - Bazarr:
         icon: bazarr.png
         href: https://subtitles.lundmark.tech/
