@@ -79,12 +79,12 @@
     - Drive:
         icon: /icons/synology-drive.png
         href: https://drive.lundmark.tech/
-        description: Synology Drive - File sync & collaboration platform
+        description: Synology Drive - Personal file sync across devices & shared folders
         siteMonitor: https://drive.lundmark.tech/
     - Photos:
         icon: immich.png
         href: https://immich.lundmark.tech/
-        description: Immich - Photo library & sharing
+        description: Immich - Self-hosted photo backup & family album management
         container: immich_server
         server: local-docker
     - iCloud Photo Backup:
@@ -117,7 +117,7 @@
     - Video:
         icon: scrypted.png
         href: https://scrypted.lundmark.tech/
-        description: Scrypted - Camera & video integration platform
+        description: Scrypted - Security camera feeds to HomeKit & Home Assistant
         container: scrypted
         server: local-docker
 
@@ -143,7 +143,7 @@
     - Video converter:
         icon: handbrake.png
         href: https://handbrake.lundmark.tech/
-        description: HandBrake - Video transcoding & compression
+        description: HandBrake - Encode videos to save storage space or change formats
         container: handbrake
         server: local-docker
 
@@ -151,7 +151,7 @@
     - Requests:
         icon: overseerr.png
         href: https://seerr.lundmark.tech/
-        description: Seerr - Media request & discovery interface
+        description: Seerr - Family media requests for Plex library
         container: seerr
         server: local-docker
         widget:
@@ -161,7 +161,7 @@
     - Mediaserver:
         icon: plex.png
         href: https://plex.lundmark.tech/
-        description: Plex - Media streaming server for movies & TV
+        description: Plex - Personal Netflix - stream movies & TV to any device
         container: plex
         server: local-docker
 
@@ -176,7 +176,7 @@
     - Torrents:
         icon: transmission.png
         href: https://transmission.lundmark.tech/
-        description: Transmission - BitTorrent client for file downloads
+        description: Transmission - Torrent downloader for Sonarr & Radarr
         server: local-docker
         container: transmission
         widget:
@@ -185,7 +185,7 @@
     - Usenet:
         icon: sabnzbd.png
         href: https://sabnzbd.lundmark.tech/
-        description: SABnzbd - Usenet downloader
+        description: SABnzbd - Usenet downloader for Sonarr & Radarr
         container: sabnzbd
         server: local-docker
         widget:
@@ -197,13 +197,13 @@
     - Indexer Searcher:
         icon: nzbhydra2.png
         href: https://nzbhydra.lundmark.tech/
-        description: NZBHydra2 - Meta search for Usenet indexers
+        description: NZBHydra2 - Search multiple indexers and trackers at once
         container: nzbhydra
         server: local-docker
     - Indexer Manager:
         icon: prowlarr.png
         href: https://prowlarr.lundmark.tech/
-        description: Prowlarr - Indexer management for Sonarr & Radarr
+        description: Prowlarr - Sync torrent & Usenet sources to all *arr apps
         widget:
           type: prowlarr
           url: http://prowlarr:9696
