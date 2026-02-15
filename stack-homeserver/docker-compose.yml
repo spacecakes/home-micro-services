@@ -15,6 +15,7 @@ services:
       - '80:80'
       - '8080:8080'
     labels:
+      - 'traefik.http.routers.traefik.rule=Host(`proxy.lundmark.tech`)'
       - 'traefik.http.services.traefik.loadbalancer.server.port=8080'
       - 'com.centurylinklabs.watchtower.enable=false'
     restart: always
@@ -74,6 +75,7 @@ services:
     container_name: portainer
     image: portainer/portainer-ce:latest
     labels:
+      - 'traefik.http.routers.portainer.rule=Host(`containers-server.lundmark.tech`)'
       - 'traefik.http.services.portainer.loadbalancer.server.port=9000'
     restart: always
     volumes:
@@ -133,6 +135,8 @@ services:
     volumes:
       - ${PROJECT_PATH}/data/seerr/config:/app/config
     restart: unless-stopped
+    labels:
+      - 'traefik.http.routers.seerr.rule=Host(`requests.lundmark.tech`)'
     depends_on:
       - traefik
       - sonarr
@@ -151,6 +155,7 @@ services:
       - 53:53/tcp
       - 53:53/udp
     labels:
+      - 'traefik.http.routers.adguardhome.rule=Host(`dns1.lundmark.tech`)'
       - 'traefik.http.services.adguardhome.loadbalancer.server.port=3000'
     volumes:
       - ${PROJECT_PATH}/data/adguardhome/work:/opt/adguardhome/work
@@ -172,6 +177,8 @@ services:
     ports:
       - 8082:8080
     restart: unless-stopped
+    labels:
+      - 'traefik.http.routers.adguardhome-sync.rule=Host(`dns-sync.lundmark.tech`)'
     depends_on:
       - adguardhome
       - traefik
@@ -187,6 +194,7 @@ services:
       - PUID=${UID}
       - PGID=${GID}
     labels:
+      - 'traefik.http.routers.homeassistant.rule=Host(`home.lundmark.tech`)'
       - 'traefik.http.services.homeassistant.loadbalancer.server.port=8123'
       - 'com.centurylinklabs.watchtower.enable=false'
     volumes:
@@ -216,6 +224,7 @@ services:
     network_mode: host
     restart: unless-stopped
     labels:
+      - 'traefik.http.routers.scrypted.rule=Host(`cameras.lundmark.tech`)'
       - 'traefik.http.services.scrypted.loadbalancer.server.port=11080' # Use insecure port; Traefik handles SSL
     volumes:
       - ${PROJECT_PATH}/data/scrypted:/server/volume
@@ -241,6 +250,7 @@ services:
     devices:
       - /dev/dri:/dev/dri # Intel Quick Sync
     labels:
+      - 'traefik.http.routers.plex.rule=Host(`watch.lundmark.tech`)'
       - 'traefik.http.services.plex.loadbalancer.server.port=32400'
     restart: unless-stopped
     volumes:
@@ -276,6 +286,8 @@ services:
       - PGID=${GID}
       - PUID=${UID}
     restart: always
+    labels:
+      - 'traefik.http.routers.sabnzbd.rule=Host(`usenet.lundmark.tech`)'
     volumes:
       - ${PROJECT_PATH}/data/sabnzbd:/config
       - ${ROOT_PATH}/downloads:/downloads
@@ -293,6 +305,7 @@ services:
       - PUID=${UID}
       - TZ=${TZ}
     labels:
+      - 'traefik.http.routers.transmission.rule=Host(`torrents.lundmark.tech`)'
       - 'traefik.http.services.transmission.loadbalancer.server.port=9091'
     ports:
       - '51413:51413'
@@ -316,6 +329,8 @@ services:
       - USER_ID=${UID}
       - TZ=${TZ}
       - AUTOMATED_CONVERSION_KEEP_SOURCE=0
+    labels:
+      - 'traefik.http.routers.handbrake.rule=Host(`encoder.lundmark.tech`)'
     volumes:
       - '${PROJECT_PATH}/data/handbrake:/config:rw'
       - '${ROOT_PATH}/temp/handbrake/watch:/watch:rw'
@@ -336,6 +351,8 @@ services:
       - PGID=${GID}
       - PUID=${UID}
     restart: unless-stopped
+    labels:
+      - 'traefik.http.routers.sonarr.rule=Host(`tv.lundmark.tech`)'
     volumes:
       - ${PROJECT_PATH}/data/sonarr:/config
       - ${ROOT_PATH}/downloads:/downloads
@@ -359,6 +376,8 @@ services:
       - PUID=${UID}
       - TZ=${TZ}
     restart: unless-stopped
+    labels:
+      - 'traefik.http.routers.radarr.rule=Host(`movies.lundmark.tech`)'
     volumes:
       - ${PROJECT_PATH}/data/radarr:/config
       - ${ROOT_PATH}/downloads:/downloads
@@ -382,6 +401,8 @@ services:
       - PGID=${GID}
       - PUID=${UID}
     restart: unless-stopped
+    labels:
+      - 'traefik.http.routers.bazarr.rule=Host(`subtitles.lundmark.tech`)'
     volumes:
       - ${PROJECT_PATH}/data/bazarr:/config
       - ${MOUNTS_PATH}/media:/media
@@ -397,6 +418,8 @@ services:
       - PUID=${UID}
       - TZ=${TZ}
     restart: unless-stopped
+    labels:
+      - 'traefik.http.routers.nzbhydra.rule=Host(`search.lundmark.tech`)'
     volumes:
       - ${PROJECT_PATH}/data/nzbhydra:/config
       - ${ROOT_PATH}/downloads:/downloads
@@ -414,6 +437,8 @@ services:
       - PUID=${UID}
       - TZ=${TZ}
     restart: unless-stopped
+    labels:
+      - 'traefik.http.routers.prowlarr.rule=Host(`indexers.lundmark.tech`)'
     volumes:
       - ${PROJECT_PATH}/data/prowlarr:/config
     depends_on:

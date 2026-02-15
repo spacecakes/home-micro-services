@@ -80,7 +80,7 @@ http:
       service: synology-drive
 
     active-backup:
-      rule: 'Host(`abb.lundmark.tech`)'
+      rule: 'Host(`backup.lundmark.tech`)'
       middlewares:
         - add-backup-prefix
       service: synology-active-backup
@@ -113,7 +113,7 @@ http:
       service: icloudpd-shared
 
     portainer:
-      rule: 'Host(`portainer-homecloud.lundmark.tech`)'
+      rule: 'Host(`containers-nas.lundmark.tech`)'
       service: portainer
 
     adguardhome:
@@ -127,7 +127,7 @@ http:
 
       #APC UPS
     apcups1:
-      rule: 'Host(`ups.lundmark.tech`)'
+      rule: 'Host(`ups1.lundmark.tech`)'
       service: apcups1
 
     apcups2:

@@ -2,208 +2,208 @@
 # For configuration options and examples, please see:
 # https://gethomepage.dev/configs/services/
 
-- Infrastructure & Network:
-    - NAS (homecloud):
-        icon: /icons/synology-dsm.png
-        href: https://dsm.lundmark.tech/
-        description: Synology DSM - NAS management & system settings
-        siteMonitor: https://dsm.lundmark.tech/
-    - NAS (offsite):
-        icon: /icons/synology-dsm.png
-        href: https://offsite.lemming-escalator.ts.net/
-        description: Synology DSM - Offsite backup NAS management
-    - Network:
-        icon: unifi.png
-        href: https://unifi.lundmark.tech/
-        description: UniFi Controller - Network devices & WiFi management
-        siteMonitor: https://unifi.lundmark.tech/
-    - Reverse Proxy:
+- System & Infrastructure:
+    - Traefik:
         icon: traefik.png
-        href: https://traefik.lundmark.tech/
-        description: Traefik - Reverse proxy & SSL certificate management
+        href: https://proxy.lundmark.tech/
+        description: Reverse proxy & SSL certificate management
         container: traefik
         server: local-docker
-    - Containers (homeserver):
+    - Portainer (homeserver):
         icon: portainer.png
-        href: https://portainer.lundmark.tech/
-        description: Portainer - Docker container management interface
+        href: https://containers-server.lundmark.tech/
+        description: Docker container management interface
         container: portainer
         server: local-docker
-    - Containers (homecloud):
+    - Portainer (homecloud):
         icon: portainer.png
-        href: https://portainer-homecloud.lundmark.tech/
-        description: Portainer - Docker container management interface
-        siteMonitor: https://portainer-homecloud.lundmark.tech/
-    - DNS1:
+        href: https://containers-nas.lundmark.tech/
+        description: Docker container management interface
+        siteMonitor: https://containers-nas.lundmark.tech/
+    - UniFi Controller:
+        icon: unifi.png
+        href: https://unifi.lundmark.tech/
+        description: Network devices & WiFi management
+        siteMonitor: https://unifi.lundmark.tech/
+    - AdGuard Home (DNS1):
         icon: /icons/adguard-home.png
-        href: https://adguardhome.lundmark.tech/
-        description: AdGuard Home - Network-wide ad blocking & DNS filtering
+        href: https://dns1.lundmark.tech/
+        description: Network-wide ad blocking & DNS filtering
         container: adguardhome
         server: local-docker
-    - DNS2:
+    - AdGuard Home (DNS2):
         icon: /icons/adguard-home.png
         href: https://dns2.lundmark.tech/
-        description: AdGuard Home - Secondary DNS synced with primary
+        description: Secondary DNS synced with primary
         siteMonitor: https://dns2.lundmark.tech/
-    - DNS Sync:
+    - AdGuard Home Sync:
         icon: /icons/adguard-home-sync.svg
-        href: https://adguardhome-sync.lundmark.tech
-        description: Sync Adguard Home instances
-        siteMonitor: https://adguardhome-sync.lundmark.tech/
-    - VMs:
-        icon: /icons/synology-vmm.png
-        href: https://vm.lundmark.tech/
-        siteMonitor: https://vm.lundmark.tech/
-        description: Synology VMM - Virtual machine hosting & management
-    - UPS:
+        href: https://dns-sync.lundmark.tech
+        description: Sync settings between AdGuard Home servers
+        siteMonitor: https://dns-sync.lundmark.tech/
+    - APC UPS (Rack):
         icon: /icons/apc.svg
-        href: https://ups.lundmark.tech/
+        href: https://ups1.lundmark.tech/
         description: Backbone rack UPS monitoring & management
-        siteMonitor: https://ups.lundmark.tech/
-    - UPS2:
+        siteMonitor: https://ups1.lundmark.tech/
+    - APC UPS (Desktop):
         icon: /icons/apc.svg
         href: https://ups2.lundmark.tech/
         description: Desktop UPS monitoring & management
         siteMonitor: https://ups2.lundmark.tech/
-- Files, Backup & Sync:
-    - Backup Restore:
-        icon: /icons/synology-abb.png
-        href: https://abb.lundmark.tech/
-        description: Synology ABB - PC & server backup management
-        siteMonitor: https://abb.lundmark.tech/
-    - Files:
+    - Synology VMM:
+        icon: /icons/synology-vmm.png
+        href: https://vm.lundmark.tech/
+        siteMonitor: https://vm.lundmark.tech/
+        description: Virtual machine hosting & management
+
+- Storage & Backup:
+    - Synology DSM (homecloud):
+        icon: /icons/synology-dsm.png
+        href: https://dsm.lundmark.tech/
+        description: NAS management & system settings
+        siteMonitor: https://dsm.lundmark.tech/
+    - Synology DSM (offsite):
+        icon: /icons/synology-dsm.png
+        href: https://offsite.lemming-escalator.ts.net/
+        description: Offsite backup NAS management
+    - Synology File Station:
         icon: /icons/synology-file-station.png
         href: https://files.lundmark.tech/
-        description: Synology File Station - Web-based file browser & manager
+        description: Web-based file browser & manager
         siteMonitor: https://files.lundmark.tech/
-    - Drive:
+    - Synology Drive:
         icon: /icons/synology-drive.png
         href: https://drive.lundmark.tech/
-        description: Synology Drive - Personal file sync across devices & shared folders
+        description: Personal file sync across devices & shared folders
         siteMonitor: https://drive.lundmark.tech/
-    - Photos:
+    - Active Backup for Business:
+        icon: /icons/synology-abb.png
+        href: https://backup.lundmark.tech/
+        description: PC & server backup management
+        siteMonitor: https://backup.lundmark.tech/
+
+- Photos & Memories:
+    - Immich:
         icon: immich.png
-        href: https://immich.lundmark.tech/
-        description: Immich - Self-hosted photo backup & family album management
+        href: https://photos.lundmark.tech/
+        description: Self-hosted photo backup & family album management
         container: immich_server
         server: local-docker
-    - iCloud Photo Backup:
+    - iCloudPD:
         icon: icloud.png
         href: https://icloudpd.lundmark.tech/
-        description: iCloudPD - Automatic iCloud photo backup
+        description: Automatic iCloud photo backup
         container: icloudpd
         server: homecloud-docker
-    - iCloud Photo Backup (Shared):
+    - iCloudPD (Shared):
         icon: icloud.png
         href: https://icloudpd-shared.lundmark.tech/
-        description: iCloudPD - Shared library backup
+        description: Shared library backup
         container: icloudpd-shared
         server: homecloud-docker
 
-- Home Automation:
-    - Smart Home:
+- Home & Security:
+    - Home Assistant:
         icon: /icons/home-assistant.png
-        href: https://homeassistant.lundmark.tech/
-        description: Home Assistant - Smart home automation hub
-        siteMonitor: https://homeassistant.lundmark.tech/
+        href: https://home.lundmark.tech/
+        description: Smart home automation hub
+        siteMonitor: https://home.lundmark.tech/
         container: homeassistant
         server: local-docker
-    - Smart Home bridge:
+    - Homebridge:
         icon: homebridge.png
         href: https://homebridge.lundmark.tech/
-        description: Homebridge - HomeKit bridge for non-Apple devices
+        description: HomeKit bridge for non-Apple devices
         container: homebridge
         server: local-docker
-    - Video:
+    - Scrypted:
         icon: scrypted.png
-        href: https://scrypted.lundmark.tech/
-        description: Scrypted - Security camera feeds to HomeKit & Home Assistant
+        href: https://cameras.lundmark.tech/
+        description: Video platform - integrate cameras with HomeKit & HA
         container: scrypted
         server: local-docker
 
-- Media Management:
-    - TV DVR:
-        icon: sonarr.png
-        href: https://sonarr.lundmark.tech/
-        description: Sonarr - TV series automated downloading & organization
-        container: sonarr
+- Media Library:
+    - Plex:
+        icon: plex.png
+        href: https://watch.lundmark.tech/
+        description: Personal Netflix - stream movies & TV to any device
+        container: plex
         server: local-docker
-    - Movie DVR:
-        icon: radarr.png
-        href: https://radarr.lundmark.tech/
-        description: Radarr - Movie automated downloading & organization
-        container: radarr
-        server: local-docker
-    - Subtitles:
-        icon: bazarr.png
-        href: https://bazarr.lundmark.tech/
-        description: Bazarr - Automatic subtitle downloading for Sonarr & Radarr
-        container: bazarr
-        server: local-docker
-    - Video converter:
-        icon: handbrake.png
-        href: https://handbrake.lundmark.tech/
-        description: HandBrake - Encode videos to save storage space or change formats
-        container: handbrake
-        server: local-docker
-
-- Media Streaming:
-    - Requests:
+    - Seerr:
         icon: overseerr.png
-        href: https://seerr.lundmark.tech/
-        description: Seerr - Family media requests for Plex library
+        href: https://requests.lundmark.tech/
+        description: Request & discover movies/TV shows for Plex
         container: seerr
         server: local-docker
         widget:
           type: overseerr
           url: http://seerr:5055
           key: MTc0MDA4NDk3OTAxNGQ0NzY3NWQ0LTVjZTEtNDAyZi04MzE1LWYxZDljN2NmMGY3MQ==
-    - Mediaserver:
-        icon: plex.png
-        href: https://plex.lundmark.tech/
-        description: Plex - Personal Netflix - stream movies & TV to any device
-        container: plex
-        server: local-docker
-
-    - Monitoring:
+    - Tautulli:
         icon: tautulli.png
         href: https://tautulli.lundmark.tech/
-        description: Tautulli - Plex monitoring & analytics
+        description: Plex monitoring & analytics
         container: tautulli
         server: local-docker
 
-- Download Clients:
-    - Torrents:
+- Media Automation:
+    - Sonarr:
+        icon: sonarr.png
+        href: https://tv.lundmark.tech/
+        description: TV show manager - automated downloading & organization
+        container: sonarr
+        server: local-docker
+    - Radarr:
+        icon: radarr.png
+        href: https://movies.lundmark.tech/
+        description: Movie manager - automated downloading & organization
+        container: radarr
+        server: local-docker
+    - Bazarr:
+        icon: bazarr.png
+        href: https://subtitles.lundmark.tech/
+        description: Subtitle downloader for Sonarr & Radarr
+        container: bazarr
+        server: local-docker
+    - HandBrake:
+        icon: handbrake.png
+        href: https://encoder.lundmark.tech/
+        description: Video encoder - compress & convert video files
+        container: handbrake
+        server: local-docker
+
+- Downloads & Indexers:
+    - Transmission:
         icon: transmission.png
-        href: https://transmission.lundmark.tech/
-        description: Transmission - Torrent downloader for Sonarr & Radarr
+        href: https://torrents.lundmark.tech/
+        description: Torrent downloader for Sonarr & Radarr
         server: local-docker
         container: transmission
         widget:
           type: transmission
           url: http://transmission:9091
-    - Usenet:
+    - SABnzbd:
         icon: sabnzbd.png
-        href: https://sabnzbd.lundmark.tech/
-        description: SABnzbd - Usenet downloader for Sonarr & Radarr
+        href: https://usenet.lundmark.tech/
+        description: Usenet downloader for Sonarr & Radarr
         container: sabnzbd
         server: local-docker
         widget:
           type: sabnzbd
           url: http://sabnzbd:8080
           key: ec47452ce1faf0bf61df30ddd986593d
-
-- Indexers & Search:
-    - Indexer Searcher:
+    - NZBHydra2:
         icon: nzbhydra2.png
-        href: https://nzbhydra.lundmark.tech/
-        description: NZBHydra2 - Search multiple indexers and trackers at once
+        href: https://search.lundmark.tech/
+        description: Meta search for Usenet indexers & torrent trackers
         container: nzbhydra
         server: local-docker
-    - Indexer Manager:
+    - Prowlarr:
         icon: prowlarr.png
-        href: https://prowlarr.lundmark.tech/
-        description: Prowlarr - Sync torrent & Usenet sources to all *arr apps
+        href: https://indexers.lundmark.tech/
+        description: Indexer manager - sync sources to all *arr apps
         widget:
           type: prowlarr
           url: http://prowlarr:9696

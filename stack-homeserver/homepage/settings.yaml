@@ -22,30 +22,30 @@ provider: google
 #   blur: xs # sm, "", md, xl... see https://tailwindcss.com/docs/backdrop-blur
 
 layout:
-  Infrastructure & Network:
-    style: row
-    columns: 3
-
-  Files, Backup & Sync:
-    style: row
-    columns: 3
-
-  Home Automation:
-    style: row
-    columns: 3
-
-  Media Management:
+  System & Infrastructure:
     style: row
     columns: 4
 
-  Media Streaming:
-    style: column
-    columns: 1
+  Storage & Backup:
+    style: row
+    columns: 3
 
-  Download Clients:
-    style: column
-    columns: 1
+  Photos & Memories:
+    style: row
+    columns: 3
 
-  Indexers & Search:
-    style: column
-    columns: 1
+  Home & Security:
+    style: row
+    columns: 3
+
+  Media Library:
+    style: row
+    columns: 3
+
+  Media Automation:
+    style: row
+    columns: 4
+
+  Downloads & Indexers:
+    style: row
+    columns: 4
