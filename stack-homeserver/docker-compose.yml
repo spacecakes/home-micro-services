@@ -120,6 +120,30 @@ services:
       - traefik
       - dockerproxy
 
+  seerr:
+    image: ghcr.io/seerr-team/seerr:latest
+    init: true
+    container_name: seerr
+    environment:
+      - LOG_LEVEL=debug
+      - TZ=${TZ}
+    dns:
+      - 1.1.1.1 # Cloudflare DNS
+      - 8.8.8.8 # Google DNS
+    volumes:
+      - ${PROJECT_PATH}/data/seerr/config:/app/config
+    restart: unless-stopped
+    depends_on:
+      - traefik
+      - sonarr
+      - radarr
+    healthcheck:
+      test: wget --no-verbose --tries=1 --spider http://localhost:5055/api/v1/status || exit 1
+      start_period: 20s
+      timeout: 3s
+      interval: 15s
+      retries: 3
+
   overseerr:
     image: sctx/overseerr:latest
     container_name: overseerr
