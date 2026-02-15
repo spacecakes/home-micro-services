@@ -24,7 +24,7 @@ provider: google
 layout:
   System & Infrastructure:
     style: row
-    columns: 4
+    columns: 5
 
   Storage & Backup:
     style: row

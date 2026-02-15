@@ -100,6 +100,18 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
 
+  uptime-kuma:
+    container_name: uptime-kuma
+    image: louislam/uptime-kuma:latest
+    restart: unless-stopped
+    labels:
+      - 'traefik.http.routers.uptime-kuma.rule=Host(`status.lundmark.tech`)'
+      - 'traefik.http.services.uptime-kuma.loadbalancer.server.port=3001'
+    volumes:
+      - ${PROJECT_PATH}/data/uptime-kuma:/app/data
+    depends_on:
+      - traefik
+
   homepage:
     image: ghcr.io/gethomepage/homepage:latest
     container_name: homepage

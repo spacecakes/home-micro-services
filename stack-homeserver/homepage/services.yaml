@@ -9,6 +9,12 @@
         description: Reverse proxy & SSL certificate management
         container: traefik
         server: local-docker
+    - Uptime Kuma:
+        icon: uptime-kuma.png
+        href: https://status.lundmark.tech/
+        description: Service uptime monitoring & status dashboard
+        container: uptime-kuma
+        server: local-docker
     - Portainer (homeserver):
         icon: portainer.png
         href: https://containers-server.lundmark.tech/
