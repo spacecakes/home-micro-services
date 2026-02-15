@@ -273,6 +273,8 @@ services:
     volumes:
       - ${PROJECT_PATH}/data/tautulli:/config
     restart: unless-stopped
+    labels:
+      - 'traefik.http.routers.tautulli.rule=Host(`stats.lundmark.tech`)'
     depends_on:
       - plex
       - traefik

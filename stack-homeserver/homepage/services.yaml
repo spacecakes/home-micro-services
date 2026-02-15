@@ -22,9 +22,9 @@
         siteMonitor: https://containers-nas.lundmark.tech/
     - UniFi Controller:
         icon: unifi.png
-        href: https://unifi.lundmark.tech/
+        href: https://network.lundmark.tech/
         description: Network devices & WiFi management
-        siteMonitor: https://unifi.lundmark.tech/
+        siteMonitor: https://network.lundmark.tech/
     - AdGuard Home (DNS1):
         icon: /icons/adguard-home.png
         href: https://dns1.lundmark.tech/
@@ -143,7 +143,7 @@
           key: MTc0MDA4NDk3OTAxNGQ0NzY3NWQ0LTVjZTEtNDAyZi04MzE1LWYxZDljN2NmMGY3MQ==
     - Tautulli:
         icon: tautulli.png
-        href: https://tautulli.lundmark.tech/
+        href: https://stats.lundmark.tech/
         description: Plex monitoring & analytics
         container: tautulli
         server: local-docker

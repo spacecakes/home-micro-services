@@ -122,7 +122,7 @@ http:
 
     # UniFi Controller
     unifi:
-      rule: 'Host(`unifi.lundmark.tech`)'
+      rule: 'Host(`network.lundmark.tech`)'
       service: unifi
 
       #APC UPS
