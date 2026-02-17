@@ -1,4 +1,4 @@
-name: 'homecloud-services'
+name: 'nas-services'
 
 services:
   dockerproxy:
@@ -8,22 +8,16 @@ services:
       - CONTAINERS=1
       - SERVICES=1
       - TASKS=1
+      - NETWORKS=1
+      - VOLUMES=1
+      - IMAGES=1
+      - INFO=1
       - POST=0
     ports:
       - 2375:2375
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
     restart: unless-stopped
-
-  portainer:
-    ports:
-      - '9000:9000'
-    container_name: portainer
-    image: portainer/portainer-ce:latest
-    restart: always
-    volumes:
-      - ${PROJECT_PATH}/data/portainer:/data
-      - /var/run/docker.sock:/var/run/docker.sock
 
   watchtower:
     container_name: watchtower
@@ -45,63 +39,3 @@ services:
       - ${PROJECT_PATH}/data/adguardhome/work:/opt/adguardhome/work
       - ${PROJECT_PATH}/data/adguardhome/config:/opt/adguardhome/conf
     restart: unless-stopped
-
-  icloudpd:
-    image: icloudpd/icloudpd:latest
-    container_name: icloudpd
-    ports:
-      - 8080:8080
-    environment:
-      - UID=${UID}
-      - GID=${GID}
-      - TZ=${TZ}
-    volumes:
-      - ${PROJECT_PATH}/data/icloudpd:/config
-      - ${PHOTOS_PATH}/icloud/gabriel:/data
-    restart: 'unless-stopped'
-    command:
-      - icloudpd
-      - --directory
-      - /data
-      - --cookie-directory
-      - /config
-      - --username
-      - ${APPLE_ID}
-      - --password-provider
-      - webui
-      - --mfa-provider
-      - webui
-      - --watch-with-interval
-      - '3600'
-      - --auto-delete
-
-  icloudpd-shared:
-    image: icloudpd/icloudpd:latest
-    container_name: icloudpd-shared
-    ports:
-      - 8081:8080
-    environment:
-      - UID=${UID}
-      - GID=${GID}
-      - TZ=${TZ}
-    volumes:
-      - ${PROJECT_PATH}/data/icloudpd-shared:/config
-      - ${PHOTOS_PATH}/icloud/shared:/data
-    restart: 'unless-stopped'
-    command:
-      - icloudpd
-      - --directory
-      - /data
-      - --cookie-directory
-      - /config
-      - --username
-      - ${APPLE_ID}
-      - --password-provider
-      - webui
-      - --mfa-provider
-      - webui
-      - --watch-with-interval
-      - '3600'
-      - --auto-delete
-      - --library
-      - ${ICLOUD_SHARED_LIBRARY}

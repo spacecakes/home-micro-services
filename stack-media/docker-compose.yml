@@ -6,7 +6,23 @@ x-dns: &default-dns
   - 8.8.8.8 # Google DNS
 
 services:
-  # Media servers
+  # Immich ML (offloaded from NAS)
+  immich-machine-learning:
+    container_name: immich_machine_learning
+    image: ghcr.io/immich-app/immich-machine-learning:release
+    devices:
+      - /dev/dri:/dev/dri # Intel Quick Sync for hardware acceleration
+    volumes:
+      - ${PROJECT_PATH}/data/immich-ml-cache:/cache
+    ports:
+      - '3003:3003' # Expose to NAS
+    environment:
+      - PGID=${GID}
+      - PUID=${UID}
+    restart: always
+    healthcheck:
+      disable: false
+
   plex:
     container_name: plex
     image: linuxserver/plex
@@ -80,7 +96,6 @@ services:
       interval: 15s
       retries: 3
 
-  # Download clients
   sabnzbd:
     container_name: sabnzbd
     image: linuxserver/sabnzbd:latest
@@ -149,7 +164,6 @@ services:
       - '${ROOT_PATH}/temp/handbrake/output:/output:rw'
       - '${MOUNTS_PATH}/media:/storage:ro'
 
-  # Media management
   sonarr:
     container_name: sonarr
     image: linuxserver/sonarr:latest

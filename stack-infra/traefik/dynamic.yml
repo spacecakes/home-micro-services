@@ -104,13 +104,13 @@ http:
       rule: 'Host(`icloudpd-shared.lundmark.tech`)'
       service: icloudpd-shared
 
-    portainer:
-      rule: 'Host(`containers-nas.lundmark.tech`)'
-      service: portainer
-
     adguardhome:
       rule: 'Host(`dns2.lundmark.tech`)'
       service: adguardhome
+
+    immich:
+      rule: 'Host(`photos.lundmark.tech`)'
+      service: immich
 
     # UniFi Controller
     unifi:
@@ -146,16 +146,16 @@ http:
           - url: 'http://10.0.1.2:8081'
         passHostHeader: true
 
-    portainer:
-      loadBalancer:
-        servers:
-          - url: 'http://10.0.1.2:9000'
-        passHostHeader: true
-
     adguardhome:
       loadBalancer:
         servers:
           - url: 'http://10.0.1.2:3000'
+        passHostHeader: true
+
+    immich:
+      loadBalancer:
+        servers:
+          - url: 'http://10.0.1.2:2283'
         passHostHeader: true
 
     unifi:

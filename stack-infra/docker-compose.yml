@@ -71,7 +71,7 @@ services:
     container_name: portainer
     image: portainer/portainer-ce:latest
     labels:
-      - 'traefik.http.routers.portainer.rule=Host(`containers-server.lundmark.tech`)'
+      - 'traefik.http.routers.portainer.rule=Host(`containers.lundmark.tech`)'
       - 'traefik.http.services.portainer.loadbalancer.server.port=9000'
     restart: always
     volumes:
