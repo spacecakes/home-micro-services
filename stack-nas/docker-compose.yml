@@ -1,6 +1,22 @@
 name: 'nas-services'
 
 services:
+  portainer-edge-agent:
+    container_name: portainer_edge_agent
+    image: portainer/agent:latest
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /volume1/@docker/volumes:/var/lib/docker/volumes:ro
+      - /:/host
+      - ${PROJECT_PATH}/data/portainer-agent:/data
+    restart: always
+    environment:
+      - EDGE=1
+      - EDGE_ID=${PORTAINER_EDGE_ID}
+      - EDGE_KEY=${PORTAINER_EDGE_KEY}
+      - EDGE_INSECURE_POLL=1
+      - CAP_HOST_MANAGEMENT=1
+
   dockerproxy:
     image: ghcr.io/tecnativa/docker-socket-proxy:latest
     container_name: dockerproxy
