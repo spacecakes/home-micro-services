@@ -63,7 +63,7 @@
         description: Desktop UPS monitoring & management
         siteMonitor: https://ups2.lundmark.tech/
 
-- Home & Security:
+- Home Automation:
     - Home Assistant:
         icon: /icons/home-assistant.png
         href: https://home.lundmark.tech/
