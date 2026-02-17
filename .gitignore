@@ -2,7 +2,7 @@
 .DS_Store
 ._*
 @eaDir
-data/
+*/data/
 temp/
 downloads/
 postgres
