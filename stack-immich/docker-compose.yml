@@ -63,6 +63,8 @@ services:
     healthcheck:
       test: redis-cli ping || exit 1
     restart: always
+    labels:
+      - 'traefik.enable=false'
 
   database:
     container_name: immich_postgres
@@ -79,6 +81,8 @@ services:
       - ${DB_DATA_LOCATION}:/var/lib/postgresql/data
     shm_size: 128mb
     restart: always
+    labels:
+      - 'traefik.enable=false'
 
 volumes:
   model-cache:
