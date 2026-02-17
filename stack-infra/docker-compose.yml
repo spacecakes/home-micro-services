@@ -68,6 +68,7 @@ services:
   portainer:
     ports:
       - '9000:9000'
+      - '8000:8000'
     container_name: portainer
     image: portainer/portainer-ce:latest
     labels:
