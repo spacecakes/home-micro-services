@@ -56,6 +56,8 @@ services:
       - CONTAINERS=1
       - SERVICES=1
       - TASKS=1
+      - NETWORKS=1
+      - INFO=1
       - POST=0
     ports:
       - 127.0.0.1:2375:2375
@@ -116,6 +118,7 @@ services:
       - 'traefik.http.routers.homepage.rule=Host(`lundmark.tech`)'
     volumes:
       - ${PROJECT_PATH}/data/homepage/config:/app/config
+      - ${PROJECT_PATH}/homepage/docker.yaml:/app/config/docker.yaml:ro
       - ${PROJECT_PATH}/homepage/services.yaml:/app/config/services.yaml:ro
       - ${PROJECT_PATH}/homepage/settings.yaml:/app/config/settings.yaml:ro
       - ${PROJECT_PATH}/homepage/widgets.yaml:/app/config/widgets.yaml:ro

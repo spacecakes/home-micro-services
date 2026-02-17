@@ -46,7 +46,8 @@
         icon: /icons/adguard-home-sync.svg
         href: https://dns-sync.lundmark.tech
         description: Sync settings between AdGuard Home servers
-        siteMonitor: https://dns-sync.lundmark.tech/
+        container: adguardhome-sync
+        server: local-docker
     - Synology VMM:
         icon: /icons/synology-vmm.png
         href: https://vm.lundmark.tech/
