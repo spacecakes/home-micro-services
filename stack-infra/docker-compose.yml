@@ -1,0 +1,131 @@
+name: 'infra-services'
+
+services:
+  # Reverse proxy
+  traefik:
+    container_name: traefik
+    image: traefik:3.6
+    dns:
+      - 1.1.1.1 # Cloudflare DNS
+      - 8.8.8.8 # Google DNS
+    networks:
+      - default
+      - traefik-proxy
+    extra_hosts:
+      - 'host.docker.internal:172.17.0.1'
+    ports:
+      - '443:443'
+      - '80:80'
+      - '8080:8080'
+    labels:
+      - 'traefik.http.routers.traefik.rule=Host(`proxy.lundmark.tech`)'
+      - 'traefik.http.services.traefik.loadbalancer.server.port=8080'
+      - 'com.centurylinklabs.watchtower.enable=false'
+    restart: always
+    environment:
+      - BASIC_AUTH_USERNAME=${BASIC_AUTH_USERNAME}
+      - BASIC_AUTH_PASSWORD_HASH=${BASIC_AUTH_PASSWORD_HASH}
+      - CLOUDFLARE_DNS_API_TOKEN=${CLOUDFLARE_API_TOKEN}
+    volumes:
+      - ${PROJECT_PATH}/data/traefik/letsencrypt:/letsencrypt
+      - ${PROJECT_PATH}/traefik/traefik.yml:/traefik.yml
+      - ${PROJECT_PATH}/traefik/dynamic.yml:/dynamic.yml
+      - /var/run/docker.sock:/var/run/docker.sock
+
+  traefik-certs-dumper:
+    image: ldez/traefik-certs-dumper:v2.9.3
+    container_name: traefik-certs-dumper
+    labels:
+      - traefik.enable=false
+    entrypoint: sh -c '
+      while ! [ -e /data/acme.json ]
+      || ! [ `jq ".[] | .Certificates | length" /data/acme.json | jq -s "add" ` != 0 ]; do
+      sleep 1
+      ; done
+      && traefik-certs-dumper file --version v2 --watch
+      --source /data/acme.json --dest /data/certs'
+    volumes:
+      - ${PROJECT_PATH}/data/traefik/letsencrypt:/data
+    network_mode: 'none'
+
+  # Docker management
+  dockerproxy:
+    image: ghcr.io/tecnativa/docker-socket-proxy:latest
+    container_name: dockerproxy
+    environment:
+      - CONTAINERS=1
+      - SERVICES=1
+      - TASKS=1
+      - POST=0
+    ports:
+      - 127.0.0.1:2375:2375
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    restart: unless-stopped
+
+  portainer:
+    ports:
+      - '9000:9000'
+    container_name: portainer
+    image: portainer/portainer-ce:latest
+    labels:
+      - 'traefik.http.routers.portainer.rule=Host(`containers-server.lundmark.tech`)'
+      - 'traefik.http.services.portainer.loadbalancer.server.port=9000'
+    restart: always
+    volumes:
+      - ${PROJECT_PATH}/data/portainer:/data
+      - /var/run/docker.sock:/var/run/docker.sock
+    depends_on:
+      - traefik
+
+  watchtower:
+    container_name: watchtower
+    image: containrrr/watchtower:latest
+    restart: 'unless-stopped'
+    environment:
+      - WATCHTOWER_CLEANUP=true
+    labels:
+      - 'traefik.enable=false'
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+
+  # Monitoring & dashboard
+  uptime-kuma:
+    container_name: uptime-kuma
+    image: louislam/uptime-kuma:latest
+    restart: unless-stopped
+    labels:
+      - 'traefik.http.routers.uptime-kuma.rule=Host(`status.lundmark.tech`)'
+      - 'traefik.http.services.uptime-kuma.loadbalancer.server.port=3001'
+    volumes:
+      - ${PROJECT_PATH}/data/uptime-kuma:/app/data
+      - /var/run/docker.sock:/var/run/docker.sock
+    depends_on:
+      - traefik
+
+  homepage:
+    image: ghcr.io/gethomepage/homepage:latest
+    container_name: homepage
+    restart: unless-stopped
+    environment:
+      PGID: ${GID}
+      PUID: ${UID}
+      HOMEPAGE_ALLOWED_HOSTS: 'lundmark.tech'
+      HOMEPAGE_VAR_UNIFI_PASSWORD: ${HOMEPAGE_UNIFI_PASSWORD}
+    labels:
+      - 'traefik.http.routers.homepage.rule=Host(`lundmark.tech`)'
+    volumes:
+      - ${PROJECT_PATH}/data/homepage/config:/app/config
+      - ${PROJECT_PATH}/homepage/services.yaml:/app/config/services.yaml:ro
+      - ${PROJECT_PATH}/homepage/settings.yaml:/app/config/settings.yaml:ro
+      - ${PROJECT_PATH}/homepage/widgets.yaml:/app/config/widgets.yaml:ro
+      - ${PROJECT_PATH}/homepage/bookmarks.yaml:/app/config/bookmarks.yaml:ro
+      - ${PROJECT_PATH}/data/homepage/images:/app/public/images
+      - ${PROJECT_PATH}/data/homepage/icons:/app/public/icons
+    depends_on:
+      - traefik
+      - dockerproxy
+
+networks:
+  traefik-proxy:
+    external: true
