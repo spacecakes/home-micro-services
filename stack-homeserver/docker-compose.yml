@@ -10,6 +10,7 @@ services:
   traefik:
     container_name: traefik
     image: traefik:3.6
+    dns: *default-dns
     networks:
       - default
       - traefik-proxy
@@ -27,22 +28,12 @@ services:
     environment:
       - BASIC_AUTH_USERNAME=${BASIC_AUTH_USERNAME}
       - BASIC_AUTH_PASSWORD_HASH=${BASIC_AUTH_PASSWORD_HASH}
-      - JOKER_API_MODE=SVC
-      - JOKER_USERNAME=${JOKER_DDNS_USERNAME}
-      - JOKER_PASSWORD=${JOKER_DDNS_PASSWORD}
+      - CLOUDFLARE_DNS_API_TOKEN=${CLOUDFLARE_API_TOKEN}
     volumes:
       - ${PROJECT_PATH}/data/traefik/letsencrypt:/letsencrypt
       - ${PROJECT_PATH}/traefik/traefik.yml:/traefik.yml
       - ${PROJECT_PATH}/traefik/dynamic.yml:/dynamic.yml
       - /var/run/docker.sock:/var/run/docker.sock
-
-  traefik-deny:
-    image: nginx:alpine
-    container_name: traefik-deny
-    labels:
-      - traefik.enable=false
-    command: sh -c 'echo "server { listen 80; location / { return 403 \"Access denied\"; } }" > /etc/nginx/conf.d/default.conf && nginx -g "daemon off;"'
-    restart: unless-stopped
 
   traefik-certs-dumper:
     image: ldez/traefik-certs-dumper:v2.9.3

@@ -15,7 +15,10 @@
     - Unifi Site Manager:
         - abbr: UN
           href: https://unifi.ui.com/
-    - Joker DNS:
+    - Cloudflare Dashboard:
+        - abbr: CF
+          href: https://dash.cloudflare.com/
+    - Joker Registrar:
         - abbr: JD
           href: https://joker.com/user/domains
 

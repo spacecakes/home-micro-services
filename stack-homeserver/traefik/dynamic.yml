@@ -60,14 +60,6 @@ http:
       service: noop@internal
       priority: 10
 
-    deny-all:
-      rule: 'PathPrefix(`/`)'
-      entryPoints:
-        - web
-        - websecure
-      service: deny
-      priority: 1
-
     # Synology apps
     dsm:
       rule: 'Host(`dsm.lundmark.tech`)'
@@ -135,11 +127,6 @@ http:
       service: apcups2
 
   services:
-    deny:
-      loadBalancer:
-        servers:
-          - url: 'http://traefik-deny:80'
-
     synology-dsm: *synology-service
     synology-drive: *synology-service
     synology-active-backup: *synology-service

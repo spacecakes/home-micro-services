@@ -54,6 +54,8 @@ services:
     restart: always
     healthcheck:
       disable: false
+    labels:
+      - 'traefik.enable=false'
 
   redis:
     container_name: immich_redis

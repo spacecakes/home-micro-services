@@ -20,8 +20,6 @@ entryPoints:
       tls:
         certResolver: letsencrypt
         domains:
-          - main: 'home.lundmark.tech'
-          - main: 'watch.lundmark.tech'
           - main: 'lundmark.tech'
             sans:
               - '*.lundmark.tech'
@@ -40,7 +38,7 @@ certificatesResolvers:
       email: g.lundmark@gmail.com
       storage: /letsencrypt/acme.json
       dnsChallenge:
-        provider: joker
+        provider: cloudflare
 
 serversTransport:
   insecureSkipVerify: true
