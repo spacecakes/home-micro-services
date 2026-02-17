@@ -108,10 +108,6 @@ http:
       rule: 'Host(`dns2.lundmark.tech`)'
       service: adguardhome
 
-    immich:
-      rule: 'Host(`photos.lundmark.tech`)'
-      service: immich
-
     # UniFi Controller
     unifi:
       rule: 'Host(`network.lundmark.tech`)'
@@ -150,12 +146,6 @@ http:
       loadBalancer:
         servers:
           - url: 'http://10.0.1.2:3000'
-        passHostHeader: true
-
-    immich:
-      loadBalancer:
-        servers:
-          - url: 'http://10.0.1.2:2283'
         passHostHeader: true
 
     unifi:

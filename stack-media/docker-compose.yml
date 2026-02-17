@@ -6,23 +6,6 @@ x-dns: &default-dns
   - 8.8.8.8 # Google DNS
 
 services:
-  # Immich ML (offloaded from NAS)
-  immich-machine-learning:
-    container_name: immich_machine_learning
-    image: ghcr.io/immich-app/immich-machine-learning:release
-    devices:
-      - /dev/dri:/dev/dri # Intel Quick Sync for hardware acceleration
-    volumes:
-      - ${PROJECT_PATH}/data/immich-ml-cache:/cache
-    ports:
-      - '3003:3003' # Expose to NAS
-    environment:
-      - PGID=${GID}
-      - PUID=${UID}
-    restart: always
-    healthcheck:
-      disable: false
-
   plex:
     container_name: plex
     image: linuxserver/plex

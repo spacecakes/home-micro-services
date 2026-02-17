@@ -33,6 +33,11 @@ services:
     restart: always
     healthcheck:
       disable: false
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.docker.network=traefik-proxy'
+      - 'traefik.http.routers.immich.rule=Host(`photos.lundmark.tech`)'
+      - 'traefik.http.services.immich-server.loadbalancer.server.port=2283'
 
   immich-machine-learning:
     container_name: immich_machine_learning
