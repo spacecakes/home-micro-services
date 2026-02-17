@@ -15,17 +15,12 @@
         description: Service uptime monitoring & status dashboard
         container: uptime-kuma
         server: local-docker
-    - Portainer (homeserver):
+    - Portainer:
         icon: portainer.png
-        href: https://containers-server.lundmark.tech/
+        href: https://containers.lundmark.tech/
         description: Docker container management interface
         container: portainer
         server: local-docker
-    - Portainer (homecloud):
-        icon: portainer.png
-        href: https://containers-nas.lundmark.tech/
-        description: Docker container management interface
-        siteMonitor: https://containers-nas.lundmark.tech/
     - UniFi Controller:
         icon: unifi.png
         href: https://network.lundmark.tech/
