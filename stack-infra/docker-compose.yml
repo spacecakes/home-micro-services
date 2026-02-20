@@ -23,9 +23,9 @@ services:
       - 'com.centurylinklabs.watchtower.enable=false'
     restart: always
     environment:
-      - BASIC_AUTH_USERNAME=${BASIC_AUTH_USERNAME}
-      - BASIC_AUTH_PASSWORD_HASH=${BASIC_AUTH_PASSWORD_HASH}
-      - CLOUDFLARE_DNS_API_TOKEN=${CLOUDFLARE_API_TOKEN}
+      BASIC_AUTH_USERNAME: ${BASIC_AUTH_USERNAME}
+      BASIC_AUTH_PASSWORD_HASH: ${BASIC_AUTH_PASSWORD_HASH}
+      CLOUDFLARE_DNS_API_TOKEN: ${CLOUDFLARE_API_TOKEN}
     volumes:
       - /srv/docker/stack-infra/data/traefik/letsencrypt:/letsencrypt
       - /srv/docker/stack-infra/traefik/traefik.yml:/traefik.yml
@@ -46,7 +46,7 @@ services:
       --source /data/acme.json --dest /data/certs'
     volumes:
       - /srv/docker/stack-infra/data/traefik/letsencrypt:/data
-    network_mode: 'none'
+    network_mode: none
 
   # Docker management
   dockerproxy:
@@ -84,7 +84,7 @@ services:
   watchtower:
     container_name: watchtower
     image: containrrr/watchtower:latest
-    restart: 'unless-stopped'
+    restart: unless-stopped
     environment:
       - WATCHTOWER_CLEANUP=true
     labels:

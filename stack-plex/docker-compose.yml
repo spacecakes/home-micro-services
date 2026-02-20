@@ -1,0 +1,57 @@
+name: 'plex-services'
+
+# Bypass Adguard Home for services that need external DNS
+x-dns: &default-dns
+  - 1.1.1.1 # Cloudflare DNS
+  - 8.8.8.8 # Google DNS
+
+services:
+  plex:
+    container_name: plex
+    image: linuxserver/plex
+    hostname: plex
+    network_mode: host
+    dns: *default-dns
+    environment:
+      PGID: 1000
+      PUID: 1000
+      TZ: Europe/Stockholm
+      # To reclaim, visit https://www.plex.tv/claim/ to get a new token
+      # then set it in your .env file and restart the container within 4 minutes.
+      PLEX_CLAIM: "${PLEX_CLAIM}"
+    devices:
+      - /dev/dri:/dev/dri # Intel Quick Sync
+    labels:
+      - 'traefik.http.routers.plex.rule=Host(`watch.lundmark.tech`)'
+      - 'traefik.http.services.plex.loadbalancer.server.port=32400'
+    restart: unless-stopped
+    volumes:
+      - /srv/docker/stack-plex/data/plex:/config
+      - /srv/docker/temp/plex:/transcode
+      - /mnt/nas/media:/media
+      - /mnt/nas/home_video:/home_video
+      - /mnt/nas/music:/music
+      - /mnt/nas/video:/video
+
+  tautulli:
+    image: lscr.io/linuxserver/tautulli:latest
+    container_name: tautulli
+    environment:
+      PUID: 1000
+      PGID: 1000
+      TZ: Europe/Stockholm
+    networks:
+      - default
+      - traefik-proxy
+    volumes:
+      - /srv/docker/stack-plex/data/tautulli:/config
+    restart: unless-stopped
+    labels:
+      - 'traefik.docker.network=traefik-proxy'
+      - 'traefik.http.routers.tautulli.rule=Host(`stats.lundmark.tech`)'
+    depends_on:
+      - plex
+
+networks:
+  traefik-proxy:
+    external: true

@@ -42,7 +42,7 @@ services:
   watchtower:
     container_name: watchtower
     image: containrrr/watchtower:latest
-    restart: 'unless-stopped'
+    restart: unless-stopped
     environment:
       - WATCHTOWER_CLEANUP=true
     volumes:
