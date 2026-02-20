@@ -8,7 +8,7 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
       - /volume1/@docker/volumes:/var/lib/docker/volumes:ro
       - /:/host
-      - ${PROJECT_PATH}/data/portainer-agent:/data
+      - /volume1/docker/stack-nas/data/portainer-agent:/data
     restart: always
     environment:
       - EDGE=1
@@ -56,6 +56,6 @@ services:
       - 53:53/udp
       - 3000:3000/tcp
     volumes:
-      - ${PROJECT_PATH}/data/adguardhome/work:/opt/adguardhome/work
-      - ${PROJECT_PATH}/data/adguardhome/config:/opt/adguardhome/conf
+      - /volume1/docker/stack-nas/data/adguardhome/work:/opt/adguardhome/work
+      - /volume1/docker/stack-nas/data/adguardhome/config:/opt/adguardhome/conf
     restart: unless-stopped

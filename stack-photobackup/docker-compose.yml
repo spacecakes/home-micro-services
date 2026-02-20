@@ -1,50 +1,48 @@
 name: photobackup
 
+x-icloudpd: &icloudpd
+  image: icloudpd/icloudpd:latest
+  restart: 'unless-stopped'
+  environment:
+    - UID=1047
+    - GID=100
+    - TZ=Europe/Stockholm
+  command:
+    - icloudpd
+    - --directory
+    - /data
+    - --cookie-directory
+    - /config
+    - --username
+    - ${APPLE_ID}
+    - --password-provider
+    - webui
+    - --mfa-provider
+    - webui
+    - --watch-with-interval
+    - '3600'
+    - --auto-delete
+
 services:
   # iCloud Photo Downloader - Personal Library
   icloudpd:
-    image: icloudpd/icloudpd:latest
+    <<: *icloudpd
     container_name: icloudpd
     ports:
       - 8080:8080
-    environment:
-      - UID=${UID}
-      - GID=${GID}
-      - TZ=${TZ}
     volumes:
-      - ${PROJECT_PATH}/data/icloudpd:/config
-      - ${PHOTOS_PATH}/icloud/gabriel:/data
-    restart: 'unless-stopped'
-    command:
-      - icloudpd
-      - --directory
-      - /data
-      - --cookie-directory
-      - /config
-      - --username
-      - ${APPLE_ID}
-      - --password-provider
-      - webui
-      - --mfa-provider
-      - webui
-      - --watch-with-interval
-      - '3600'
-      - --auto-delete
+      - /volume1/docker/stack-photobackup/data/icloudpd:/config
+      - /volume1/photos/icloud/gabriel:/data
 
   # iCloud Photo Downloader - Shared Library
   icloudpd-shared:
-    image: icloudpd/icloudpd:latest
+    <<: *icloudpd
     container_name: icloudpd-shared
     ports:
       - 8081:8080
-    environment:
-      - UID=${UID}
-      - GID=${GID}
-      - TZ=${TZ}
     volumes:
-      - ${PROJECT_PATH}/data/icloudpd-shared:/config
-      - ${PHOTOS_PATH}/icloud/shared:/data
-    restart: 'unless-stopped'
+      - /volume1/docker/stack-photobackup/data/icloudpd-shared:/config
+      - /volume1/photos/icloud/shared:/data
     command:
       - icloudpd
       - --directory

@@ -15,23 +15,23 @@ services:
       - 'traefik.http.routers.adguardhome.rule=Host(`dns1.lundmark.tech`)'
       - 'traefik.http.services.adguardhome.loadbalancer.server.port=3000'
     volumes:
-      - ${PROJECT_PATH}/data/adguardhome/work:/opt/adguardhome/work
-      - ${PROJECT_PATH}/data/adguardhome/config:/opt/adguardhome/conf
+      - /srv/docker/stack-dns/data/adguardhome/work:/opt/adguardhome/work
+      - /srv/docker/stack-dns/data/adguardhome/config:/opt/adguardhome/conf
     restart: always
 
   adguardhome-sync:
     image: lscr.io/linuxserver/adguardhome-sync:latest
     container_name: adguardhome-sync
     environment:
-      - TZ=${TZ}
-      - PUID=${UID}
-      - PGID=${GID}
+      - TZ=Europe/Stockholm
+      - PUID=1000
+      - PGID=1000
       - CONFIGFILE=/config/adguardhome-sync.yaml
     networks:
       - default
       - traefik-proxy
     volumes:
-      - ${PROJECT_PATH}/data/adguardhome-sync/config:/config
+      - /srv/docker/stack-dns/data/adguardhome-sync/config:/config
     ports:
       - 8082:8080
     restart: unless-stopped

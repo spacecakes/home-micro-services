@@ -27,9 +27,9 @@ services:
       - BASIC_AUTH_PASSWORD_HASH=${BASIC_AUTH_PASSWORD_HASH}
       - CLOUDFLARE_DNS_API_TOKEN=${CLOUDFLARE_API_TOKEN}
     volumes:
-      - ${PROJECT_PATH}/data/traefik/letsencrypt:/letsencrypt
-      - ${PROJECT_PATH}/traefik/traefik.yml:/traefik.yml
-      - ${PROJECT_PATH}/traefik/dynamic.yml:/dynamic.yml
+      - /srv/docker/stack-infra/data/traefik/letsencrypt:/letsencrypt
+      - /srv/docker/stack-infra/traefik/traefik.yml:/traefik.yml
+      - /srv/docker/stack-infra/traefik/dynamic.yml:/dynamic.yml
       - /var/run/docker.sock:/var/run/docker.sock
 
   traefik-certs-dumper:
@@ -45,7 +45,7 @@ services:
       && traefik-certs-dumper file --version v2 --watch
       --source /data/acme.json --dest /data/certs'
     volumes:
-      - ${PROJECT_PATH}/data/traefik/letsencrypt:/data
+      - /srv/docker/stack-infra/data/traefik/letsencrypt:/data
     network_mode: 'none'
 
   # Docker management
@@ -76,7 +76,7 @@ services:
       - 'traefik.http.services.portainer.loadbalancer.server.port=9000'
     restart: always
     volumes:
-      - ${PROJECT_PATH}/data/portainer:/data
+      - /srv/docker/stack-infra/data/portainer:/data
       - /var/run/docker.sock:/var/run/docker.sock
     depends_on:
       - traefik
@@ -101,7 +101,7 @@ services:
       - 'traefik.http.routers.uptime-kuma.rule=Host(`status.lundmark.tech`)'
       - 'traefik.http.services.uptime-kuma.loadbalancer.server.port=3001'
     volumes:
-      - ${PROJECT_PATH}/data/uptime-kuma:/app/data
+      - /srv/docker/stack-infra/data/uptime-kuma:/app/data
       - /var/run/docker.sock:/var/run/docker.sock
     depends_on:
       - traefik
@@ -111,21 +111,21 @@ services:
     container_name: homepage
     restart: unless-stopped
     environment:
-      PGID: ${GID}
-      PUID: ${UID}
+      PGID: 1000
+      PUID: 1000
       HOMEPAGE_ALLOWED_HOSTS: 'lundmark.tech'
       HOMEPAGE_VAR_UNIFI_PASSWORD: ${HOMEPAGE_UNIFI_PASSWORD}
     labels:
       - 'traefik.http.routers.homepage.rule=Host(`lundmark.tech`)'
     volumes:
-      - ${PROJECT_PATH}/data/homepage/config:/app/config
-      - ${PROJECT_PATH}/homepage/docker.yaml:/app/config/docker.yaml:ro
-      - ${PROJECT_PATH}/homepage/services.yaml:/app/config/services.yaml:ro
-      - ${PROJECT_PATH}/homepage/settings.yaml:/app/config/settings.yaml:ro
-      - ${PROJECT_PATH}/homepage/widgets.yaml:/app/config/widgets.yaml:ro
-      - ${PROJECT_PATH}/homepage/bookmarks.yaml:/app/config/bookmarks.yaml:ro
-      - ${PROJECT_PATH}/data/homepage/images:/app/public/images
-      - ${PROJECT_PATH}/data/homepage/icons:/app/public/icons
+      - /srv/docker/stack-infra/data/homepage/config:/app/config
+      - /srv/docker/stack-infra/homepage/docker.yaml:/app/config/docker.yaml:ro
+      - /srv/docker/stack-infra/homepage/services.yaml:/app/config/services.yaml:ro
+      - /srv/docker/stack-infra/homepage/settings.yaml:/app/config/settings.yaml:ro
+      - /srv/docker/stack-infra/homepage/widgets.yaml:/app/config/widgets.yaml:ro
+      - /srv/docker/stack-infra/homepage/bookmarks.yaml:/app/config/bookmarks.yaml:ro
+      - /srv/docker/stack-infra/data/homepage/images:/app/public/images
+      - /srv/docker/stack-infra/data/homepage/icons:/app/public/icons
     depends_on:
       - traefik
       - dockerproxy

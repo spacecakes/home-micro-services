@@ -7,16 +7,16 @@ services:
     network_mode: host
     restart: unless-stopped
     environment:
-      - TZ=${TZ}
-      - PUID=${UID}
-      - PGID=${GID}
+      - TZ=Europe/Stockholm
+      - PUID=1000
+      - PGID=1000
     labels:
       - 'traefik.http.routers.homeassistant.rule=Host(`home.lundmark.tech`)'
       - 'traefik.http.services.homeassistant.loadbalancer.server.port=8123'
       - 'com.centurylinklabs.watchtower.enable=false'
     volumes:
-      - ${PROJECT_PATH}/data/homeassistant:/config
-      - ${MOUNTS_PATH}/music:/music
+      - /srv/docker/stack-home/data/homeassistant:/config
+      - /mnt/nas/music:/music
     devices:
       - /dev/ttyUSB0:/dev/ttyUSB0
 
@@ -25,13 +25,13 @@ services:
     hostname: homebridge
     image: homebridge/homebridge:latest
     environment:
-      - TZ=${TZ}
+      - TZ=Europe/Stockholm
     network_mode: host
     restart: unless-stopped
     labels:
       - 'traefik.http.services.homebridge.loadbalancer.server.port=8581'
     volumes:
-      - ${PROJECT_PATH}/data/homebridge:/homebridge
+      - /srv/docker/stack-home/data/homebridge:/homebridge
 
   scrypted:
     container_name: scrypted
@@ -42,4 +42,4 @@ services:
       - 'traefik.http.routers.scrypted.rule=Host(`cameras.lundmark.tech`)'
       - 'traefik.http.services.scrypted.loadbalancer.server.port=11080' # Use insecure port; Traefik handles SSL
     volumes:
-      - ${PROJECT_PATH}/data/scrypted:/server/volume
+      - /srv/docker/stack-home/data/scrypted:/server/volume

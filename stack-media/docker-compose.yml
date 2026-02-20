@@ -5,6 +5,17 @@ x-dns: &default-dns
   - 1.1.1.1 # Cloudflare DNS
   - 8.8.8.8 # Google DNS
 
+# Common config for *arr and linuxserver services
+x-arr: &arr
+  restart: unless-stopped
+  networks:
+    - default
+    - traefik-proxy
+  environment:
+    PUID: 1000
+    PGID: 1000
+    TZ: Europe/Stockholm
+
 services:
   plex:
     container_name: plex
@@ -13,12 +24,12 @@ services:
     network_mode: host
     dns: *default-dns
     environment:
-      - PGID=${GID}
-      - PUID=${UID}
-      - TZ=${TZ}
+      PGID: 1000
+      PUID: 1000
+      TZ: Europe/Stockholm
       # To reclaim, visit https://www.plex.tv/claim/ to get a new token
       # then set it in your .env file and restart the container within 4 minutes.
-      - PLEX_CLAIM="${PLEX_CLAIM}"
+      PLEX_CLAIM: "${PLEX_CLAIM}"
     devices:
       - /dev/dri:/dev/dri # Intel Quick Sync
     labels:
@@ -26,26 +37,19 @@ services:
       - 'traefik.http.services.plex.loadbalancer.server.port=32400'
     restart: unless-stopped
     volumes:
-      - ${PROJECT_PATH}/data/plex:/config
-      - ${ROOT_PATH}/temp/plex:/transcode
-      - ${MOUNTS_PATH}/media:/media
-      - ${MOUNTS_PATH}/home_video:/home_video
-      - ${MOUNTS_PATH}/music:/music
-      - ${MOUNTS_PATH}/video:/video
+      - /srv/docker/stack-media/data/plex:/config
+      - /srv/docker/temp/plex:/transcode
+      - /mnt/nas/media:/media
+      - /mnt/nas/home_video:/home_video
+      - /mnt/nas/music:/music
+      - /mnt/nas/video:/video
 
   tautulli:
+    <<: *arr
     image: lscr.io/linuxserver/tautulli:latest
     container_name: tautulli
-    environment:
-      - PUID=${UID}
-      - PGID=${GID}
-      - TZ=${TZ}
-    networks:
-      - default
-      - traefik-proxy
     volumes:
-      - ${PROJECT_PATH}/data/tautulli:/config
-    restart: unless-stopped
+      - /srv/docker/stack-media/data/tautulli:/config
     labels:
       - 'traefik.docker.network=traefik-proxy'
       - 'traefik.http.routers.tautulli.rule=Host(`stats.lundmark.tech`)'
@@ -53,19 +57,16 @@ services:
       - plex
 
   seerr:
+    <<: *arr
     image: ghcr.io/seerr-team/seerr:latest
     init: true
     container_name: seerr
     environment:
-      - LOG_LEVEL=debug
-      - TZ=${TZ}
+      LOG_LEVEL: debug
+      TZ: Europe/Stockholm
     dns: *default-dns
-    networks:
-      - default
-      - traefik-proxy
     volumes:
-      - ${PROJECT_PATH}/data/seerr/config:/app/config
-    restart: unless-stopped
+      - /srv/docker/stack-media/data/seerr/config:/app/config
     labels:
       - 'traefik.docker.network=traefik-proxy'
       - 'traefik.http.routers.seerr.rule=Host(`requests.lundmark.tech`)'
@@ -84,9 +85,9 @@ services:
     image: linuxserver/sabnzbd:latest
     hostname: sabnzbd
     environment:
-      - TZ=${TZ}
-      - PGID=${GID}
-      - PUID=${UID}
+      TZ: Europe/Stockholm
+      PGID: 1000
+      PUID: 1000
     networks:
       - default
       - traefik-proxy
@@ -95,22 +96,16 @@ services:
       - 'traefik.docker.network=traefik-proxy'
       - 'traefik.http.routers.sabnzbd.rule=Host(`usenet.lundmark.tech`)'
     volumes:
-      - ${PROJECT_PATH}/data/sabnzbd:/config
-      - ${ROOT_PATH}/downloads:/downloads
-      - ${MOUNTS_PATH}/downloads:/downloads-nas
-      - ${MOUNTS_PATH}/media:/media
+      - /srv/docker/stack-media/data/sabnzbd:/config
+      - /srv/docker/downloads:/downloads
+      - /mnt/nas/downloads:/downloads-nas
+      - /mnt/nas/media:/media
 
   transmission:
+    <<: *arr
     container_name: transmission
     image: linuxserver/transmission:latest
     hostname: transmission
-    environment:
-      - PGID=${GID}
-      - PUID=${UID}
-      - TZ=${TZ}
-    networks:
-      - default
-      - traefik-proxy
     labels:
       - 'traefik.docker.network=traefik-proxy'
       - 'traefik.http.routers.transmission.rule=Host(`torrents.lundmark.tech`)'
@@ -118,23 +113,22 @@ services:
     ports:
       - '51413:51413'
       - '51413:51413/udp'
-    restart: unless-stopped
     volumes:
-      - ${PROJECT_PATH}/data/transmission:/config
-      - ${ROOT_PATH}/downloads:/downloads
-      - ${MOUNTS_PATH}/downloads:/downloads-nas
-      - ${MOUNTS_PATH}/downloads/seeding:/seeding
-      - ${MOUNTS_PATH}/downloads/watch:/watch
+      - /srv/docker/stack-media/data/transmission:/config
+      - /srv/docker/downloads:/downloads
+      - /mnt/nas/downloads:/downloads-nas
+      - /mnt/nas/downloads/seeding:/seeding
+      - /mnt/nas/downloads/watch:/watch
 
   handbrake:
     container_name: handbrake
     image: jlesage/handbrake
     restart: unless-stopped
     environment:
-      - GROUP_ID=${GID}
-      - USER_ID=${UID}
-      - TZ=${TZ}
-      - AUTOMATED_CONVERSION_KEEP_SOURCE=0
+      GROUP_ID: 1000
+      USER_ID: 1000
+      TZ: Europe/Stockholm
+      AUTOMATED_CONVERSION_KEEP_SOURCE: 0
     networks:
       - default
       - traefik-proxy
@@ -142,31 +136,24 @@ services:
       - 'traefik.docker.network=traefik-proxy'
       - 'traefik.http.routers.handbrake.rule=Host(`encoder.lundmark.tech`)'
     volumes:
-      - '${PROJECT_PATH}/data/handbrake:/config:rw'
-      - '${ROOT_PATH}/temp/handbrake/watch:/watch:rw'
-      - '${ROOT_PATH}/temp/handbrake/output:/output:rw'
-      - '${MOUNTS_PATH}/media:/storage:ro'
+      - '/srv/docker/stack-media/data/handbrake:/config:rw'
+      - '/srv/docker/temp/handbrake/watch:/watch:rw'
+      - '/srv/docker/temp/handbrake/output:/output:rw'
+      - '/mnt/nas/media:/storage:ro'
 
   sonarr:
+    <<: *arr
     container_name: sonarr
     image: linuxserver/sonarr:latest
     hostname: sonarr
     dns: *default-dns
-    environment:
-      - TZ=${TZ}
-      - PGID=${GID}
-      - PUID=${UID}
-    networks:
-      - default
-      - traefik-proxy
-    restart: unless-stopped
     labels:
       - 'traefik.docker.network=traefik-proxy'
       - 'traefik.http.routers.sonarr.rule=Host(`tv.lundmark.tech`)'
     volumes:
-      - ${PROJECT_PATH}/data/sonarr:/config
-      - ${ROOT_PATH}/downloads:/downloads
-      - ${MOUNTS_PATH}/media:/media
+      - /srv/docker/stack-media/data/sonarr:/config
+      - /srv/docker/downloads:/downloads
+      - /mnt/nas/media:/media
     depends_on:
       - prowlarr
       - nzbhydra
@@ -174,25 +161,18 @@ services:
       - transmission
 
   radarr:
+    <<: *arr
     container_name: radarr
     image: linuxserver/radarr:latest
     hostname: radarr
     dns: *default-dns
-    environment:
-      - PGID=${GID}
-      - PUID=${UID}
-      - TZ=${TZ}
-    networks:
-      - default
-      - traefik-proxy
-    restart: unless-stopped
     labels:
       - 'traefik.docker.network=traefik-proxy'
       - 'traefik.http.routers.radarr.rule=Host(`movies.lundmark.tech`)'
     volumes:
-      - ${PROJECT_PATH}/data/radarr:/config
-      - ${ROOT_PATH}/downloads:/downloads
-      - ${MOUNTS_PATH}/media:/media
+      - /srv/docker/stack-media/data/radarr:/config
+      - /srv/docker/downloads:/downloads
+      - /mnt/nas/media:/media
     depends_on:
       - prowlarr
       - nzbhydra
@@ -200,45 +180,31 @@ services:
       - transmission
 
   bazarr:
+    <<: *arr
     container_name: bazarr
     image: linuxserver/bazarr:latest
     hostname: bazarr
     dns: *default-dns
-    environment:
-      - TZ=${TZ}
-      - PGID=${GID}
-      - PUID=${UID}
-    networks:
-      - default
-      - traefik-proxy
-    restart: unless-stopped
     labels:
       - 'traefik.docker.network=traefik-proxy'
       - 'traefik.http.routers.bazarr.rule=Host(`subtitles.lundmark.tech`)'
     volumes:
-      - ${PROJECT_PATH}/data/bazarr:/config
-      - ${MOUNTS_PATH}/media:/media
+      - /srv/docker/stack-media/data/bazarr:/config
+      - /mnt/nas/media:/media
 
   lidarr:
+    <<: *arr
     container_name: lidarr
     image: linuxserver/lidarr:latest
     hostname: lidarr
     dns: *default-dns
-    environment:
-      - TZ=${TZ}
-      - PGID=${GID}
-      - PUID=${UID}
-    networks:
-      - default
-      - traefik-proxy
-    restart: unless-stopped
     labels:
       - 'traefik.docker.network=traefik-proxy'
       - 'traefik.http.routers.lidarr.rule=Host(`music.lundmark.tech`)'
     volumes:
-      - ${PROJECT_PATH}/data/lidarr:/config
-      - ${ROOT_PATH}/downloads:/downloads
-      - ${MOUNTS_PATH}/music:/music
+      - /srv/docker/stack-media/data/lidarr:/config
+      - /srv/docker/downloads:/downloads
+      - /mnt/nas/music:/music
     depends_on:
       - prowlarr
       - nzbhydra
@@ -247,43 +213,29 @@ services:
 
   # Indexers
   nzbhydra:
+    <<: *arr
     container_name: nzbhydra
     image: linuxserver/nzbhydra2:latest
     hostname: nzbhydra
-    environment:
-      - PGID=${GID}
-      - PUID=${UID}
-      - TZ=${TZ}
-    networks:
-      - default
-      - traefik-proxy
-    restart: unless-stopped
     labels:
       - 'traefik.docker.network=traefik-proxy'
       - 'traefik.http.routers.nzbhydra.rule=Host(`search.lundmark.tech`)'
     volumes:
-      - ${PROJECT_PATH}/data/nzbhydra:/config
-      - ${ROOT_PATH}/downloads:/downloads
-      - ${MOUNTS_PATH}/downloads:/downloads-nas
-      - ${MOUNTS_PATH}/media:/media
+      - /srv/docker/stack-media/data/nzbhydra:/config
+      - /srv/docker/downloads:/downloads
+      - /mnt/nas/downloads:/downloads-nas
+      - /mnt/nas/media:/media
 
   prowlarr:
+    <<: *arr
     container_name: prowlarr
     image: linuxserver/prowlarr:develop
     hostname: prowlarr
-    environment:
-      - PGID=${GID}
-      - PUID=${UID}
-      - TZ=${TZ}
-    networks:
-      - default
-      - traefik-proxy
-    restart: unless-stopped
     labels:
       - 'traefik.docker.network=traefik-proxy'
       - 'traefik.http.routers.prowlarr.rule=Host(`indexers.lundmark.tech`)'
     volumes:
-      - ${PROJECT_PATH}/data/prowlarr:/config
+      - /srv/docker/stack-media/data/prowlarr:/config
 
 networks:
   traefik-proxy:
