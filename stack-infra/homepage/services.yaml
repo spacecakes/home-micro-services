@@ -150,7 +150,7 @@
         #   url: http://seerr:5055
         #   key: MTc0MDA4NDk3OTAxNGQ0NzY3NWQ0LTVjZTEtNDAyZi04MzE1LWYxZDljN2NmMGY3MQ==
     - Aurral:
-        icon: aurral.svg
+        icon: /icons/aurral.svg
         href: https://request-music.lundmark.tech/
         description: Request & discover music albums for PlexAmp
         container: aurral
