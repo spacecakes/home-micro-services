@@ -27,9 +27,9 @@ services:
       CLOUDFLARE_DNS_API_TOKEN: ${CLOUDFLARE_API_TOKEN}
     volumes:
       - /srv/docker/stack-infra/data/traefik/letsencrypt:/letsencrypt
-      - /srv/docker/stack-infra/traefik/traefik.yml:/traefik.yml
-      - /srv/docker/stack-infra/traefik/dynamic.yml:/dynamic.yml
-      - /var/run/docker.sock:/var/run/docker.sock
+      - /srv/docker/stack-infra/traefik/traefik.yml:/traefik.yml:ro
+      - /srv/docker/stack-infra/traefik/dynamic.yml:/dynamic.yml:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
 
   traefik-certs-dumper:
     image: ldez/traefik-certs-dumper:v2.9.3
@@ -140,7 +140,7 @@ services:
       - 'traefik.http.services.uptime-kuma.loadbalancer.server.port=3001'
     volumes:
       - /srv/docker/stack-infra/data/uptime-kuma:/app/data
-      - /var/run/docker.sock:/var/run/docker.sock
+      - /var/run/docker.sock:/var/run/docker.sock:ro
     depends_on:
       - traefik
 
@@ -163,8 +163,8 @@ services:
       - /srv/docker/stack-infra/homepage/settings.yaml:/app/config/settings.yaml:ro
       - /srv/docker/stack-infra/homepage/widgets.yaml:/app/config/widgets.yaml:ro
       - /srv/docker/stack-infra/homepage/bookmarks.yaml:/app/config/bookmarks.yaml:ro
-      - /srv/docker/stack-infra/data/homepage/images:/app/public/images
-      - /srv/docker/stack-infra/data/homepage/icons:/app/public/icons
+      - /srv/docker/stack-infra/data/homepage/images:/app/public/images:ro
+      - /srv/docker/stack-infra/data/homepage/icons:/app/public/icons:ro
     depends_on:
       - traefik
       - dockerproxy

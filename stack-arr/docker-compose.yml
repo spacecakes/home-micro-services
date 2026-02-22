@@ -44,7 +44,7 @@ services:
     labels:
       - 'traefik.docker.network=traefik-proxy'
       - 'traefik.http.routers.aurral.rule=Host(`request-music.lundmark.tech`)'
-      - 'traefik.http.routers.aurral.middlewares=authelia@file'
+      # - 'traefik.http.routers.aurral.middlewares=authelia@file'
       - 'traefik.http.services.aurral.loadbalancer.server.port=3001'
     depends_on:
       - lidarr

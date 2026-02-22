@@ -16,7 +16,7 @@ services:
       TZ: Europe/Stockholm
       # To reclaim, visit https://www.plex.tv/claim/ to get a new token
       # then set it in your .env file and restart the container within 4 minutes.
-      PLEX_CLAIM: "${PLEX_CLAIM}"
+      PLEX_CLAIM: '${PLEX_CLAIM}'
     devices:
       - /dev/dri:/dev/dri # Intel Quick Sync
     labels:
@@ -26,10 +26,10 @@ services:
     volumes:
       - /srv/docker/stack-plex/data/plex:/config
       - /srv/docker/temp/plex:/transcode
-      - /mnt/nas/media:/media
-      - /mnt/nas/home_video:/home_video
-      - /mnt/nas/music:/music
-      - /mnt/nas/video:/video
+      - /mnt/nas/home_video:/home_video:ro
+      - /mnt/nas/media:/media:ro
+      - /mnt/nas/music:/music:ro
+      - /mnt/nas/video:/video:ro
 
   tautulli:
     image: lscr.io/linuxserver/tautulli:latest
