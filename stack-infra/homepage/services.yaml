@@ -9,6 +9,12 @@
         description: Reverse proxy & SSL certificate management
         container: traefik
         server: local-docker
+    - Authelia:
+        icon: authelia.png
+        href: https://auth.lundmark.tech/
+        description: Single sign-on & two-factor authentication
+        container: authelia
+        server: local-docker
     - Uptime Kuma:
         icon: uptime-kuma.png
         href: https://status.lundmark.tech/
