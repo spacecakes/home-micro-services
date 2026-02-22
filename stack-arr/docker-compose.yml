@@ -43,10 +43,10 @@ services:
       - DOWNLOAD_FOLDER=/srv/docker/downloads
     volumes:
       - /srv/docker/downloads:/app/downloads
-      - /srv/docker/stack-arr/data/aurall:/app/backend/data
+      - /srv/docker/stack-arr/data/aurral:/app/backend/data
     labels:
       - 'traefik.docker.network=traefik-proxy'
-      - 'traefik.http.routers.aurral.rule=Host(`requests-music.lundmark.tech`)'
+      - 'traefik.http.routers.aurral.rule=Host(`request-music.lundmark.tech`)'
       - 'traefik.http.services.aurral.loadbalancer.server.port=3001'
     depends_on:
       - lidarr

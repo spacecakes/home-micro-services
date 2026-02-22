@@ -4,18 +4,16 @@ set -euo pipefail
 # -------------------------
 # Configuration
 # -------------------------
-SRC_DIRS=(
-    "/srv/docker/stack-infra/data/"
-    "/srv/docker/stack-media/data/"
-    "/srv/docker/stack-dns/data/"
-    "/srv/docker/stack-home/data/"
-    "/srv/docker/stack-immich/data/"
-)
-DEST="/mnt/nas/backup-homeserver/docker_data"
-LOG="/var/log/docker_data_backup.log"
+SRC="/srv/docker/"
+DEST="/mnt/nas/backup-homeserver/docker"
+LOG="/var/log/docker_backup.log"
 EXCLUDE=(
-    "/temp/*"
-    "/downloads/*"
+    ".git/"
+    "temp/"
+    "downloads/"
+    ".DS_Store"
+    "._*"
+    "@eaDir"
 )
 
 # -------------------------
@@ -29,13 +27,7 @@ done
 # -------------------------
 # Perform the backup
 # -------------------------
-echo "==== Backup started at $(date) ====" >> "$LOG"
-for SRC in "${SRC_DIRS[@]}"; do
-    if [ -d "$SRC" ]; then
-        STACK_NAME=$(basename "$(dirname "$SRC")")
-        echo "-- Backing up $STACK_NAME --" >> "$LOG"
-        sudo rsync -avh --no-perms --no-owner --no-group -l --delete "${RSYNC_EXCLUDE[@]}" "$SRC" "$DEST/$STACK_NAME/" >> "$LOG" 2>&1
-    fi
-done
-echo "==== Backup completed at $(date) ====" >> "$LOG"
-echo "" >> "$LOG"
+echo "==== Backup started at $(date) ====" | tee -a "$LOG"
+sudo rsync -avh --no-perms --no-owner --no-group -l --delete "${RSYNC_EXCLUDE[@]}" "$SRC" "$DEST/" 2>&1 | tee -a "$LOG"
+echo "==== Backup completed at $(date) ====" | tee -a "$LOG"
+echo "" | tee -a "$LOG"
