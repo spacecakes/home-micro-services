@@ -1,0 +1,60 @@
+server:
+  address: 'tcp://:9091'
+
+log:
+  level: info
+
+theme: dark
+
+totp:
+  issuer: lundmark.tech
+
+authentication_backend:
+  file:
+    path: /config/users_database.yml
+
+access_control:
+  default_policy: one_factor
+
+session:
+  cookies:
+    - domain: lundmark.tech
+      authelia_url: https://auth.lundmark.tech
+
+storage:
+  local:
+    path: /data/db.sqlite3
+
+notifier:
+  filesystem:
+    filename: /data/notification.txt
+
+identity_providers:
+  oidc:
+    jwks:
+      # prettier-ignore
+      - key: {{ secret "/secrets/oidc_jwks.pem" | mindent 10 "|" | msquote }}
+    clients:
+      - client_id: portainer
+        client_name: Portainer
+        client_secret: '$pbkdf2-sha512$310000$VcMj5j2BUDpnzyLyJm9TPg$G.Na1xeQbMAvcevZvdIoy60XGkd14aDaDYbp0IZKRwFIWnUjoup2LWTqcQ08BCqpoS1ch7B1GJ2Rb5yfLF9nXQ'
+        redirect_uris:
+          - https://containers.lundmark.tech
+        scopes:
+          - openid
+          - profile
+          - email
+        authorization_policy: one_factor
+
+      - client_id: immich
+        client_name: Immich
+        client_secret: '$pbkdf2-sha512$310000$orsMTRKPXEF3bLdz3Ub5zw$MEy3LcYJZJqLZzsw4bZD95aFWumNTCqvRkqnhwp6tCjpHA.Ja2oH66ZGGiooQO.tMjOul01QjMNUNApbix.xXw'
+        token_endpoint_auth_method: client_secret_post
+        redirect_uris:
+          - https://photos.lundmark.tech/auth/login
+          - app.immich:///oauth-callback
+        scopes:
+          - openid
+          - profile
+          - email
+        authorization_policy: one_factor

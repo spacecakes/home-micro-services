@@ -16,8 +16,6 @@ services:
       DB_PASSWORD: ${DB_PASSWORD}
       DB_USERNAME: postgres
       DB_DATABASE_NAME: immich
-    ports:
-      - '2283:2283'
     depends_on:
       - redis
       - database

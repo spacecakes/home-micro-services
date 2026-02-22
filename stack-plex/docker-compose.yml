@@ -47,6 +47,7 @@ services:
     labels:
       - 'traefik.docker.network=traefik-proxy'
       - 'traefik.http.routers.tautulli.rule=Host(`stats.lundmark.tech`)'
+      - 'traefik.http.routers.tautulli.middlewares=authelia@file'
     depends_on:
       - plex
 

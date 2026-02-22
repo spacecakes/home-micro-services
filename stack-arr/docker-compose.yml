@@ -27,6 +27,7 @@ services:
     labels:
       - 'traefik.docker.network=traefik-proxy'
       - 'traefik.http.routers.seerr.rule=Host(`requests.lundmark.tech`)'
+      - 'traefik.http.routers.seerr.middlewares=authelia@file'
     depends_on:
       - sonarr
       - radarr
@@ -35,8 +36,6 @@ services:
     <<: *arr
     container_name: aurral
     image: ghcr.io/lklynet/aurral:latest
-    ports:
-      - '3001:3001'
     environment:
       - DOWNLOAD_FOLDER=/srv/docker/downloads
     volumes:
@@ -45,6 +44,7 @@ services:
     labels:
       - 'traefik.docker.network=traefik-proxy'
       - 'traefik.http.routers.aurral.rule=Host(`request-music.lundmark.tech`)'
+      - 'traefik.http.routers.aurral.middlewares=authelia@file'
       - 'traefik.http.services.aurral.loadbalancer.server.port=3001'
     depends_on:
       - lidarr
@@ -56,6 +56,7 @@ services:
     labels:
       - 'traefik.docker.network=traefik-proxy'
       - 'traefik.http.routers.sabnzbd.rule=Host(`usenet.lundmark.tech`)'
+      - 'traefik.http.routers.sabnzbd.middlewares=authelia@file'
     volumes:
       - /srv/docker/stack-arr/data/sabnzbd:/config
       - /srv/docker/downloads:/downloads
@@ -69,6 +70,7 @@ services:
     labels:
       - 'traefik.docker.network=traefik-proxy'
       - 'traefik.http.routers.transmission.rule=Host(`torrents.lundmark.tech`)'
+      - 'traefik.http.routers.transmission.middlewares=authelia@file'
       - 'traefik.http.services.transmission.loadbalancer.server.port=9091'
     ports:
       - '51413:51413'
@@ -92,6 +94,7 @@ services:
     labels:
       - 'traefik.docker.network=traefik-proxy'
       - 'traefik.http.routers.handbrake.rule=Host(`encoder.lundmark.tech`)'
+      - 'traefik.http.routers.handbrake.middlewares=authelia@file'
     volumes:
       - /srv/docker/stack-arr/data/handbrake:/config
       - /srv/docker/temp/handbrake/watch:/watch
@@ -105,6 +108,7 @@ services:
     labels:
       - 'traefik.docker.network=traefik-proxy'
       - 'traefik.http.routers.sonarr.rule=Host(`tv.lundmark.tech`)'
+      - 'traefik.http.routers.sonarr.middlewares=authelia@file'
     volumes:
       - /srv/docker/stack-arr/data/sonarr:/config
       - /srv/docker/downloads:/downloads
@@ -122,6 +126,7 @@ services:
     labels:
       - 'traefik.docker.network=traefik-proxy'
       - 'traefik.http.routers.radarr.rule=Host(`movies.lundmark.tech`)'
+      - 'traefik.http.routers.radarr.middlewares=authelia@file'
     volumes:
       - /srv/docker/stack-arr/data/radarr:/config
       - /srv/docker/downloads:/downloads
@@ -139,6 +144,7 @@ services:
     labels:
       - 'traefik.docker.network=traefik-proxy'
       - 'traefik.http.routers.bazarr.rule=Host(`subtitles.lundmark.tech`)'
+      - 'traefik.http.routers.bazarr.middlewares=authelia@file'
     volumes:
       - /srv/docker/stack-arr/data/bazarr:/config
       - /mnt/nas/media:/media
@@ -150,6 +156,7 @@ services:
     labels:
       - 'traefik.docker.network=traefik-proxy'
       - 'traefik.http.routers.lidarr.rule=Host(`music.lundmark.tech`)'
+      - 'traefik.http.routers.lidarr.middlewares=authelia@file'
     volumes:
       - /srv/docker/stack-arr/data/lidarr:/config
       - /srv/docker/downloads:/downloads
@@ -168,6 +175,7 @@ services:
     labels:
       - 'traefik.docker.network=traefik-proxy'
       - 'traefik.http.routers.nzbhydra.rule=Host(`search.lundmark.tech`)'
+      - 'traefik.http.routers.nzbhydra.middlewares=authelia@file'
     volumes:
       - /srv/docker/stack-arr/data/nzbhydra:/config
       - /srv/docker/downloads:/downloads
@@ -181,6 +189,7 @@ services:
     labels:
       - 'traefik.docker.network=traefik-proxy'
       - 'traefik.http.routers.prowlarr.rule=Host(`indexers.lundmark.tech`)'
+      - 'traefik.http.routers.prowlarr.middlewares=authelia@file'
     volumes:
       - /srv/docker/stack-arr/data/prowlarr:/config
 

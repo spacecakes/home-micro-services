@@ -6,10 +6,15 @@ x-synology-service: &synology-service
 
 http:
   middlewares:
-    # auth:
-    #   basicauth:
-    #     users:
-    #       - '{{env "BASIC_AUTH_USERNAME"}}:{{env "BASIC_AUTH_PASSWORD_HASH"}}'
+    authelia:
+      forwardAuth:
+        address: 'http://authelia:9091/api/authz/forward-auth'
+        trustForwardHeader: true
+        authResponseHeaders:
+          - 'Remote-User'
+          - 'Remote-Groups'
+          - 'Remote-Email'
+          - 'Remote-Name'
 
     add-drive-prefix:
       addPrefix:
@@ -63,63 +68,82 @@ http:
     # Synology apps
     dsm:
       rule: 'Host(`dsm.lundmark.tech`)'
+      middlewares:
+        - authelia
       service: synology-dsm
 
     drive:
       rule: 'Host(`drive.lundmark.tech`)'
       middlewares:
+        - authelia
         - add-drive-prefix
       service: synology-drive
 
     active-backup:
       rule: 'Host(`backup.lundmark.tech`)'
       middlewares:
+        - authelia
         - add-backup-prefix
       service: synology-active-backup
 
     download-station:
       rule: 'Host(`downloads.lundmark.tech`)'
       middlewares:
+        - authelia
         - add-downloads-prefix
       service: synology-download-station
 
     file-station:
       rule: 'Host(`files.lundmark.tech`)'
       middlewares:
+        - authelia
         - add-files-prefix
       service: synology-file-station
 
     vm-manager:
       rule: 'Host(`vm.lundmark.tech`)'
       middlewares:
+        - authelia
         - add-vm-prefix
       service: synology-vm
 
     # Synology containers
     icloudpd:
       rule: 'Host(`icloudpd.lundmark.tech`)'
+      middlewares:
+        - authelia
       service: icloudpd
 
     icloudpd-shared:
       rule: 'Host(`icloudpd-shared.lundmark.tech`)'
+      middlewares:
+        - authelia
       service: icloudpd-shared
 
     adguardhome:
       rule: 'Host(`dns2.lundmark.tech`)'
+      middlewares:
+        - authelia
       service: adguardhome
 
     # UniFi Controller
     unifi:
       rule: 'Host(`network.lundmark.tech`)'
+      middlewares:
+        - authelia
       service: unifi
 
-      #APC UPS
+    # APC UPS
     apcups1:
       rule: 'Host(`ups1.lundmark.tech`)'
+      middlewares:
+        - authelia
       service: apcups1
 
     apcups2:
       rule: 'Host(`ups2.lundmark.tech`)'
+      middlewares:
+        - authelia
       service: apcups2
 
   services:

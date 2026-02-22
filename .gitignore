@@ -6,3 +6,4 @@
 temp/
 downloads/
 postgres
+secrets/

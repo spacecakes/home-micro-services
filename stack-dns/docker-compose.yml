@@ -11,6 +11,7 @@ services:
     labels:
       - 'traefik.docker.network=traefik-proxy'
       - 'traefik.http.routers.adguardhome.rule=Host(`dns1.lundmark.tech`)'
+      - 'traefik.http.routers.adguardhome.middlewares=authelia@file'
       - 'traefik.http.services.adguardhome.loadbalancer.server.port=3000'
     volumes:
       - /srv/docker/stack-dns/data/adguardhome/work:/opt/adguardhome/work
@@ -30,12 +31,11 @@ services:
       - traefik-proxy
     volumes:
       - /srv/docker/stack-dns/data/adguardhome-sync/config:/config
-    ports:
-      - 8082:8080
     restart: unless-stopped
     labels:
       - 'traefik.docker.network=traefik-proxy'
       - 'traefik.http.routers.adguardhome-sync.rule=Host(`dns-sync.lundmark.tech`)'
+      - 'traefik.http.routers.adguardhome-sync.middlewares=authelia@file'
     depends_on:
       - adguardhome
 
