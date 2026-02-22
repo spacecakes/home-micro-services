@@ -34,7 +34,7 @@ services:
     container_name: immich_machine_learning
     image: ghcr.io/immich-app/immich-machine-learning:v2
     volumes:
-      - model-cache:/cache
+      - /srv/docker/stack-immich/model-cache:/cache
     environment:
       TZ: Europe/Stockholm
     restart: always
@@ -66,9 +66,6 @@ services:
     restart: always
     labels:
       - 'traefik.enable=false'
-
-volumes:
-  model-cache:
 
 networks:
   traefik-proxy:

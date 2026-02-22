@@ -1,13 +1,12 @@
 name: 'arr-services'
 
-# Bypass Adguard Home for services that need external DNS
-x-dns: &default-dns
-  - 1.1.1.1 # Cloudflare DNS
-  - 8.8.8.8 # Google DNS
-
 # Common config for *arr and linuxserver services
 x-arr: &arr
   restart: unless-stopped
+  # Bypass Adguard Home
+  dns:
+    - 1.1.1.1 # Cloudflare DNS
+    - 8.8.8.8 # Google DNS
   networks:
     - default
     - traefik-proxy
@@ -25,7 +24,6 @@ services:
     environment:
       LOG_LEVEL: debug
       TZ: Europe/Stockholm
-    dns: *default-dns
     volumes:
       - /srv/docker/stack-arr/data/seerr/config:/app/config
     labels:
@@ -34,12 +32,24 @@ services:
     depends_on:
       - sonarr
       - radarr
-    healthcheck:
-      test: wget --no-verbose --tries=1 --spider http://localhost:5055/api/v1/status || exit 1
-      start_period: 20s
-      timeout: 3s
-      interval: 15s
-      retries: 3
+
+  aurral:
+    <<: *arr
+    container_name: aurral
+    image: ghcr.io/lklynet/aurral:latest
+    ports:
+      - '3001:3001'
+    environment:
+      - DOWNLOAD_FOLDER=/srv/docker/downloads
+    volumes:
+      - /srv/docker/downloads:/app/downloads
+      - /srv/docker/stack-arr/data/aurall:/app/backend/data
+    labels:
+      - 'traefik.docker.network=traefik-proxy'
+      - 'traefik.http.routers.aurral.rule=Host(`requests-music.lundmark.tech`)'
+      - 'traefik.http.services.aurral.loadbalancer.server.port=3001'
+    depends_on:
+      - lidarr
 
   sabnzbd:
     <<: *arr
@@ -94,7 +104,6 @@ services:
     <<: *arr
     container_name: sonarr
     image: linuxserver/sonarr:latest
-    dns: *default-dns
     labels:
       - 'traefik.docker.network=traefik-proxy'
       - 'traefik.http.routers.sonarr.rule=Host(`tv.lundmark.tech`)'
@@ -112,7 +121,6 @@ services:
     <<: *arr
     container_name: radarr
     image: linuxserver/radarr:latest
-    dns: *default-dns
     labels:
       - 'traefik.docker.network=traefik-proxy'
       - 'traefik.http.routers.radarr.rule=Host(`movies.lundmark.tech`)'
@@ -130,7 +138,6 @@ services:
     <<: *arr
     container_name: bazarr
     image: linuxserver/bazarr:latest
-    dns: *default-dns
     labels:
       - 'traefik.docker.network=traefik-proxy'
       - 'traefik.http.routers.bazarr.rule=Host(`subtitles.lundmark.tech`)'
@@ -142,7 +149,6 @@ services:
     <<: *arr
     container_name: lidarr
     image: linuxserver/lidarr:latest
-    dns: *default-dns
     labels:
       - 'traefik.docker.network=traefik-proxy'
       - 'traefik.http.routers.lidarr.rule=Host(`music.lundmark.tech`)'
