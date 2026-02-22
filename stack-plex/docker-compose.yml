@@ -1,5 +1,3 @@
-name: 'plex-services'
-
 # Bypass Adguard Home for services that need external DNS
 x-dns: &default-dns
   - 1.1.1.1 # Cloudflare DNS

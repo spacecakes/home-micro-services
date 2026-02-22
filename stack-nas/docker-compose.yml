@@ -1,5 +1,3 @@
-name: 'nas-services'
-
 services:
   portainer-edge-agent:
     container_name: portainer_edge_agent
@@ -38,6 +36,19 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
     restart: unless-stopped
+
+  dockge-agent:
+    container_name: dockge-agent
+    image: louislam/dockge:latest
+    restart: unless-stopped
+    ports:
+      - 5001:5001
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /volume1/docker/stack-nas/data/dockge-agent:/app/data
+      - /volume1/docker:/opt/stacks
+    environment:
+      DOCKGE_STACKS_DIR: /opt/stacks
 
   watchtower:
     container_name: watchtower

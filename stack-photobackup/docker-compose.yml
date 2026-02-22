@@ -1,5 +1,3 @@
-name: photobackup
-
 x-icloudpd: &icloudpd
   image: icloudpd/icloudpd:latest
   restart: 'unless-stopped'

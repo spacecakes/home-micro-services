@@ -1,8 +1,10 @@
-name: 'infra-services'
+x-common: &common
+  restart: unless-stopped
 
 services:
   # Reverse proxy
   traefik:
+    <<: *common
     container_name: traefik
     image: traefik:3.6
     dns:
@@ -21,7 +23,6 @@ services:
       - 'traefik.http.routers.traefik.rule=Host(`proxy.lundmark.tech`)'
       - 'traefik.http.services.traefik.loadbalancer.server.port=8080'
       - 'com.centurylinklabs.watchtower.enable=false'
-    restart: always
     environment:
       BASIC_AUTH_USERNAME: ${BASIC_AUTH_USERNAME}
       BASIC_AUTH_PASSWORD_HASH: ${BASIC_AUTH_PASSWORD_HASH}
@@ -50,6 +51,7 @@ services:
 
   # Docker management
   dockerproxy:
+    <<: *common
     image: ghcr.io/tecnativa/docker-socket-proxy:latest
     container_name: dockerproxy
     environment:
@@ -63,28 +65,43 @@ services:
       - 127.0.0.1:2375:2375
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
-    restart: unless-stopped
 
   portainer:
+    <<: *common
+    container_name: portainer
+    image: portainer/portainer-ce:latest
     ports:
       - '9000:9000'
       - '8000:8000'
-    container_name: portainer
-    image: portainer/portainer-ce:latest
     labels:
       - 'traefik.http.routers.portainer.rule=Host(`containers.lundmark.tech`)'
       - 'traefik.http.services.portainer.loadbalancer.server.port=9000'
-    restart: always
     volumes:
       - /srv/docker/stack-infra/data/portainer:/data
       - /var/run/docker.sock:/var/run/docker.sock
     depends_on:
       - traefik
 
+  dockge:
+    <<: *common
+    container_name: dockge
+    image: louislam/dockge:latest
+    labels:
+      - 'traefik.http.routers.dockge.rule=Host(`dockge.lundmark.tech`)'
+      - 'traefik.http.services.dockge.loadbalancer.server.port=5001'
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /srv/docker/stack-infra/data/dockge:/app/data
+      - /srv/docker:/opt/stacks
+    environment:
+      DOCKGE_STACKS_DIR: /opt/stacks
+    depends_on:
+      - traefik
+
   watchtower:
+    <<: *common
     container_name: watchtower
     image: containrrr/watchtower:latest
-    restart: unless-stopped
     environment:
       - WATCHTOWER_CLEANUP=true
     labels:
@@ -94,9 +111,9 @@ services:
 
   # Monitoring & dashboard
   uptime-kuma:
+    <<: *common
     container_name: uptime-kuma
     image: louislam/uptime-kuma:latest
-    restart: unless-stopped
     labels:
       - 'traefik.http.routers.uptime-kuma.rule=Host(`status.lundmark.tech`)'
       - 'traefik.http.services.uptime-kuma.loadbalancer.server.port=3001'
@@ -107,9 +124,9 @@ services:
       - traefik
 
   homepage:
+    <<: *common
     image: ghcr.io/gethomepage/homepage:latest
     container_name: homepage
-    restart: unless-stopped
     environment:
       PGID: 1000
       PUID: 1000

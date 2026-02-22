@@ -1,5 +1,3 @@
-name: 'dns-services'
-
 services:
   adguardhome:
     container_name: adguardhome
