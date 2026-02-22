@@ -87,7 +87,7 @@ services:
     container_name: dockge
     image: louislam/dockge:latest
     labels:
-      - 'traefik.http.routers.dockge.rule=Host(`dockge.lundmark.tech`)'
+      - 'traefik.http.routers.dockge.rule=Host(`stacks.lundmark.tech`)'
       - 'traefik.http.services.dockge.loadbalancer.server.port=5001'
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock

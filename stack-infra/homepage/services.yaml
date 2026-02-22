@@ -18,8 +18,14 @@
     - Portainer:
         icon: portainer.png
         href: https://containers.lundmark.tech/
-        description: Docker container management interface
+        description: Docker container management & monitoring
         container: portainer
+        server: local-docker
+    - Dockge:
+        icon: dockge.png
+        href: https://stacks.lundmark.tech/
+        description: Docker compose management & monitoring
+        container: dockge
         server: local-docker
     - UniFi Controller:
         icon: unifi.png
