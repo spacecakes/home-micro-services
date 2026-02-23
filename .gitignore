@@ -1,9 +1,15 @@
+# Secrets
 .env
+secrets/
+
+# Container data
+*/data/
+postgres
+model-cache
+
+# Junk
 .DS_Store
 ._*
 @eaDir
-*/data/
 temp/
 downloads/
-postgres
-secrets/
