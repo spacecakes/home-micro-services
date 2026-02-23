@@ -14,7 +14,7 @@ authentication_backend:
     path: /config/users_database.yml
 
 access_control:
-  default_policy: one_factor
+  default_policy: two_factor
 
 session:
   cookies:
@@ -44,7 +44,6 @@ identity_providers:
           - openid
           - profile
           - email
-        authorization_policy: one_factor
 
       - client_id: synology-dsm
         client_name: Synology DSM
@@ -57,7 +56,6 @@ identity_providers:
           - profile
           - groups
           - email
-        authorization_policy: one_factor
 
       - client_id: immich
         client_name: Immich
@@ -70,4 +68,3 @@ identity_providers:
           - openid
           - profile
           - email
-        authorization_policy: one_factor
