@@ -1,0 +1,32 @@
+x-common: &common
+  restart: unless-stopped
+
+services:
+  backup:
+    <<: *common
+    container_name: backup
+    image: alpine:latest
+    entrypoint: /bin/sh
+    command:
+      - -c
+      - |
+        apk add --no-cache rsync > /dev/null
+        echo '0 * * * * /backup.sh' | crontab -
+        crond -f -l 2
+    volumes:
+      - /srv/docker:/source:ro
+      - /mnt/nas/backup-homeserver/docker:/destination
+      - /srv/docker/stack-ops/backup.sh:/backup.sh:ro
+    labels:
+      - 'traefik.enable=false'
+
+  watchtower:
+    <<: *common
+    container_name: watchtower
+    image: containrrr/watchtower:latest
+    environment:
+      - WATCHTOWER_CLEANUP=true
+    labels:
+      - 'traefik.enable=false'
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock

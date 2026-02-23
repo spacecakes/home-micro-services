@@ -15,6 +15,7 @@ My Docker and reverse proxy setup for micro-services at home, shared publicly so
 | `stack-immich`      | Immich photo management                              |
 | `stack-photobackup` | Photo backup                                         |
 | `stack-nas`         | NAS-related services                                 |
+| `stack-ops`         | Watchtower auto-updates, hourly rsync backup to NAS  |
 
 ## Setup
 
@@ -22,4 +23,4 @@ See [SETUP.md](SETUP.md) for the full bare-metal setup guide.
 
 ## Backup
 
-An hourly cron job rsyncs `/srv/docker/` to the NAS, which then snapshots and backs it up off-site. See [scripts/docker_data_backup.sh](scripts/docker_data_backup.sh).
+The `stack-ops` backup container rsyncs `/srv/docker/` to the NAS hourly. The NAS then snapshots and backs it up off-site.

@@ -80,17 +80,6 @@ services:
     depends_on:
       - traefik
 
-  watchtower:
-    <<: *common
-    container_name: watchtower
-    image: containrrr/watchtower:latest
-    environment:
-      - WATCHTOWER_CLEANUP=true
-    labels:
-      - 'traefik.enable=false'
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-
   # Monitoring & dashboard
   uptime-kuma:
     <<: *common
