@@ -70,6 +70,11 @@
         href: https://ups2.lundmark.tech/
         description: Desktop UPS monitoring & management
         siteMonitor: https://ups2.lundmark.tech/
+    - APC server monitor:
+        href: https://ups.lundmark.tech/
+        description: UPS daemon status & shutdown control
+        container: apcupsd
+        server: local-docker
 
 - Home Automation:
     - Home Assistant:

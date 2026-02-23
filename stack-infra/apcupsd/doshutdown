@@ -1,0 +1,13 @@
+#!/bin/sh
+
+# Trigger host shutdown via D-Bus (systemd-logind)
+# Works on any systemd-based host (Ubuntu, Debian, Proxmox, etc.)
+logger "apcupsd: UPS critical - initiating host shutdown via D-Bus"
+dbus-send --system --print-reply \
+  --dest=org.freedesktop.login1 \
+  /org/freedesktop/login1 \
+  org.freedesktop.login1.Manager.PowerOff \
+  boolean:true
+
+# Exit 0 to prevent apccontrol's default shutdown (which only affects the container)
+exit 0
