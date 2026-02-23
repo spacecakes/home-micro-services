@@ -27,7 +27,7 @@ done
 # -------------------------
 # Perform the backup
 # -------------------------
-echo "==== Backup started at $(date) ====" | tee -a "$LOG"
+echo "==== Backup started at $(date -Iseconds) ====" | tee -a "$LOG"
 sudo rsync -avh --no-perms --no-owner --no-group -l --delete "${RSYNC_EXCLUDE[@]}" "$SRC" "$DEST/" 2>&1 | tee -a "$LOG"
-echo "==== Backup completed at $(date) ====" | tee -a "$LOG"
+echo "==== Backup completed at $(date -Iseconds) ====" | tee -a "$LOG"
 echo "" | tee -a "$LOG"
