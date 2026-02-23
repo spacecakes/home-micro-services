@@ -1,0 +1,41 @@
+x-common: &common
+  restart: unless-stopped
+
+services:
+  authelia:
+    <<: *common
+    container_name: authelia
+    image: authelia/authelia:latest
+    networks:
+      - default
+      - traefik-proxy
+    labels:
+      - 'traefik.http.routers.authelia.rule=Host(`auth.lundmark.tech`)'
+      - 'traefik.http.services.authelia.loadbalancer.server.port=9091'
+      - 'traefik.docker.network=traefik-proxy'
+    environment:
+      X_AUTHELIA_CONFIG_FILTERS: template
+      AUTHELIA_IDENTITY_VALIDATION_RESET_PASSWORD_JWT_SECRET_FILE: /secrets/jwt
+      AUTHELIA_SESSION_SECRET_FILE: /secrets/session
+      AUTHELIA_STORAGE_ENCRYPTION_KEY_FILE: /secrets/encryption
+      AUTHELIA_IDENTITY_PROVIDERS_OIDC_HMAC_SECRET_FILE: /secrets/oidc_hmac
+    volumes:
+      - /srv/docker/stack-auth/authelia/configuration.yml:/config/configuration.yml:ro
+      - /srv/docker/stack-auth/authelia/users_database.yml:/config/users_database.yml:ro
+      - /srv/docker/stack-auth/authelia/secrets:/secrets:ro
+      - /srv/docker/stack-auth/data/authelia:/data
+    depends_on:
+      - redis
+
+  redis:
+    <<: *common
+    container_name: authelia-redis
+    image: redis:alpine
+    volumes:
+      - /srv/docker/stack-auth/data/redis:/data
+    labels:
+      - 'traefik.enable=false'
+
+networks:
+  traefik-proxy:
+    external: true
