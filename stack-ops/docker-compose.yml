@@ -2,9 +2,9 @@ x-common: &common
   restart: unless-stopped
 
 services:
-  backup:
+  docker-backup:
     <<: *common
-    container_name: backup
+    container_name: docker-backup
     image: alpine:latest
     networks:
       - default
@@ -21,14 +21,24 @@ services:
     volumes:
       - /srv/docker:/source
       - /mnt/nas/backup-homeserver/docker:/destination
-      - /srv/docker/stack-ops/web.py:/app/web.py:ro
+      - /srv/docker/stack-ops/docker-backup/web.py:/app/web.py:ro
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - /etc/fstab:/host/fstab
     labels:
+      - 'traefik.enable=false'
+
+  ops-dashboard:
+    <<: *common
+    container_name: ops-dashboard
+    image: ops-dashboard:latest
+    build: /srv/docker/stack-ops/ops-dashboard
+    networks:
+      - traefik-proxy
+    labels:
+      - 'traefik.http.routers.ops-dashboard.rule=Host(`ops.lundmark.tech`)'
+      - 'traefik.http.routers.ops-dashboard.middlewares=authelia@file'
+      - 'traefik.http.services.ops-dashboard.loadbalancer.server.port=5000'
       - 'traefik.docker.network=traefik-proxy'
-      - 'traefik.http.routers.backup.rule=Host(`backup-ops.lundmark.tech`)'
-      - 'traefik.http.routers.backup.middlewares=authelia@file'
-      - 'traefik.http.services.backup.loadbalancer.server.port=8000'
 
   watchtower:
     <<: *common

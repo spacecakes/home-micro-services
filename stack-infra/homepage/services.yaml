@@ -70,10 +70,10 @@
         href: https://ups2.lundmark.tech/
         description: Desktop UPS monitoring & management
         siteMonitor: https://ups2.lundmark.tech/
-    - APC server monitor:
-        href: https://ups.lundmark.tech/
-        description: UPS daemon status & shutdown control
-        container: apcupsd
+    - Ops Dashboard:
+        href: https://ops.lundmark.tech/
+        description: UPS monitoring & Docker backup management
+        container: ops-dashboard
         server: local-docker
 
 - Home Automation:
@@ -122,11 +122,6 @@
         href: https://backup.lundmark.tech/
         description: PC & server backup management
         siteMonitor: https://backup.lundmark.tech/
-    - Docker Backup:
-        href: https://backup-ops.lundmark.tech/
-        description: Container data backup & restore
-        container: backup
-        server: local-docker
 
 - Photos & Memories:
     - Immich:

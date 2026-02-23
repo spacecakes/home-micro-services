@@ -84,6 +84,7 @@ services:
   apcupsd:
     <<: *common
     container_name: apcupsd
+    image: apcupsd:latest
     build: /srv/docker/stack-infra/apcupsd
     networks:
       - default
@@ -91,16 +92,10 @@ services:
     ports:
       - '3551:3551' # NIS (apcaccess)
     labels:
-      - 'traefik.http.routers.apcupsd.rule=Host(`ups.lundmark.tech`)'
-      - 'traefik.http.middlewares.apcupsd-status.replacepath.path=/cgi-bin/status.cgi'
-      - 'traefik.http.routers.apcupsd.middlewares=authelia@file,apcupsd-status@docker'
-      - 'traefik.http.services.apcupsd.loadbalancer.server.port=3552'
-      - 'traefik.docker.network=traefik-proxy'
+      - 'traefik.enable=false'
     volumes:
       - /srv/docker/stack-infra/apcupsd/apcupsd.conf:/etc/apcupsd/apcupsd.conf:ro
       - /run/dbus/system_bus_socket:/run/dbus/system_bus_socket
-    depends_on:
-      - traefik
 
   # Monitoring & dashboard
   uptime-kuma:

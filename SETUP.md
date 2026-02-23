@@ -67,7 +67,7 @@ cd stack-arr && docker compose up -d
 
 ## 6. Docker Service — Wait for Mounts
 
-Override the Docker service so it waits for NAS mounts before starting containers:
+Override the Docker service so it waits for NAS mounts before starting containers. Use the **Setup Docker wait** button in the Ops Dashboard, or manually:
 
 ```bash
 sudo systemctl edit docker.service
@@ -87,25 +87,34 @@ RequiresMountsFor=/mnt/nas/backup-homeserver \
                   /mnt/nas/home_video
 ```
 
+The automated version derives mount points from `fstab.example` so they stay in sync.
+
 ## 7. Backup
 
-Symlink the backup script to run hourly:
+Handled by the `stack-ops` backup container (Flask API + hourly cron). No host-side cron needed — the container manages its own schedule.
+
+## 8. UPS Monitoring (apcupsd)
+
+If the host has a native `apcupsd` installation, disable it before starting the containerized version:
 
 ```bash
-sudo ln -sf /srv/docker/scripts/docker_data_backup.sh /etc/cron.hourly/docker_data_backup
+sudo systemctl stop apcupsd
+sudo systemctl disable apcupsd
+sudo apt purge apcupsd
 ```
 
-This rsyncs `/srv/docker/` to the NAS every hour. Check the log:
+The `apcupsd` container in `stack-infra` replaces it. It monitors the UPS over SNMP and can shut down the host via D-Bus when battery is critical. Build the image on first setup:
 
 ```bash
-cat /var/log/docker_backup.log
+cd /srv/docker/stack-infra
+docker compose up -d --build apcupsd ops-dashboard
 ```
 
-## 8. Free Port 53 (for AdGuard)
+## 9. Free Port 53 (for AdGuard)
 
 Follow: https://adguard-dns.io/kb/adguard-home/faq/#bindinuse
 
-## 9. Automatic Updates (optional)
+## 10. Automatic Updates (optional)
 
 ```bash
 sudo apt install unattended-upgrades

@@ -2,6 +2,7 @@ from flask import Flask, request, jsonify
 import subprocess
 import threading
 import datetime
+import base64
 import glob
 import re
 import os
@@ -10,7 +11,7 @@ from html import escape
 app = Flask(__name__)
 LOG_FILE = "/var/log/backup.log"
 LOG_MAX_LINES = 5000
-SELF_CONTAINER = "backup"
+SELF_CONTAINER = "docker-backup"
 EXCLUDES = [".git/", "temp/", "downloads/", ".DS_Store", "._*", "@eaDir"]
 RSYNC_BASE = ["rsync", "-avh", "--no-perms", "--no-owner", "--no-group", "-l", "--delete"]
 STACK_PRIORITY = {"stack-infra": 0, "stack-auth": 1}
@@ -393,12 +394,92 @@ def setup_fstab():
 
         log("Mounting all fstab entries on host...")
         subprocess.run(
-            ["docker", "run", "--rm", "--privileged", "--pid=host",
-             "alpine", "nsenter", "-t", "1", "-m", "-u", "-i", "-n", "--",
-             "mount", "-a"],
+            NSENTER_BASE + ["mount", "-a"],
             stdout=f, stderr=f
         )
         log(f"==== Setup fstab completed at {_now()} ====")
+        log("")
+
+    running = False
+    action = ""
+
+
+NSENTER_BASE = [
+    "docker", "run", "--rm", "--privileged", "--pid=host",
+    "alpine", "nsenter", "-t", "1", "-m", "-u", "-i", "-n", "--",
+]
+DOCKER_OVERRIDE_PATH = "/etc/systemd/system/docker.service.d/override.conf"
+
+
+def setup_docker_wait():
+    global running, action
+    running = True
+    action = "docker-wait"
+
+    with open(LOG_FILE, "a") as f:
+        def log(msg):
+            f.write(msg + "\n")
+            f.flush()
+
+        log(f"==== Setup Docker wait started at {_now()} ====")
+
+        if not os.path.exists(FSTAB_EXAMPLE):
+            log("ERROR: fstab.example not found (need mount points)")
+            log(f"==== Setup Docker wait failed at {_now()} ====")
+            log("")
+            running = False
+            action = ""
+            return
+
+        with open(FSTAB_EXAMPLE) as ef:
+            entries = ef.read().strip()
+
+        mount_points = []
+        for line in entries.split("\n"):
+            line = line.strip()
+            if line and not line.startswith("#"):
+                parts = line.split()
+                if len(parts) >= 2:
+                    mount_points.append(parts[1])
+
+        if not mount_points:
+            log("ERROR: no mount points found in fstab.example")
+            log(f"==== Setup Docker wait failed at {_now()} ====")
+            log("")
+            running = False
+            action = ""
+            return
+
+        requires = " \\\n                  ".join(mount_points)
+        override = (
+            "[Unit]\n"
+            "After=network-online.target\n"
+            "Wants=network-online.target\n"
+            "\n"
+            f"RequiresMountsFor={requires}\n"
+        )
+
+        log("Writing Docker service override:")
+        for mp in mount_points:
+            log(f"  RequiresMountsFor: {mp}")
+
+        b64 = base64.b64encode(override.encode()).decode()
+        subprocess.run(
+            NSENTER_BASE + [
+                "sh", "-c",
+                f"mkdir -p /etc/systemd/system/docker.service.d && "
+                f"echo '{b64}' | base64 -d > {DOCKER_OVERRIDE_PATH}"
+            ],
+            stdout=f, stderr=f
+        )
+
+        log("Reloading systemd daemon...")
+        subprocess.run(
+            NSENTER_BASE + ["systemctl", "daemon-reload"],
+            stdout=f, stderr=f
+        )
+
+        log(f"==== Setup Docker wait completed at {_now()} ====")
         log("")
 
     running = False
@@ -451,6 +532,13 @@ def restore():
 def setup_fstab_route():
     if not running:
         threading.Thread(target=setup_fstab, daemon=True).start()
+    return "ok"
+
+
+@app.route("/setup-docker-wait", methods=["POST"])
+def setup_docker_wait_route():
+    if not running:
+        threading.Thread(target=setup_docker_wait, daemon=True).start()
     return "ok"
 
 
