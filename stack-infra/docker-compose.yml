@@ -31,22 +31,6 @@ services:
       - /srv/docker/stack-infra/traefik/dynamic.yml:/dynamic.yml:ro
       - /var/run/docker.sock:/var/run/docker.sock:ro
 
-  traefik-certs-dumper:
-    image: ldez/traefik-certs-dumper:v2.9.3
-    container_name: traefik-certs-dumper
-    labels:
-      - traefik.enable=false
-    entrypoint: sh -c '
-      while ! [ -e /data/acme.json ]
-      || ! [ `jq ".[] | .Certificates | length" /data/acme.json | jq -s "add" ` != 0 ]; do
-      sleep 1
-      ; done
-      && traefik-certs-dumper file --version v2 --watch
-      --source /data/acme.json --dest /data/certs'
-    volumes:
-      - /srv/docker/stack-infra/data/traefik/letsencrypt:/data
-    network_mode: none
-
   # Docker management
   dockerproxy:
     <<: *common

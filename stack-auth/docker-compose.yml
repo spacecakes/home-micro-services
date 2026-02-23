@@ -5,7 +5,7 @@ services:
   authelia:
     <<: *common
     container_name: authelia
-    image: authelia/authelia:latest
+    image: authelia/authelia:4.39
     networks:
       - default
       - traefik-proxy
@@ -13,6 +13,7 @@ services:
       - 'traefik.http.routers.authelia.rule=Host(`auth.lundmark.tech`)'
       - 'traefik.http.services.authelia.loadbalancer.server.port=9091'
       - 'traefik.docker.network=traefik-proxy'
+      - 'com.centurylinklabs.watchtower.enable=false'
     environment:
       X_AUTHELIA_CONFIG_FILTERS: template
       AUTHELIA_IDENTITY_VALIDATION_RESET_PASSWORD_JWT_SECRET_FILE: /secrets/jwt
@@ -24,8 +25,14 @@ services:
       - /srv/docker/stack-auth/authelia/users_database.yml:/config/users_database.yml:ro
       - /srv/docker/stack-auth/authelia/secrets:/secrets:ro
       - /srv/docker/stack-auth/data/authelia:/data
+    healthcheck:
+      test: ['CMD', 'wget', '--quiet', '--tries=1', '--spider', 'http://localhost:9091/api/health']
+      interval: 30s
+      timeout: 5s
+      retries: 3
     depends_on:
-      - redis
+      redis:
+        condition: service_healthy
 
   redis:
     <<: *common
@@ -35,6 +42,11 @@ services:
       - /srv/docker/stack-auth/data/redis:/data
     labels:
       - 'traefik.enable=false'
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 30s
+      timeout: 5s
+      retries: 3
 
 networks:
   traefik-proxy:

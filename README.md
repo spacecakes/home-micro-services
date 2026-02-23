@@ -7,6 +7,7 @@ My Docker and reverse proxy setup for micro-services at home, shared publicly so
 | Stack               | Description                                          |
 | ------------------- | ---------------------------------------------------- |
 | `stack-infra`       | Traefik reverse proxy, Homepage dashboard, Portainer |
+| `stack-auth`        | Authelia SSO with Redis session backend              |
 | `stack-arr`         | Sonarr, Radarr, Prowlarr, qBittorrent                |
 | `stack-plex`        | Plex Media Server                                    |
 | `stack-dns`         | AdGuard Home                                         |
