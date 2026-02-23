@@ -6,19 +6,29 @@ services:
     <<: *common
     container_name: backup
     image: alpine:latest
+    networks:
+      - default
+      - traefik-proxy
     entrypoint: /bin/sh
     command:
       - -c
       - |
-        apk add --no-cache rsync > /dev/null
-        echo '0 * * * * /backup.sh' | crontab -
-        crond -f -l 2
+        apk add --no-cache rsync py3-pip docker-cli docker-cli-compose curl > /dev/null
+        pip install --break-system-packages flask > /dev/null
+        echo '0 * * * * curl -sX POST http://localhost:8000/run' | crontab -
+        crond -l 2
+        python3 /app/web.py
     volumes:
-      - /srv/docker:/source:ro
+      - /srv/docker:/source
       - /mnt/nas/backup-homeserver/docker:/destination
-      - /srv/docker/stack-ops/backup.sh:/backup.sh:ro
+      - /srv/docker/stack-ops/web.py:/app/web.py:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /etc/fstab:/host/fstab
     labels:
-      - 'traefik.enable=false'
+      - 'traefik.docker.network=traefik-proxy'
+      - 'traefik.http.routers.backup.rule=Host(`backup-ops.lundmark.tech`)'
+      - 'traefik.http.routers.backup.middlewares=authelia@file'
+      - 'traefik.http.services.backup.loadbalancer.server.port=8000'
 
   watchtower:
     <<: *common
@@ -30,3 +40,7 @@ services:
       - 'traefik.enable=false'
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
+
+networks:
+  traefik-proxy:
+    external: true
