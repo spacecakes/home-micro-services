@@ -54,7 +54,7 @@ Configure in the Portainer UI under Settings > Authentication > OAuth:
 | ----------------- | --------------------------------------------------- |
 | Provider          | Custom                                              |
 | Client ID         | `portainer`                                         |
-| Client Secret     | contents of `secrets/oidc_portainer_secret`          |
+| Client Secret     | contents of `secrets/oidc_portainer_secret`         |
 | Authorization URL | `https://auth.lundmark.tech/api/oidc/authorization` |
 | Access token URL  | `https://auth.lundmark.tech/api/oidc/token`         |
 | Resource URL      | `https://auth.lundmark.tech/api/oidc/userinfo`      |
@@ -79,7 +79,27 @@ Configure in the Immich admin UI under Administration > Settings > OAuth:
 
 Note: Immich uses `client_secret_post`, so the Authelia client config needs `token_endpoint_auth_method: client_secret_post`.
 
-The client secrets (plain text) are stored in `secrets/oidc_portainer_secret` and `secrets/oidc_immich_secret`.
+### Synology DSM
+
+[Authelia guide](https://www.authelia.com/integration/openid-connect/clients/synology-dsm/)
+
+Configure under Control Panel > Domain/LDAP > SSO Client > OAuth:
+
+| DSM Field           | Value                                                         |
+| ------------------- | ------------------------------------------------------------- |
+| Profile             | OIDC                                                          |
+| Account Type        | Domain/LDAP/local                                             |
+| Name                | Authelia                                                      |
+| Well Known URL      | `https://auth.lundmark.tech/.well-known/openid-configuration` |
+| Application ID      | `synology-dsm`                                                |
+| Application Key     | contents of `secrets/oidc_dsm_secret`                         |
+| Redirect URL        | `https://dsm.lundmark.tech`                                   |
+| Authorization Scope | `openid profile groups email`                                 |
+| Username Claim      | `preferred_username`                                          |
+
+Note: DSM uses `client_secret_post`. DSM does **not** auto-create users — the Authelia username (`preferred_username`) must match an existing DSM local/LDAP account. Do **not** put DSM behind the `authelia@file` forward auth middleware — it conflicts with the OIDC callback redirect.
+
+The client secrets (plain text) are stored in the `secrets/` directory (see Secrets table below).
 
 ## Adding a new OIDC client
 
@@ -108,12 +128,13 @@ No per-service config needed — the session cookie covers all `*.lundmark.tech`
 
 All secrets are in the `secrets/` directory (git-ignored):
 
-| File                    | Purpose                                   |
-| ----------------------- | ----------------------------------------- |
-| `jwt`                   | JWT signing for password reset            |
-| `session`               | Session encryption                        |
-| `encryption`            | Storage encryption                        |
-| `oidc_hmac`             | OIDC HMAC secret                          |
-| `oidc_jwks.pem`         | OIDC JWT signing key (RSA 4096)           |
-| `oidc_portainer_secret` | Portainer OIDC client secret (plain text) |
-| `oidc_immich_secret`    | Immich OIDC client secret (plain text)    |
+| File                    | Purpose                                      |
+| ----------------------- | -------------------------------------------- |
+| `jwt`                   | JWT signing for password reset               |
+| `session`               | Session encryption                           |
+| `encryption`            | Storage encryption                           |
+| `oidc_hmac`             | OIDC HMAC secret                             |
+| `oidc_jwks.pem`         | OIDC JWT signing key (RSA 4096)              |
+| `oidc_portainer_secret` | Portainer OIDC client secret (plain text)    |
+| `oidc_immich_secret`    | Immich OIDC client secret (plain text)       |
+| `oidc_dsm_secret`       | Synology DSM OIDC client secret (plain text) |

@@ -46,6 +46,19 @@ identity_providers:
           - email
         authorization_policy: one_factor
 
+      - client_id: synology-dsm
+        client_name: Synology DSM
+        client_secret: '$pbkdf2-sha512$310000$KbcQ75xrmsfWP3uo5SZLbA$SqDdYNxa0HwNOtB1AKrcfiQHJ.KoavkSmwq4G9qqLAYnJ7MhQ8wSIpIrSEm7Wo/Z0gmMrSienIGNP6oMVxGfdA'
+        token_endpoint_auth_method: client_secret_post
+        redirect_uris:
+          - https://dsm.lundmark.tech
+        scopes:
+          - openid
+          - profile
+          - groups
+          - email
+        authorization_policy: one_factor
+
       - client_id: immich
         client_name: Immich
         client_secret: '$pbkdf2-sha512$310000$orsMTRKPXEF3bLdz3Ub5zw$MEy3LcYJZJqLZzsw4bZD95aFWumNTCqvRkqnhwp6tCjpHA.Ja2oH66ZGGiooQO.tMjOul01QjMNUNApbix.xXw'

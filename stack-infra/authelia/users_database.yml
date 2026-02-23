@@ -1,5 +1,5 @@
 users:
-  gabriel:
+  gabriellundmark:
     displayname: Gabriel
     # Generate with: docker run --rm authelia/authelia:latest authelia crypto hash generate argon2 --password 'YOUR_PASSWORD'
     password: '$argon2id$v=19$m=65536,t=3,p=4$XgNk0283EWiGFFIdXzsj5Q$a9N1DBkIm97zygKTCZUbivynjQzNjeMw7hfzheyvbXg'

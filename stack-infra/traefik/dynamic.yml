@@ -68,8 +68,6 @@ http:
     # Synology apps
     dsm:
       rule: 'Host(`dsm.lundmark.tech`)'
-      middlewares:
-        - authelia
       service: synology-dsm
 
     drive:
