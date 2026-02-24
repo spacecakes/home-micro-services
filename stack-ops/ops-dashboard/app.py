@@ -131,6 +131,15 @@ def backup_clear_log():
     return text, status
 
 
+@app.route("/api/test-shutdown", methods=["POST"])
+def test_shutdown():
+    try:
+        r = http_requests.post(f"{BACKUP_API}/test-shutdown", timeout=15)
+        return jsonify(r.json()), r.status_code
+    except Exception as e:
+        return jsonify(ok=False, message=str(e)), 502
+
+
 # ---------------------------------------------------------------------------
 # HTML template
 # ---------------------------------------------------------------------------
@@ -219,6 +228,10 @@ TEMPLATE = """<!DOCTYPE html>
         <div class="metric"><div class="label">Battery</div><div class="value" id="ups-battery">—</div></div>
         <div class="metric"><div class="label">Runtime</div><div class="value" id="ups-runtime">—</div></div>
         <div class="metric"><div class="label">Line voltage</div><div class="value" id="ups-voltage">—</div></div>
+      </div>
+      <div class="actions">
+        <button class="btn-secondary" onclick="testShutdown()" id="btn-test-shutdown">Test shutdown path</button>
+        <span class="meta" id="shutdown-result"></span>
       </div>
       <details>
         <summary>Show raw output</summary>
@@ -331,6 +344,27 @@ function pollUps() {
 }
 setInterval(pollUps, 30000);
 pollUps();
+
+var shutdownResultEl = document.getElementById('shutdown-result');
+var btnTestShutdown = document.getElementById('btn-test-shutdown');
+
+function testShutdown() {
+  btnTestShutdown.disabled = true;
+  var span = document.createElement('span');
+  span.className = 'spinner';
+  btnTestShutdown.appendChild(span);
+  shutdownResultEl.textContent = '';
+  fetch('/api/test-shutdown', {method: 'POST'}).then(function(r) { return r.json(); }).then(function(d) {
+    shutdownResultEl.textContent = d.ok ? 'OK — ' + d.message : 'FAIL — ' + d.message;
+    shutdownResultEl.style.color = d.ok ? '#3fb950' : '#f85149';
+  }).catch(function() {
+    shutdownResultEl.textContent = 'FAIL — request error';
+    shutdownResultEl.style.color = '#f85149';
+  }).finally(function() {
+    btnTestShutdown.disabled = false;
+    btnTestShutdown.textContent = 'Test shutdown path';
+  });
+}
 
 // === Actions & Activity Log ===
 var logEl = document.getElementById('log');

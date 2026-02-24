@@ -552,6 +552,25 @@ def clear_log():
     return "ok"
 
 
+@app.route("/test-shutdown", methods=["POST"])
+def test_shutdown_route():
+    try:
+        result = subprocess.run(
+            ["docker", "exec", "apcupsd", "dbus-send", "--system", "--print-reply",
+             "--dest=org.freedesktop.login1",
+             "/org/freedesktop/login1",
+             "org.freedesktop.login1.Manager.CanPowerOff"],
+            capture_output=True, text=True, timeout=10
+        )
+        output = result.stdout + result.stderr
+        if result.returncode == 0 and 'string "yes"' in output:
+            return jsonify(ok=True, message="D-Bus shutdown path is working")
+        else:
+            return jsonify(ok=False, message=output.strip() or "Unknown error")
+    except Exception as e:
+        return jsonify(ok=False, message=str(e))
+
+
 @app.route("/api/status")
 def api_status():
     return jsonify(

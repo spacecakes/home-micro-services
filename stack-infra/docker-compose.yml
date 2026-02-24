@@ -86,6 +86,8 @@ services:
     container_name: apcupsd
     image: apcupsd:latest
     build: /srv/docker/stack-infra/apcupsd
+    security_opt:
+      - apparmor:unconfined
     networks:
       - default
       - traefik-proxy
