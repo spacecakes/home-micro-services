@@ -80,25 +80,6 @@ services:
     depends_on:
       - traefik
 
-  # UPS monitoring (APC NMC via SNMP)
-  apcupsd:
-    <<: *common
-    container_name: apcupsd
-    image: apcupsd:latest
-    build: /srv/docker/stack-infra/apcupsd
-    security_opt:
-      - apparmor:unconfined
-    networks:
-      - default
-      - traefik-proxy
-    ports:
-      - '3551:3551' # NIS (apcaccess)
-    labels:
-      - 'traefik.enable=false'
-    volumes:
-      - /srv/docker/stack-infra/apcupsd/apcupsd.conf:/etc/apcupsd/apcupsd.conf:ro
-      - /run/dbus/system_bus_socket:/run/dbus/system_bus_socket
-
   # Monitoring & dashboard
   uptime-kuma:
     <<: *common

@@ -6,7 +6,7 @@ My Docker and reverse proxy setup for micro-services at home, shared publicly so
 
 | Stack               | Description                                          |
 | ------------------- | ---------------------------------------------------- |
-| `stack-infra`       | Traefik reverse proxy, Homepage dashboard, Portainer, apcupsd |
+| `stack-infra`       | Traefik reverse proxy, Homepage dashboard, Portainer |
 | `stack-auth`        | Authelia SSO with Redis session backend              |
 | `stack-arr`         | Sonarr, Radarr, Prowlarr, qBittorrent                |
 | `stack-plex`        | Plex Media Server                                    |
@@ -15,7 +15,7 @@ My Docker and reverse proxy setup for micro-services at home, shared publicly so
 | `stack-immich`      | Immich photo management                              |
 | `stack-photobackup` | Photo backup                                         |
 | `stack-nas`         | NAS-related services                                 |
-| `stack-ops`         | Watchtower auto-updates, hourly rsync backup to NAS, Ops Dashboard |
+| `stack-ops`         | apcupsd, Ops Dashboard, hourly rsync backup to NAS, Watchtower |
 
 ## Setup
 
@@ -27,7 +27,7 @@ Some services use locally built Docker images. When both `image:` and `build:` a
 
 | Image              | Build context                     | Stack          |
 | ------------------ | --------------------------------- | -------------- |
-| `apcupsd:latest`   | `stack-infra/apcupsd/`            | `stack-infra`  |
+| `apcupsd:latest`   | `stack-ops/apcupsd/`              | `stack-ops`    |
 | `ops-dashboard:latest` | `stack-ops/ops-dashboard/`    | `stack-ops`    |
 
 ### apcupsd

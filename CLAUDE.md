@@ -10,9 +10,9 @@ Domain: `lundmark.tech` (wildcard TLS via Cloudflare DNS challenge).
 
 | Stack | Purpose |
 |-------|---------|
-| `stack-infra` | Core infra: Traefik, Homepage dashboard, Portainer, Dockge, Uptime Kuma, dockerproxy, apcupsd |
+| `stack-infra` | Core infra: Traefik, Homepage dashboard, Portainer, Dockge, Uptime Kuma, dockerproxy |
 | `stack-auth` | Authelia SSO + Redis session backend |
-| `stack-ops` | Docker backup (hourly rsync), Ops Dashboard (UPS + backup web UI), Watchtower |
+| `stack-ops` | apcupsd, Ops Dashboard (UPS + backup web UI), Docker backup (hourly rsync), Watchtower |
 | `stack-arr` | Sonarr, Radarr, Lidarr, Bazarr, Prowlarr, NZBHydra2, SABnzbd, Transmission, HandBrake, Seerr, Aurral |
 | `stack-plex` | Plex (host network) + Tautulli |
 | `stack-dns` | AdGuard Home primary + sync |
@@ -56,7 +56,7 @@ Non-Docker services (Synology apps, UniFi, UPS NMCs, iCloudPD on NAS) are routed
 
 ### Services that disable Traefik
 
-Backend-only services use `traefik.enable=false` but may still join the `traefik-proxy` network for cross-stack DNS (e.g. `apcupsd`, `docker-backup`).
+Backend-only services use `traefik.enable=false`. Services that only need intra-stack communication use the default network (e.g. `apcupsd`, `docker-backup`).
 
 ## Networking
 
@@ -70,7 +70,7 @@ Two services use `image:` + `build:` in compose. `docker compose up -d` uses the
 
 | Image | Source | Stack |
 |-------|--------|-------|
-| `apcupsd:latest` | `stack-infra/apcupsd/` | `stack-infra` |
+| `apcupsd:latest` | `stack-ops/apcupsd/` | `stack-ops` |
 | `ops-dashboard:latest` | `stack-ops/ops-dashboard/` | `stack-ops` |
 
 ### apcupsd

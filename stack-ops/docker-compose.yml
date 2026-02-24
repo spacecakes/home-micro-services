@@ -6,9 +6,6 @@ services:
     <<: *common
     container_name: docker-backup
     image: alpine:latest
-    networks:
-      - default
-      - traefik-proxy
     entrypoint: /bin/sh
     command:
       - -c
@@ -27,12 +24,29 @@ services:
     labels:
       - 'traefik.enable=false'
 
+  # UPS monitoring (APC NMC via SNMP)
+  apcupsd:
+    <<: *common
+    container_name: apcupsd
+    image: apcupsd:latest
+    build: /srv/docker/stack-ops/apcupsd
+    security_opt:
+      - apparmor:unconfined
+    ports:
+      - '3551:3551' # NIS (apcaccess)
+    labels:
+      - 'traefik.enable=false'
+    volumes:
+      - /srv/docker/stack-ops/apcupsd/apcupsd.conf:/etc/apcupsd/apcupsd.conf:ro
+      - /run/dbus/system_bus_socket:/run/dbus/system_bus_socket
+
   ops-dashboard:
     <<: *common
     container_name: ops-dashboard
     image: ops-dashboard:latest
     build: /srv/docker/stack-ops/ops-dashboard
     networks:
+      - default
       - traefik-proxy
     labels:
       - 'traefik.http.routers.ops-dashboard.rule=Host(`ops.lundmark.tech`)'
