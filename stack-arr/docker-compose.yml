@@ -1,5 +1,5 @@
 # Common config for *arr and linuxserver services
-x-arr: &arr
+x-common: &common
   restart: unless-stopped
   # Bypass Adguard Home
   dns:
@@ -15,7 +15,7 @@ x-arr: &arr
 
 services:
   seerr:
-    <<: *arr
+    <<: *common
     image: ghcr.io/seerr-team/seerr:latest
     init: true
     container_name: seerr
@@ -33,7 +33,7 @@ services:
       - radarr
 
   aurral:
-    <<: *arr
+    <<: *common
     container_name: aurral
     image: ghcr.io/lklynet/aurral:latest
     environment:
@@ -50,7 +50,7 @@ services:
       - lidarr
 
   sabnzbd:
-    <<: *arr
+    <<: *common
     container_name: sabnzbd
     image: linuxserver/sabnzbd:latest
     labels:
@@ -64,7 +64,7 @@ services:
       - /mnt/nas/media:/media
 
   transmission:
-    <<: *arr
+    <<: *common
     container_name: transmission
     image: linuxserver/transmission:latest
     labels:
@@ -83,7 +83,7 @@ services:
       - /mnt/nas/downloads/watch:/watch
 
   handbrake:
-    <<: *arr
+    <<: *common
     container_name: handbrake
     image: jlesage/handbrake
     environment:
@@ -102,7 +102,7 @@ services:
       - /mnt/nas/media:/storage:ro
 
   sonarr:
-    <<: *arr
+    <<: *common
     container_name: sonarr
     image: linuxserver/sonarr:latest
     labels:
@@ -120,7 +120,7 @@ services:
       - transmission
 
   radarr:
-    <<: *arr
+    <<: *common
     container_name: radarr
     image: linuxserver/radarr:latest
     labels:
@@ -138,7 +138,7 @@ services:
       - transmission
 
   bazarr:
-    <<: *arr
+    <<: *common
     container_name: bazarr
     image: linuxserver/bazarr:latest
     labels:
@@ -150,7 +150,7 @@ services:
       - /mnt/nas/media:/media
 
   lidarr:
-    <<: *arr
+    <<: *common
     container_name: lidarr
     image: linuxserver/lidarr:latest
     labels:
@@ -169,7 +169,7 @@ services:
 
   # Indexers
   nzbhydra:
-    <<: *arr
+    <<: *common
     container_name: nzbhydra
     image: linuxserver/nzbhydra2:latest
     labels:
@@ -183,7 +183,7 @@ services:
       - /mnt/nas/media:/media
 
   prowlarr:
-    <<: *arr
+    <<: *common
     container_name: prowlarr
     image: linuxserver/prowlarr:develop
     labels:

@@ -1,4 +1,4 @@
-x-icloudpd: &icloudpd
+x-common: &common
   image: icloudpd/icloudpd:latest
   restart: 'unless-stopped'
   environment:
@@ -24,7 +24,7 @@ x-icloudpd: &icloudpd
 services:
   # iCloud Photo Downloader - Personal Library
   icloudpd:
-    <<: *icloudpd
+    <<: *common
     container_name: icloudpd
     ports:
       - 8080:8080
@@ -34,7 +34,7 @@ services:
 
   # iCloud Photo Downloader - Shared Library
   icloudpd-shared:
-    <<: *icloudpd
+    <<: *common
     container_name: icloudpd-shared
     ports:
       - 8081:8080
