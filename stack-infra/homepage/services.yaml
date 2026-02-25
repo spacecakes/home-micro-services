@@ -206,15 +206,12 @@
         server: local-docker
 
 - Downloads & Indexers:
-    - Transmission:
-        icon: transmission.png
+    - qBittorrent:
+        icon: qbittorrent.png
         href: https://torrents.lundmark.tech/
-        description: Torrent downloader for Sonarr & Radarr
+        description: Torrent downloader for Sonarr, Radarr & Lidarr
+        container: qbittorrent
         server: local-docker
-        container: transmission
-        # widget:
-        #   type: transmission
-        #   url: http://transmission:9091
     - SABnzbd:
         icon: sabnzbd.png
         href: https://usenet.lundmark.tech/

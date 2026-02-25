@@ -63,24 +63,24 @@ services:
       - nfs-downloads:/downloads-nas
       - nfs-media:/media
 
-  transmission:
+  qbittorrent:
     <<: *common
-    container_name: transmission
-    image: linuxserver/transmission:latest
+    container_name: qbittorrent
+    image: linuxserver/qbittorrent:latest
     labels:
       - 'traefik.docker.network=traefik-proxy'
-      - 'traefik.http.routers.transmission.rule=Host(`torrents.lundmark.tech`)'
-      - 'traefik.http.routers.transmission.middlewares=authelia@file'
-      - 'traefik.http.services.transmission.loadbalancer.server.port=9091'
+      - 'traefik.http.routers.qbittorrent.rule=Host(`torrents.lundmark.tech`)'
+      - 'traefik.http.routers.qbittorrent.middlewares=authelia@file'
+      - 'traefik.http.services.qbittorrent.loadbalancer.server.port=8080'
     ports:
-      - '51413:51413'
-      - '51413:51413/udp'
+      - '6881:6881'
+      - '6881:6881/udp'
     volumes:
-      - /srv/docker/stack-arr/data/transmission:/config
+      - /srv/docker/stack-arr/data/qbittorrent:/config
       - /srv/docker/downloads:/downloads
       - nfs-downloads:/downloads-nas
-      - nfs-downloads-seeding:/seeding
-      - nfs-downloads-watch:/watch
+      - nfs-media:/media
+
 
   handbrake:
     <<: *common
@@ -117,7 +117,7 @@ services:
       - prowlarr
       - nzbhydra
       - sabnzbd
-      - transmission
+      - qbittorrent
 
   radarr:
     <<: *common
@@ -135,7 +135,7 @@ services:
       - prowlarr
       - nzbhydra
       - sabnzbd
-      - transmission
+      - qbittorrent
 
   bazarr:
     <<: *common
@@ -165,7 +165,7 @@ services:
       - prowlarr
       - nzbhydra
       - sabnzbd
-      - transmission
+      - qbittorrent
 
   # Indexers
   nzbhydra:
@@ -206,18 +206,6 @@ volumes:
       type: nfs
       o: "addr=10.0.1.2,soft,timeo=50,vers=4.1,noatime"
       device: ":/volume1/downloads"
-  nfs-downloads-seeding:
-    driver: local
-    driver_opts:
-      type: nfs
-      o: "addr=10.0.1.2,soft,timeo=50,vers=4.1,noatime"
-      device: ":/volume1/downloads/seeding"
-  nfs-downloads-watch:
-    driver: local
-    driver_opts:
-      type: nfs
-      o: "addr=10.0.1.2,soft,timeo=50,vers=4.1,noatime"
-      device: ":/volume1/downloads/watch"
   nfs-music:
     driver: local
     driver_opts:

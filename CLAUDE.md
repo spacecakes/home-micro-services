@@ -13,7 +13,7 @@ Domain: `lundmark.tech` (wildcard TLS via Cloudflare DNS challenge).
 | `stack-infra` | Core infra: Traefik, Homepage dashboard, Portainer, Dockge, Uptime Kuma, dockerproxy |
 | `stack-auth` | Authelia SSO + Redis session backend |
 | `stack-ops` | apcupsd, Ops Dashboard (UPS + backup web UI), Docker backup (hourly rsync), Watchtower |
-| `stack-arr` | Sonarr, Radarr, Lidarr, Bazarr, Prowlarr, NZBHydra2, SABnzbd, Transmission, HandBrake, Seerr, Aurral |
+| `stack-arr` | Sonarr, Radarr, Lidarr, Bazarr, Prowlarr, NZBHydra2, SABnzbd, qBittorrent, HandBrake, Seerr, Aurral |
 | `stack-plex` | Plex (host network) + Tautulli |
 | `stack-dns` | AdGuard Home primary + sync |
 | `stack-home` | Home Assistant, Homebridge, Scrypted (all host network) |
