@@ -19,6 +19,17 @@ ssh-add -l                                       # list agent keys
 
 Add the public key to `~/.ssh/authorized_keys` on the remote host.
 
+## Docker Stacks
+
+```bash
+# Stop all stacks
+for d in stack-*/; do [ "$d" = "stack-nas/" ] && continue; (cd "$d" && docker compose down); done
+
+# Start all stacks but nas (infra and auth first)
+for d in stack-infra stack-auth; do (cd "$d" && docker compose up -d); done
+for d in stack-*/; do [ "$d" = "stack-nas/" ] && continue; (cd "$d" && docker compose up -d); done
+```
+
 ## Docker Logs
 
 ```bash
