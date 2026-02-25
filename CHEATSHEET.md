@@ -74,25 +74,17 @@ sudo systemctl restart smbd
 
 ## NFS
 
+NFS shares are mounted via Docker NFS volumes (defined in each stack's `docker-compose.yml`). No host fstab needed.
+
 ```bash
-sudo apt install nfs-common -y
-sudo mkdir -p /mnt/nas
-sudo mount -a
-mount | grep /mnt
+docker volume ls | grep nfs-           # list NFS volumes
+docker volume inspect nfs-media        # inspect a volume
 ```
 
-See `fstab.example` for the mount entries.
+The host still needs `nfs-common` for the kernel NFS client.
 
-## Proxmox LXC Passthrough
+## Proxmox LXC
 
-Pass NAS mounts to an LXC container in `/etc/pve/lxc/<CTID>.conf`:
+Docker NFS volumes mount directly inside the LXC — no host-side NAS passthrough needed. The LXC just needs to be **privileged** (for NFS kernel access) and have `nfs-common` installed.
 
-```
-mp0: /mnt/nas/docker,mp=/mnt/nas/docker
-mp1: /mnt/nas/media,mp=/mnt/nas/media
-mp2: /mnt/nas/music,mp=/mnt/nas/music
-mp3: /mnt/nas/video,mp=/mnt/nas/video
-mp4: /mnt/nas/photos,mp=/mnt/nas/photos
-mp5: /mnt/nas/home_video,mp=/mnt/nas/home_video
-mp6: /mnt/nas/downloads,mp=/mnt/nas/downloads
-```
+Keep `/srv/docker` inside the LXC rootfs (no bind mount) so Proxmox Backup Server includes it in snapshots. The hourly rsync to the NAS provides a second backup.

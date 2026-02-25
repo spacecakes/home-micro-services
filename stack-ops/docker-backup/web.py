@@ -2,7 +2,6 @@ from flask import Flask, request, jsonify
 import subprocess
 import threading
 import datetime
-import base64
 import glob
 import re
 import os
@@ -125,7 +124,6 @@ TEMPLATE = """<!DOCTYPE html>
     <button class="btn-restore" onclick="showRestore()" id="btn-restore" $DISABLED>Restore</button>
     <label class="checkbox-label"><input type="checkbox" id="dry-run"> Dry run</label>
     <span class="sep">|</span>
-    <button class="btn-secondary" onclick="setupFstab()" id="btn-fstab" $DISABLED>Setup NFS mounts</button>
     <button class="btn-secondary" onclick="clearLog()" id="btn-clear">Clear log</button>
   </div>
 
@@ -149,7 +147,7 @@ TEMPLATE = """<!DOCTYPE html>
     var statusEl = document.getElementById('status');
     var lastBackupEl = document.getElementById('last-backup');
     var dryEl = document.getElementById('dry-run');
-    var btns = ['btn-backup', 'btn-restore', 'btn-fstab'];
+    var btns = ['btn-backup', 'btn-restore'];
     var isRunning = $IS_RUNNING;
 
     logEl.scrollTop = logEl.scrollHeight;
@@ -186,12 +184,6 @@ TEMPLATE = """<!DOCTYPE html>
       runAction('/restore');
     }
 
-    function setupFstab() {
-      setDisabled(true);
-      isRunning = true;
-      fetch('/setup-fstab', {method: 'POST'});
-    }
-
     function clearLog() {
       fetch('/clear-log', {method: 'POST'}).then(function() { poll(); });
     }
@@ -212,8 +204,7 @@ TEMPLATE = """<!DOCTYPE html>
         if (d.running) {
           var r = d.action.indexOf('restore') !== -1;
           var dry = d.action.indexOf('dry') !== -1;
-          if (d.action === 'fstab') { cls = 'active'; txt = 'Setting up fstab...'; }
-          else if (r) { cls = 'danger'; txt = dry ? 'Restore dry-run...' : 'Restoring...'; }
+          if (r) { cls = 'danger'; txt = dry ? 'Restore dry-run...' : 'Restoring...'; }
           else { cls = 'active'; txt = dry ? 'Backup dry-run...' : 'Backing up...'; }
         }
         statusEl.textContent = txt;
@@ -329,170 +320,11 @@ def run_restore(dry_run=False):
     action = ""
 
 
-FSTAB_EXAMPLE = "/source/fstab.example"
-HOST_FSTAB = "/host/fstab"
-FSTAB_MARKER_START = "# BEGIN nfs-mounts (managed by backup-ops)"
-FSTAB_MARKER_END = "# END nfs-mounts (managed by backup-ops)"
-
-
-def setup_fstab():
-    global running, action
-    running = True
-    action = "fstab"
-
-    with open(LOG_FILE, "a") as f:
-        def log(msg):
-            f.write(msg + "\n")
-            f.flush()
-
-        log(f"==== Setup fstab started at {_now()} ====")
-
-        if not os.path.exists(FSTAB_EXAMPLE):
-            log("ERROR: fstab.example not found")
-            log(f"==== Setup fstab failed at {_now()} ====")
-            log("")
-            running = False
-            action = ""
-            return
-
-        with open(FSTAB_EXAMPLE) as ef:
-            new_entries = ef.read().strip()
-
-        with open(HOST_FSTAB) as hf:
-            current = hf.read()
-
-        managed_block = f"{FSTAB_MARKER_START}\n{new_entries}\n{FSTAB_MARKER_END}"
-
-        if FSTAB_MARKER_START in current:
-            pattern = re.escape(FSTAB_MARKER_START) + r".*?" + re.escape(FSTAB_MARKER_END)
-            new_fstab = re.sub(pattern, managed_block, current, flags=re.DOTALL)
-            log("Updated existing NFS mount block in /etc/fstab")
-        else:
-            new_fstab = current.rstrip("\n") + "\n\n" + managed_block + "\n"
-            log("Added NFS mount block to /etc/fstab")
-
-        with open(HOST_FSTAB, "w") as hf:
-            hf.write(new_fstab)
-
-        # Extract mount points and create directories on host via docker
-        mount_points = []
-        for line in new_entries.split("\n"):
-            line = line.strip()
-            if line and not line.startswith("#"):
-                parts = line.split()
-                if len(parts) >= 2:
-                    mount_points.append(parts[1])
-                    log(f"  {parts[1]} <- {parts[0]}")
-
-        if mount_points:
-            log("Creating mount directories on host...")
-            subprocess.run(
-                ["docker", "run", "--rm", "-v", "/mnt:/mnt", "alpine",
-                 "mkdir", "-p"] + mount_points,
-                stdout=f, stderr=f
-            )
-
-        log("Mounting all fstab entries on host...")
-        subprocess.run(
-            NSENTER_BASE + ["mount", "-a"],
-            stdout=f, stderr=f
-        )
-        log(f"==== Setup fstab completed at {_now()} ====")
-        log("")
-
-    running = False
-    action = ""
-
-
-NSENTER_BASE = [
-    "docker", "run", "--rm", "--privileged", "--pid=host",
-    "alpine", "nsenter", "-t", "1", "-m", "-u", "-i", "-n", "--",
-]
-DOCKER_OVERRIDE_PATH = "/etc/systemd/system/docker.service.d/override.conf"
-
-
-def setup_docker_wait():
-    global running, action
-    running = True
-    action = "docker-wait"
-
-    with open(LOG_FILE, "a") as f:
-        def log(msg):
-            f.write(msg + "\n")
-            f.flush()
-
-        log(f"==== Setup Docker wait started at {_now()} ====")
-
-        if not os.path.exists(FSTAB_EXAMPLE):
-            log("ERROR: fstab.example not found (need mount points)")
-            log(f"==== Setup Docker wait failed at {_now()} ====")
-            log("")
-            running = False
-            action = ""
-            return
-
-        with open(FSTAB_EXAMPLE) as ef:
-            entries = ef.read().strip()
-
-        mount_points = []
-        for line in entries.split("\n"):
-            line = line.strip()
-            if line and not line.startswith("#"):
-                parts = line.split()
-                if len(parts) >= 2:
-                    mount_points.append(parts[1])
-
-        if not mount_points:
-            log("ERROR: no mount points found in fstab.example")
-            log(f"==== Setup Docker wait failed at {_now()} ====")
-            log("")
-            running = False
-            action = ""
-            return
-
-        requires = " \\\n                  ".join(mount_points)
-        override = (
-            "[Unit]\n"
-            "After=network-online.target\n"
-            "Wants=network-online.target\n"
-            "\n"
-            f"RequiresMountsFor={requires}\n"
-        )
-
-        log("Writing Docker service override:")
-        for mp in mount_points:
-            log(f"  RequiresMountsFor: {mp}")
-
-        b64 = base64.b64encode(override.encode()).decode()
-        subprocess.run(
-            NSENTER_BASE + [
-                "sh", "-c",
-                f"mkdir -p /etc/systemd/system/docker.service.d && "
-                f"echo '{b64}' | base64 -d > {DOCKER_OVERRIDE_PATH}"
-            ],
-            stdout=f, stderr=f
-        )
-
-        log("Reloading systemd daemon...")
-        subprocess.run(
-            NSENTER_BASE + ["systemctl", "daemon-reload"],
-            stdout=f, stderr=f
-        )
-
-        log(f"==== Setup Docker wait completed at {_now()} ====")
-        log("")
-
-    running = False
-    action = ""
-
-
 @app.route("/")
 def index():
     log = _read_log()
 
-    if running and action == "fstab":
-        status_class, status_text = "active", "Setting up fstab..."
-    elif running and action.startswith("restore"):
+    if running and action.startswith("restore"):
         status_class = "danger"
         status_text = "Restore dry-run..." if "dry" in action else "Restoring..."
     elif running:
@@ -525,20 +357,6 @@ def restore():
     if not running:
         dry = request.args.get("dry") == "1"
         threading.Thread(target=run_restore, args=(dry,), daemon=True).start()
-    return "ok"
-
-
-@app.route("/setup-fstab", methods=["POST"])
-def setup_fstab_route():
-    if not running:
-        threading.Thread(target=setup_fstab, daemon=True).start()
-    return "ok"
-
-
-@app.route("/setup-docker-wait", methods=["POST"])
-def setup_docker_wait_route():
-    if not running:
-        threading.Thread(target=setup_docker_wait, daemon=True).start()
     return "ok"
 
 

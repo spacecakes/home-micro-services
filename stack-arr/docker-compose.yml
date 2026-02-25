@@ -60,8 +60,8 @@ services:
     volumes:
       - /srv/docker/stack-arr/data/sabnzbd:/config
       - /srv/docker/downloads:/downloads
-      - /mnt/nas/downloads:/downloads-nas
-      - /mnt/nas/media:/media
+      - nfs-downloads:/downloads-nas
+      - nfs-media:/media
 
   transmission:
     <<: *common
@@ -78,9 +78,9 @@ services:
     volumes:
       - /srv/docker/stack-arr/data/transmission:/config
       - /srv/docker/downloads:/downloads
-      - /mnt/nas/downloads:/downloads-nas
-      - /mnt/nas/downloads/seeding:/seeding
-      - /mnt/nas/downloads/watch:/watch
+      - nfs-downloads:/downloads-nas
+      - nfs-downloads-seeding:/seeding
+      - nfs-downloads-watch:/watch
 
   handbrake:
     <<: *common
@@ -99,7 +99,7 @@ services:
       - /srv/docker/stack-arr/data/handbrake:/config
       - /srv/docker/temp/handbrake/watch:/watch
       - /srv/docker/temp/handbrake/output:/output
-      - /mnt/nas/media:/storage:ro
+      - nfs-media:/storage:ro
 
   sonarr:
     <<: *common
@@ -112,7 +112,7 @@ services:
     volumes:
       - /srv/docker/stack-arr/data/sonarr:/config
       - /srv/docker/downloads:/downloads
-      - /mnt/nas/media:/media
+      - nfs-media:/media
     depends_on:
       - prowlarr
       - nzbhydra
@@ -130,7 +130,7 @@ services:
     volumes:
       - /srv/docker/stack-arr/data/radarr:/config
       - /srv/docker/downloads:/downloads
-      - /mnt/nas/media:/media
+      - nfs-media:/media
     depends_on:
       - prowlarr
       - nzbhydra
@@ -147,7 +147,7 @@ services:
       - 'traefik.http.routers.bazarr.middlewares=authelia@file'
     volumes:
       - /srv/docker/stack-arr/data/bazarr:/config
-      - /mnt/nas/media:/media
+      - nfs-media:/media
 
   lidarr:
     <<: *common
@@ -160,7 +160,7 @@ services:
     volumes:
       - /srv/docker/stack-arr/data/lidarr:/config
       - /srv/docker/downloads:/downloads
-      - /mnt/nas/music:/music
+      - nfs-music:/music
     depends_on:
       - prowlarr
       - nzbhydra
@@ -179,8 +179,8 @@ services:
     volumes:
       - /srv/docker/stack-arr/data/nzbhydra:/config
       - /srv/docker/downloads:/downloads
-      - /mnt/nas/downloads:/downloads-nas
-      - /mnt/nas/media:/media
+      - nfs-downloads:/downloads-nas
+      - nfs-media:/media
 
   prowlarr:
     <<: *common
@@ -192,6 +192,38 @@ services:
       - 'traefik.http.routers.prowlarr.middlewares=authelia@file'
     volumes:
       - /srv/docker/stack-arr/data/prowlarr:/config
+
+volumes:
+  nfs-media:
+    driver: local
+    driver_opts:
+      type: nfs
+      o: "addr=10.0.1.2,soft,timeo=50,vers=4.1,noatime"
+      device: ":/volume1/media"
+  nfs-downloads:
+    driver: local
+    driver_opts:
+      type: nfs
+      o: "addr=10.0.1.2,soft,timeo=50,vers=4.1,noatime"
+      device: ":/volume1/downloads"
+  nfs-downloads-seeding:
+    driver: local
+    driver_opts:
+      type: nfs
+      o: "addr=10.0.1.2,soft,timeo=50,vers=4.1,noatime"
+      device: ":/volume1/downloads/seeding"
+  nfs-downloads-watch:
+    driver: local
+    driver_opts:
+      type: nfs
+      o: "addr=10.0.1.2,soft,timeo=50,vers=4.1,noatime"
+      device: ":/volume1/downloads/watch"
+  nfs-music:
+    driver: local
+    driver_opts:
+      type: nfs
+      o: "addr=10.0.1.2,soft,timeo=50,vers=4.1,noatime"
+      device: ":/volume1/music"
 
 networks:
   traefik-proxy:

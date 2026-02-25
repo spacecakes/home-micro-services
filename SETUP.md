@@ -39,15 +39,11 @@ sudo usermod -aG docker $USER
 
 Log out and back in for the group change to take effect.
 
-## 4. Mount NAS Shares
+## 4. NAS Shares
 
-Create mount points and add NFS entries to `/etc/fstab` (see `fstab.example` for the entries):
+NFS shares are mounted automatically via Docker NFS volumes defined in each stack's `docker-compose.yml`. No host-level fstab configuration needed — `docker compose up -d` handles everything.
 
-```bash
-sudo mkdir -p /mnt/nas/{backup-homeserver,media,music,photos,video,downloads,home_video}
-sudo mount -a
-df -h | grep nas
-```
+Ensure `nfs-common` is installed (included in step 2) so the kernel NFS client is available.
 
 ## 5. Clone and Start Stacks
 
@@ -65,35 +61,13 @@ cd stack-arr && docker compose up -d
 # ... etc
 ```
 
-## 6. Docker Service — Wait for Mounts
+**Note:** `stack-nas` is checked into this repo for versioning but runs on the Synology NAS (`10.0.1.2`), not the home server. Deploy it on the NAS separately.
 
-Override the Docker service so it waits for NAS mounts before starting containers. Use the **Setup Docker wait** button in the Ops Dashboard, or manually:
-
-```bash
-sudo systemctl edit docker.service
-```
-
-```ini
-[Unit]
-After=network-online.target
-Wants=network-online.target
-
-RequiresMountsFor=/mnt/nas/backup-homeserver \
-                  /mnt/nas/media \
-                  /mnt/nas/music \
-                  /mnt/nas/photos \
-                  /mnt/nas/video \
-                  /mnt/nas/downloads \
-                  /mnt/nas/home_video
-```
-
-The automated version derives mount points from `fstab.example` so they stay in sync.
-
-## 7. Backup
+## 6. Backup
 
 Handled by the `stack-ops` backup container (Flask API + hourly cron). No host-side cron needed — the container manages its own schedule.
 
-## 8. UPS Monitoring (apcupsd)
+## 7. UPS Monitoring (apcupsd)
 
 If the host has a native `apcupsd` installation, disable it before starting the containerized version:
 
@@ -110,11 +84,11 @@ cd /srv/docker/stack-infra
 docker compose up -d --build apcupsd ops-dashboard
 ```
 
-## 9. Free Port 53 (for AdGuard)
+## 8. Free Port 53 (for AdGuard)
 
 Follow: https://adguard-dns.io/kb/adguard-home/faq/#bindinuse
 
-## 10. Automatic Updates (optional)
+## 9. Automatic Updates (optional)
 
 ```bash
 sudo apt install unattended-upgrades

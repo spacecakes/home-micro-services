@@ -17,7 +17,7 @@ services:
       - 'com.centurylinklabs.watchtower.enable=false'
     volumes:
       - /srv/docker/stack-home/data/homeassistant:/config
-      - /mnt/nas/music:/music:ro
+      - nfs-music:/music:ro
     devices:
       - /dev/ttyUSB0:/dev/ttyUSB0
 
@@ -42,3 +42,11 @@ services:
       - 'traefik.http.services.scrypted.loadbalancer.server.port=11080' # Use insecure port; Traefik handles SSL
     volumes:
       - /srv/docker/stack-home/data/scrypted:/server/volume
+
+volumes:
+  nfs-music:
+    driver: local
+    driver_opts:
+      type: nfs
+      o: "addr=10.0.1.2,soft,timeo=50,vers=4.1,noatime"
+      device: ":/volume1/music"

@@ -9,8 +9,8 @@ services:
       - /dev/dri:/dev/dri
     volumes:
       - /etc/localtime:/etc/localtime:ro
-      - /mnt/nas/photos/immich:/data
-      - /mnt/nas/photos/icloud:/libraries/icloud:ro
+      - nfs-photos-immich:/data
+      - nfs-photos-icloud:/libraries/icloud:ro
     environment:
       TZ: Europe/Stockholm
       DB_PASSWORD: ${DB_PASSWORD}
@@ -62,6 +62,20 @@ services:
     restart: always
     labels:
       - 'traefik.enable=false'
+
+volumes:
+  nfs-photos-immich:
+    driver: local
+    driver_opts:
+      type: nfs
+      o: "addr=10.0.1.2,soft,timeo=50,vers=4.1,noatime"
+      device: ":/volume1/photos/immich"
+  nfs-photos-icloud:
+    driver: local
+    driver_opts:
+      type: nfs
+      o: "addr=10.0.1.2,soft,timeo=50,vers=4.1,noatime"
+      device: ":/volume1/photos/icloud"
 
 networks:
   traefik-proxy:

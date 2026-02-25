@@ -64,3 +64,65 @@ services:
       - /volume1/docker/stack-nas/data/adguardhome/work:/opt/adguardhome/work
       - /volume1/docker/stack-nas/data/adguardhome/config:/opt/adguardhome/conf
     restart: unless-stopped
+
+  # iCloud Photo Downloader - Personal Library
+  icloudpd:
+    image: icloudpd/icloudpd:latest
+    container_name: icloudpd
+    restart: unless-stopped
+    environment:
+      - UID=1047
+      - GID=100
+      - TZ=Europe/Stockholm
+    ports:
+      - 8080:8080
+    volumes:
+      - /volume1/docker/stack-nas/data/icloudpd:/config
+      - /volume1/photos/icloud/gabriel:/data
+    command:
+      - icloudpd
+      - --directory
+      - /data
+      - --cookie-directory
+      - /config
+      - --username
+      - ${APPLE_ID}
+      - --password-provider
+      - webui
+      - --mfa-provider
+      - webui
+      - --watch-with-interval
+      - '3600'
+      - --auto-delete
+
+  # iCloud Photo Downloader - Shared Library
+  icloudpd-shared:
+    image: icloudpd/icloudpd:latest
+    container_name: icloudpd-shared
+    restart: unless-stopped
+    environment:
+      - UID=1047
+      - GID=100
+      - TZ=Europe/Stockholm
+    ports:
+      - 8081:8080
+    volumes:
+      - /volume1/docker/stack-nas/data/icloudpd-shared:/config
+      - /volume1/photos/icloud/shared:/data
+    command:
+      - icloudpd
+      - --directory
+      - /data
+      - --cookie-directory
+      - /config
+      - --username
+      - ${APPLE_ID}
+      - --password-provider
+      - webui
+      - --mfa-provider
+      - webui
+      - --watch-with-interval
+      - '3600'
+      - --auto-delete
+      - --library
+      - ${ICLOUD_SHARED_LIBRARY}

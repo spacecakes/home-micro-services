@@ -17,10 +17,9 @@ services:
         python3 /app/web.py
     volumes:
       - /srv/docker:/source
-      - /mnt/nas/backup-homeserver/docker:/destination
+      - nfs-backup-docker:/destination
       - /srv/docker/stack-ops/docker-backup/web.py:/app/web.py:ro
       - /var/run/docker.sock:/var/run/docker.sock:ro
-      - /etc/fstab:/host/fstab
     labels:
       - 'traefik.enable=false'
 
@@ -64,6 +63,14 @@ services:
       - 'traefik.enable=false'
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
+
+volumes:
+  nfs-backup-docker:
+    driver: local
+    driver_opts:
+      type: nfs
+      o: "addr=10.0.1.2,soft,timeo=50,vers=4.1,noatime"
+      device: ":/volume1/backup-homeserver/docker"
 
 networks:
   traefik-proxy:

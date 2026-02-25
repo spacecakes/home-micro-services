@@ -113,18 +113,6 @@ def backup_restore():
     return text, status
 
 
-@app.route("/backup/setup-fstab", methods=["POST"])
-def backup_setup_fstab():
-    text, status = proxy_backup_post("/setup-fstab", request.query_string.decode())
-    return text, status
-
-
-@app.route("/backup/setup-docker-wait", methods=["POST"])
-def backup_setup_docker_wait():
-    text, status = proxy_backup_post("/setup-docker-wait")
-    return text, status
-
-
 @app.route("/backup/clear-log", methods=["POST"])
 def backup_clear_log():
     text, status = proxy_backup_post("/clear-log")
@@ -268,16 +256,6 @@ TEMPLATE = """<!DOCTYPE html>
       </div>
     </div>
 
-    <!-- Host Setup Panel -->
-    <div class="panel panel-wide">
-      <h2>Host Setup</h2>
-      <p class="meta">One-time setup tasks for configuring the host (uses fstab.example as source)</p>
-      <div class="actions">
-        <button class="btn-secondary" onclick="setupFstab()" id="btn-fstab">Setup NFS mounts</button>
-        <button class="btn-secondary" onclick="setupDockerWait()" id="btn-docker-wait">Setup Docker wait</button>
-      </div>
-    </div>
-
     <!-- Activity Log -->
     <div class="panel panel-wide">
       <h2>Activity Log</h2>
@@ -371,7 +349,7 @@ var logEl = document.getElementById('log');
 var backupStatusEl = document.getElementById('backup-status');
 var lastBackupEl = document.getElementById('last-backup');
 var dryEl = document.getElementById('dry-run');
-var btns = ['btn-backup', 'btn-restore', 'btn-fstab', 'btn-docker-wait'];
+var btns = ['btn-backup', 'btn-restore'];
 var isRunning = false;
 var activeBtn = null;
 var activeBtnText = '';
@@ -424,20 +402,6 @@ function doRestore() {
   }
   hideRestore();
   runAction('/backup/restore', 'btn-restore');
-}
-
-function setupFstab() {
-  setDisabled(true);
-  setLoading('btn-fstab');
-  isRunning = true;
-  fetch('/backup/setup-fstab', {method: 'POST'});
-}
-
-function setupDockerWait() {
-  setDisabled(true);
-  setLoading('btn-docker-wait');
-  isRunning = true;
-  fetch('/backup/setup-docker-wait', {method: 'POST'});
 }
 
 function clearLog() {

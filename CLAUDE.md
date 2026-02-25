@@ -2,7 +2,7 @@
 
 ## Repository Overview
 
-Home server Docker infrastructure. ~40 containerized services across 10 compose stacks, reverse-proxied through Traefik with Authelia SSO, backed up hourly to a Synology NAS.
+Home server Docker infrastructure. ~40 containerized services across 9 compose stacks, reverse-proxied through Traefik with Authelia SSO, backed up hourly to a Synology NAS.
 
 Domain: `lundmark.tech` (wildcard TLS via Cloudflare DNS challenge).
 
@@ -18,10 +18,9 @@ Domain: `lundmark.tech` (wildcard TLS via Cloudflare DNS challenge).
 | `stack-dns` | AdGuard Home primary + sync |
 | `stack-home` | Home Assistant, Homebridge, Scrypted (all host network) |
 | `stack-immich` | Immich server + ML + PostgreSQL (custom vectorchord) + Valkey |
-| `stack-photobackup` | iCloudPD (runs on NAS, routed via dynamic.yml) |
-| `stack-nas` | Portainer Edge Agent + Dockge Agent + Watchtower — **runs on the Synology NAS (`10.0.1.2`), not the home server** |
+| `stack-nas` | Portainer Edge Agent, Dockge Agent, Watchtower, AdGuard Home, iCloudPD — **runs on the Synology NAS (`10.0.1.2`), not the home server** |
 
-`stack-nas` and `stack-photobackup` are checked into this repo for versioning but deployed on the NAS. All other stacks run on the home server.
+`stack-nas` is checked into this repo for versioning but deployed on the NAS. All other stacks run on the home server.
 
 ### Stack startup order matters
 
@@ -85,10 +84,8 @@ Flask app that serves as a unified web UI. Pure Python NIS client talks to apcup
 
 `stack-ops/docker-backup/web.py` is bind-mounted (`:ro`) into an Alpine container. Restart the container to pick up changes (no rebuild needed). It provides:
 
-- Hourly rsync via cron: `/srv/docker/` → `/mnt/nas/backup-homeserver/docker/`
-- Flask API for manual backup/restore, fstab setup, Docker wait setup
-- Host commands via `nsenter` (privileged container with Docker socket)
-- File writes to host use base64 encoding through nsenter to avoid shell escaping issues
+- Hourly rsync via cron: `/srv/docker/` → NAS backup (via Docker NFS volume)
+- Flask API for manual backup/restore
 
 ## Homepage Dashboard
 
@@ -111,13 +108,14 @@ Each stack has its own `.env` (gitignored). Key variables:
 
 - `stack-infra`: `CLOUDFLARE_API_TOKEN`, `HOMEPAGE_UNIFI_PASSWORD`
 - `stack-plex`: `PLEX_CLAIM`
-- `stack-nas`: `PORTAINER_EDGE_ID`, `PORTAINER_EDGE_KEY`
-- `stack-photobackup`: `APPLE_ID`, `ICLOUD_SHARED_LIBRARY`
+- `stack-nas`: `PORTAINER_EDGE_ID`, `PORTAINER_EDGE_KEY`, `APPLE_ID`, `ICLOUD_SHARED_LIBRARY`
 - `stack-immich`: `DB_PASSWORD`
 
 ## NAS Mounts
 
-7 NFS shares from `10.0.1.2` defined in `fstab.example`. The Ops Dashboard can write these to `/etc/fstab` and configure the Docker systemd wait override (so Docker doesn't start before mounts are ready).
+NFS shares from `10.0.1.2` are mounted via Docker's native NFS volume driver, defined inline in each stack's `docker-compose.yml`. No host-level fstab or systemd configuration needed — `docker compose up -d` handles mounting automatically.
+
+Volume naming convention: `nfs-{share}` (e.g. `nfs-media`, `nfs-music`, `nfs-downloads`). Sub-paths get their own volumes (e.g. `nfs-downloads-seeding`, `nfs-photos-immich`).
 
 ## Common Patterns
 

@@ -29,10 +29,10 @@ services:
     volumes:
       - /srv/docker/stack-plex/data/plex:/config
       - /srv/docker/temp/plex:/transcode
-      - /mnt/nas/home_video:/home_video:ro
-      - /mnt/nas/media:/media:ro
-      - /mnt/nas/music:/music:ro
-      - /mnt/nas/video:/video:ro
+      - nfs-home-video:/home_video:ro
+      - nfs-media:/media:ro
+      - nfs-music:/music:ro
+      - nfs-video:/video:ro
 
   tautulli:
     <<: *common
@@ -53,6 +53,32 @@ services:
       - 'traefik.http.routers.tautulli.middlewares=authelia@file'
     depends_on:
       - plex
+
+volumes:
+  nfs-home-video:
+    driver: local
+    driver_opts:
+      type: nfs
+      o: "addr=10.0.1.2,soft,timeo=50,vers=4.1,noatime"
+      device: ":/volume1/home_video"
+  nfs-media:
+    driver: local
+    driver_opts:
+      type: nfs
+      o: "addr=10.0.1.2,soft,timeo=50,vers=4.1,noatime"
+      device: ":/volume1/media"
+  nfs-music:
+    driver: local
+    driver_opts:
+      type: nfs
+      o: "addr=10.0.1.2,soft,timeo=50,vers=4.1,noatime"
+      device: ":/volume1/music"
+  nfs-video:
+    driver: local
+    driver_opts:
+      type: nfs
+      o: "addr=10.0.1.2,soft,timeo=50,vers=4.1,noatime"
+      device: ":/volume1/video"
 
 networks:
   traefik-proxy:

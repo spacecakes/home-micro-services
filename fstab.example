@@ -1,8 +1,0 @@
-# NAS shares
-10.0.1.2:/volume1/backup-homeserver  /mnt/nas/backup-homeserver  nfs soft,timeo=50,vers=4.1,_netdev,bg,noatime 0 0
-10.0.1.2:/volume1/media  /mnt/nas/media  nfs soft,timeo=50,vers=4.1,_netdev,bg,noatime 0 0
-10.0.1.2:/volume1/music  /mnt/nas/music  nfs soft,timeo=50,vers=4.1,_netdev,bg,noatime 0 0
-10.0.1.2:/volume1/photos  /mnt/nas/photos  nfs soft,timeo=50,vers=4.1,_netdev,bg,noatime 0 0
-10.0.1.2:/volume1/video  /mnt/nas/video  nfs soft,timeo=50,vers=4.1,_netdev,bg,noatime 0 0
-10.0.1.2:/volume1/downloads  /mnt/nas/downloads  nfs soft,timeo=50,vers=4.1,_netdev,bg,noatime 0 0
-10.0.1.2:/volume1/home_video  /mnt/nas/home_video  nfs soft,timeo=50,vers=4.1,_netdev,bg,noatime 0 0

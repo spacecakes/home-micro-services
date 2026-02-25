@@ -13,8 +13,7 @@ My Docker and reverse proxy setup for micro-services at home, shared publicly so
 | `stack-dns`         | AdGuard Home                                         |
 | `stack-home`        | Home automation                                      |
 | `stack-immich`      | Immich photo management                              |
-| `stack-photobackup` | Photo backup                                         |
-| `stack-nas`         | NAS-related services                                 |
+| `stack-nas`         | NAS services: Portainer agent, AdGuard, iCloudPD     |
 | `stack-ops`         | apcupsd, Ops Dashboard, hourly rsync backup to NAS, Watchtower |
 
 ## Setup
