@@ -52,7 +52,7 @@ layout:
 
   Monitoring & Management:
     style: row
-    columns: 3
+    columns: 4
 
   Infrastructure:
     style: row

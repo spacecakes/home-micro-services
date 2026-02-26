@@ -219,6 +219,12 @@
         href: https://vm.lundmark.tech/
         siteMonitor: https://vm.lundmark.tech/
         description: Virtual machine hosting & management
+    - Glances:
+        icon: glances.png
+        href: https://glances.lundmark.tech/
+        description: Home server system monitoring
+        container: glances
+        server: local-docker
     - Ops Dashboard:
         href: https://ops.lundmark.tech/
         description: Custom ops tools — UPS monitoring & Docker backups

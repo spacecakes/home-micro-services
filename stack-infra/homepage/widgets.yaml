@@ -3,9 +3,21 @@
 # https://gethomepage.dev/configs/info-widgets/
 
 - resources:
-    cpu: true
     memory: true
+    cpu: true
+    cputemp: true
+    units: metric
+    uptime: true
+    network: true
     disk: /
+    href: https://glances.lundmark.tech/
+
+- openmeteo:
+    label: Stockholm
+    latitude: 59.33
+    longitude: 18.07
+    units: metric
+    href: https://www.smhi.se/vader/prognoser-och-varningar/vaderprognos/q/Stockholm/2673730
 
 - search:
     provider: duckduckgo
@@ -13,6 +25,7 @@
 
 - unifi_console:
     url: https://10.0.1.1
+    href: https://network.lundmark.tech/
     username: homepage
     # prettier-ignore
     password: {{HOMEPAGE_VAR_UNIFI_PASSWORD}}
