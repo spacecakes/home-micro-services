@@ -89,7 +89,7 @@ http:
       service: synology-download-station
 
     file-station:
-      rule: 'Host(`files.lundmark.tech`)'
+      rule: 'Host(`files-nas.lundmark.tech`)'
       middlewares:
         - add-files-prefix
       service: synology-file-station

@@ -120,6 +120,22 @@ services:
       - traefik
       - dockerproxy
 
+  # File explorer
+  filebrowser:
+    <<: *common
+    container_name: filebrowser
+    image: filebrowser/filebrowser:latest
+    labels:
+      - 'traefik.http.routers.filebrowser.rule=Host(`files-server.lundmark.tech`)'
+      - 'traefik.http.routers.filebrowser.middlewares=authelia@file'
+      - 'traefik.http.services.filebrowser.loadbalancer.server.port=80'
+    volumes:
+      - /srv:/srv
+      - /srv/docker/stack-infra/data/filebrowser/filebrowser.db:/database/filebrowser.db
+      - /srv/docker/stack-infra/data/filebrowser/settings.json:/config/settings.json
+    depends_on:
+      - traefik
+
 networks:
   traefik-proxy:
     external: true

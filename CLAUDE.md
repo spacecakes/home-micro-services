@@ -1,5 +1,7 @@
 # CLAUDE.md — Project Guide
 
+Update this file whenever changes are made so it is always up to date.
+
 ## Repository Overview
 
 Home server Docker infrastructure. ~40 containerized services across 9 compose stacks, reverse-proxied through Traefik with Authelia SSO, backed up hourly to a Synology NAS.
@@ -8,17 +10,17 @@ Domain: `lundmark.tech` (wildcard TLS via Cloudflare DNS challenge).
 
 ## Stack Organization
 
-| Stack | Purpose |
-|-------|---------|
-| `stack-infra` | Core infra: Traefik, Homepage dashboard, Portainer, Dockge, Uptime Kuma, dockerproxy |
-| `stack-auth` | Authelia SSO + Redis session backend |
-| `stack-ops` | apcupsd, Ops Dashboard (UPS + backup web UI), Docker backup (hourly rsync), Watchtower |
-| `stack-arr` | Sonarr, Radarr, Lidarr, Bazarr, Prowlarr, NZBHydra2, SABnzbd, qBittorrent, HandBrake, Seerr, Aurral |
-| `stack-plex` | Plex (host network) + Tautulli |
-| `stack-dns` | AdGuard Home primary + sync |
-| `stack-home` | Home Assistant, Homebridge, Scrypted (all host network) |
-| `stack-immich` | Immich server + ML + PostgreSQL (custom vectorchord) + Valkey |
-| `stack-nas` | Portainer Edge Agent, Dockge Agent, Watchtower, AdGuard Home, iCloudPD — **runs on the Synology NAS (`10.0.1.2`), not the home server** |
+| Stack          | Purpose                                                                                                                                 |
+| -------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| `stack-infra`  | Core infra: Traefik, Homepage dashboard, Portainer, Dockge, Uptime Kuma, dockerproxy                                                    |
+| `stack-auth`   | Authelia SSO + Redis session backend                                                                                                    |
+| `stack-ops`    | apcupsd, Ops Dashboard (UPS + backup web UI), Docker backup (hourly rsync), Watchtower                                                  |
+| `stack-arr`    | Sonarr, Radarr, Lidarr, Bazarr, Prowlarr, NZBHydra2, SABnzbd, qBittorrent, HandBrake, Seerr, Aurral                                     |
+| `stack-plex`   | Plex (host network) + Tautulli                                                                                                          |
+| `stack-dns`    | AdGuard Home primary + sync                                                                                                             |
+| `stack-home`   | Home Assistant, Homebridge, Scrypted (all host network)                                                                                 |
+| `stack-immich` | Immich server + ML + PostgreSQL (custom vectorchord) + Valkey                                                                           |
+| `stack-nas`    | Portainer Edge Agent, Dockge Agent, Watchtower, AdGuard Home, iCloudPD — **runs on the Synology NAS (`10.0.1.2`), not the home server** |
 
 `stack-nas` is checked into this repo for versioning but deployed on the NAS. All other stacks run on the home server.
 
@@ -67,9 +69,9 @@ Backend-only services use `traefik.enable=false`. Services that only need intra-
 
 Two services use `image:` + `build:` in compose. `docker compose up -d` uses the cached image; pass `--build` only when source changes.
 
-| Image | Source | Stack |
-|-------|--------|-------|
-| `apcupsd:latest` | `stack-ops/apcupsd/` | `stack-ops` |
+| Image                  | Source                     | Stack       |
+| ---------------------- | -------------------------- | ----------- |
+| `apcupsd:latest`       | `stack-ops/apcupsd/`       | `stack-ops` |
 | `ops-dashboard:latest` | `stack-ops/ops-dashboard/` | `stack-ops` |
 
 ### apcupsd
@@ -93,11 +95,11 @@ When adding or renaming a service, update `stack-infra/homepage/services.yaml`. 
 
 ```yaml
 - Service Name:
-    icon: name.png          # or /icons/custom.svg
+    icon: name.png # or /icons/custom.svg
     href: https://x.lundmark.tech/
     description: Short description
-    container: container_name   # optional, for Docker status
-    server: local-docker        # or homecloud-docker for NAS
+    container: container_name # optional, for Docker status
+    server: local-docker # or homecloud-docker for NAS
 ```
 
 Two Docker servers: `local-docker` (via dockerproxy on localhost:2375) and `homecloud-docker` (NAS at 10.0.1.2:2375).

@@ -22,15 +22,15 @@ provider: google
 #   blur: xs # sm, "", md, xl... see https://tailwindcss.com/docs/backdrop-blur
 
 layout:
-  System & Infrastructure:
-    style: row
-    columns: 4
-
-  Storage & Backup:
+  Storage & Files:
     style: row
     columns: 3
 
-  Photos & Memories:
+  Network & DNS:
+    style: row
+    columns: 4
+
+  Photos:
     style: row
     columns: 3
 
@@ -38,14 +38,22 @@ layout:
     style: row
     columns: 3
 
-  Media Library:
+  Media & Entertainment:
     style: row
-    columns: 3
+    columns: 4
 
   Media Automation:
     style: row
     columns: 5
 
   Downloads & Indexers:
+    style: row
+    columns: 4
+
+  Monitoring & Management:
+    style: row
+    columns: 3
+
+  Infrastructure:
     style: row
     columns: 4
