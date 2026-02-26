@@ -82,25 +82,6 @@ services:
       - nfs-media:/media
 
 
-  handbrake:
-    <<: *common
-    container_name: handbrake
-    image: jlesage/handbrake
-    environment:
-      GROUP_ID: 1000
-      USER_ID: 1000
-      TZ: Europe/Stockholm
-      AUTOMATED_CONVERSION_KEEP_SOURCE: 0
-    labels:
-      - 'traefik.docker.network=traefik-proxy'
-      - 'traefik.http.routers.handbrake.rule=Host(`encoder.lundmark.tech`)'
-      - 'traefik.http.routers.handbrake.middlewares=authelia@file'
-    volumes:
-      - /srv/docker/stack-arr/data/handbrake:/config
-      - /srv/docker/temp/handbrake/watch:/watch
-      - /srv/docker/temp/handbrake/output:/output
-      - nfs-media:/storage:ro
-
   sonarr:
     <<: *common
     container_name: sonarr

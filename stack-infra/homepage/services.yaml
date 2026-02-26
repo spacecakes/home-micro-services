@@ -57,6 +57,12 @@
         description: Keeps AdGuard Home instances in sync
         container: adguardhome-sync
         server: local-docker
+    - OpenSpeedTest:
+        icon: openspeedtest.png
+        href: https://speedtest.lundmark.tech/
+        description: Internet speed test
+        container: openspeedtest
+        server: local-docker
 
 - Photos:
     - Immich:

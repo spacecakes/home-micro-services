@@ -64,6 +64,57 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
 
+  # LAN bandwidth testing server (connect with: iperf3 -c <server-ip>)
+  iperf3:
+    <<: *common
+    restart: 'no'
+    container_name: iperf3
+    image: networkstatic/iperf3:latest
+    command: -s
+    ports:
+      - '5201:5201'
+    labels:
+      - 'traefik.enable=false'
+
+  # Video encoder & converter
+  handbrake:
+    <<: *common
+    restart: 'no'
+    container_name: handbrake
+    image: jlesage/handbrake
+    environment:
+      GROUP_ID: 1000
+      USER_ID: 1000
+      TZ: Europe/Stockholm
+      AUTOMATED_CONVERSION_KEEP_SOURCE: 0
+    networks:
+      - default
+      - traefik-proxy
+    labels:
+      - 'traefik.docker.network=traefik-proxy'
+      - 'traefik.http.routers.handbrake.rule=Host(`encoder.lundmark.tech`)'
+      - 'traefik.http.routers.handbrake.middlewares=authelia@file'
+    volumes:
+      - /srv/docker/stack-ops/data/handbrake:/config
+      - /srv/docker/temp/handbrake/watch:/watch
+      - /srv/docker/temp/handbrake/output:/output
+      - nfs-media:/storage:ro
+
+  # HTML5 internet speed test
+  openspeedtest:
+    <<: *common
+    restart: 'no'
+    container_name: openspeedtest
+    image: openspeedtest/latest:latest
+    networks:
+      - default
+      - traefik-proxy
+    labels:
+      - 'traefik.http.routers.openspeedtest.rule=Host(`speedtest.lundmark.tech`)'
+      - 'traefik.http.routers.openspeedtest.middlewares=authelia@file'
+      - 'traefik.http.services.openspeedtest.loadbalancer.server.port=3000'
+      - 'traefik.docker.network=traefik-proxy'
+
 volumes:
   nfs-backup-docker:
     driver: local
@@ -71,6 +122,12 @@ volumes:
       type: nfs
       o: "addr=10.0.1.2,soft,timeo=50,vers=4.1,noatime"
       device: ":/volume1/backup-homeserver/docker"
+  nfs-media:
+    driver: local
+    driver_opts:
+      type: nfs
+      o: "addr=10.0.1.2,soft,timeo=50,vers=4.1,noatime"
+      device: ":/volume1/media"
 
 networks:
   traefik-proxy:
