@@ -81,12 +81,13 @@ services:
     <<: *common
     restart: 'no'
     container_name: handbrake
-    image: jlesage/handbrake
+    image: lscr.io/linuxserver/handbrake:latest
     environment:
-      GROUP_ID: 1000
-      USER_ID: 1000
+      PUID: 1000
+      PGID: 1000
       TZ: Europe/Stockholm
-      AUTOMATED_CONVERSION_KEEP_SOURCE: 0
+    devices:
+      - /dev/dri:/dev/dri
     networks:
       - default
       - traefik-proxy
@@ -94,11 +95,11 @@ services:
       - 'traefik.docker.network=traefik-proxy'
       - 'traefik.http.routers.handbrake.rule=Host(`encoder.lundmark.tech`)'
       - 'traefik.http.routers.handbrake.middlewares=authelia@file'
+      - 'traefik.http.services.handbrake.loadbalancer.server.port=3000'
     volumes:
       - /srv/docker/stack-ops/data/handbrake:/config
-      - /srv/docker/temp/handbrake/watch:/watch
-      - /srv/docker/temp/handbrake/output:/output
-      - nfs-media:/storage:ro
+      - nfs-media:/media:ro
+      - /srv/docker/temp/handbrake:/output
 
   # HTML5 internet speed test
   openspeedtest:
@@ -120,14 +121,14 @@ volumes:
     driver: local
     driver_opts:
       type: nfs
-      o: "addr=10.0.1.2,soft,timeo=50,vers=4.1,noatime"
-      device: ":/volume1/backup-homeserver/docker"
+      o: 'addr=10.0.1.2,soft,timeo=50,vers=4.1,noatime'
+      device: ':/volume1/backup-homeserver/docker'
   nfs-media:
     driver: local
     driver_opts:
       type: nfs
-      o: "addr=10.0.1.2,soft,timeo=50,vers=4.1,noatime"
-      device: ":/volume1/media"
+      o: 'addr=10.0.1.2,soft,timeo=50,vers=4.1,noatime'
+      device: ':/volume1/media'
 
 networks:
   traefik-proxy:
