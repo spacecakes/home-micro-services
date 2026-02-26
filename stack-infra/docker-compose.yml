@@ -108,12 +108,7 @@ services:
       - 'traefik.http.routers.homepage.rule=Host(`lundmark.tech`)'
       - 'traefik.http.routers.homepage.middlewares=authelia@file'
     volumes:
-      - /srv/docker/stack-infra/data/homepage/config:/app/config
-      - /srv/docker/stack-infra/homepage/docker.yaml:/app/config/docker.yaml:ro
-      - /srv/docker/stack-infra/homepage/services.yaml:/app/config/services.yaml:ro
-      - /srv/docker/stack-infra/homepage/settings.yaml:/app/config/settings.yaml:ro
-      - /srv/docker/stack-infra/homepage/widgets.yaml:/app/config/widgets.yaml:ro
-      - /srv/docker/stack-infra/homepage/bookmarks.yaml:/app/config/bookmarks.yaml:ro
+      - /srv/docker/stack-infra/homepage:/app/config
       - /srv/docker/stack-infra/data/homepage/images:/app/public/images:ro
       - /srv/docker/stack-infra/data/homepage/icons:/app/public/icons:ro
     depends_on:
@@ -131,8 +126,7 @@ services:
       - 'traefik.http.services.filebrowser.loadbalancer.server.port=80'
     volumes:
       - /srv:/srv
-      - /srv/docker/stack-infra/data/filebrowser/filebrowser.db:/database/filebrowser.db
-      - /srv/docker/stack-infra/data/filebrowser/settings.json:/config/settings.json
+      - /srv/docker/stack-infra/data/filebrowser:/config
     depends_on:
       - traefik
 
