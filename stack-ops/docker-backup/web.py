@@ -145,12 +145,53 @@ def run_restore(dry_run=False):
         log("Restoring files from NAS backup..." + (" (dry-run)" if dry_run else ""))
         _rsync("/destination/", "/source/", f, dry_run=dry_run)
 
-        if not dry_run:
-            _compose_up_stacks(f, log)
-
         log(f"==== {label} completed at {_now()} ====")
         log("")
 
+    _truncate_log()
+    running = False
+    action = ""
+
+
+def run_stop_all():
+    global running, action
+    running = True
+    action = "stop-all"
+    with open(LOG_FILE, "a") as f:
+        def log(msg):
+            f.write(msg + "\n")
+            f.flush()
+        log(f"==== Stop all started at {_now()} ====")
+        result = subprocess.run(
+            ["docker", "ps", "--format", "{{.Names}}"],
+            capture_output=True, text=True
+        )
+        all_containers = [c.strip() for c in result.stdout.strip().split("\n") if c.strip()]
+        to_stop = [c for c in all_containers if c not in SELF_CONTAINERS]
+        if to_stop:
+            log(f"Stopping containers: {', '.join(to_stop)}")
+            subprocess.run(["docker", "stop"] + to_stop, stdout=f, stderr=f)
+        else:
+            log("No other containers to stop")
+        log(f"==== Stop all completed at {_now()} ====")
+        log("")
+    _truncate_log()
+    running = False
+    action = ""
+
+
+def run_start_all():
+    global running, action
+    running = True
+    action = "start-all"
+    with open(LOG_FILE, "a") as f:
+        def log(msg):
+            f.write(msg + "\n")
+            f.flush()
+        log(f"==== Start all started at {_now()} ====")
+        _compose_up_stacks(f, log)
+        log(f"==== Start all completed at {_now()} ====")
+        log("")
     _truncate_log()
     running = False
     action = ""
@@ -170,6 +211,20 @@ def restore():
     if not running:
         dry = request.args.get("dry") == "1"
         threading.Thread(target=run_restore, args=(dry,), daemon=True).start()
+    return "ok"
+
+
+@app.route("/stop-all", methods=["POST"])
+def stop_all():
+    if not running:
+        threading.Thread(target=run_stop_all, daemon=True).start()
+    return "ok"
+
+
+@app.route("/start-all", methods=["POST"])
+def start_all():
+    if not running:
+        threading.Thread(target=run_start_all, daemon=True).start()
     return "ok"
 
 

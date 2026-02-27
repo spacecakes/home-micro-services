@@ -119,6 +119,18 @@ def backup_clear_log():
     return text, status
 
 
+@app.route("/containers/stop-all", methods=["POST"])
+def containers_stop_all():
+    text, status = proxy_backup_post("/stop-all")
+    return text, status
+
+
+@app.route("/containers/start-all", methods=["POST"])
+def containers_start_all():
+    text, status = proxy_backup_post("/start-all")
+    return text, status
+
+
 @app.route("/api/test-shutdown", methods=["POST"])
 def test_shutdown():
     try:
@@ -173,6 +185,10 @@ TEMPLATE = """<!DOCTYPE html>
   .btn-backup:hover { background: #2ea043; }
   .btn-restore { background: #da3633; }
   .btn-restore:hover { background: #f85149; }
+  .btn-stop { background: #d29922; }
+  .btn-stop:hover { background: #e3b341; }
+  .btn-start { background: #1f6feb; }
+  .btn-start:hover { background: #388bfd; }
   .btn-secondary { background: transparent; border: 1px solid #30363d; color: #8b949e; font-size: 0.8rem; padding: 0.4rem 0.8rem; }
   .btn-secondary:hover { border-color: #8b949e; color: #c9d1d9; }
   button:disabled { background: #484f58 !important; border-color: #484f58 !important; cursor: not-allowed; color: #8b949e !important; }
@@ -238,13 +254,16 @@ TEMPLATE = """<!DOCTYPE html>
         <button class="btn-backup" onclick="runAction('/backup/run','btn-backup')" id="btn-backup">Run backup</button>
         <button class="btn-restore" onclick="showRestore()" id="btn-restore">Restore</button>
         <label class="checkbox-label"><input type="checkbox" id="dry-run"> Dry run</label>
+        <span class="sep">|</span>
+        <button class="btn-stop" onclick="runAction('/containers/stop-all','btn-stop-all')" id="btn-stop-all">Stop all</button>
+        <button class="btn-start" onclick="runAction('/containers/start-all','btn-start-all')" id="btn-start-all">Start all</button>
       </div>
 
       <div class="modal-overlay" id="restore-modal">
         <div class="modal">
           <h2>Restore from NAS backup</h2>
           <div class="warn">
-            This will stop all running Docker containers (except backup), rsync from the NAS backup back to /srv/docker, then restart all stacks via docker compose.
+            This will stop all running Docker containers (except backup and ops-dashboard), then rsync from the NAS backup back to /srv/docker. Use "Start all" afterwards to bring stacks back up.
           </div>
           <p>Type <strong>RESTORE</strong> to confirm:</p>
           <input type="text" id="confirm-input" placeholder="Type RESTORE" autocomplete="off">
@@ -349,7 +368,7 @@ var logEl = document.getElementById('log');
 var backupStatusEl = document.getElementById('backup-status');
 var lastBackupEl = document.getElementById('last-backup');
 var dryEl = document.getElementById('dry-run');
-var btns = ['btn-backup', 'btn-restore'];
+var btns = ['btn-backup', 'btn-restore', 'btn-stop-all', 'btn-start-all'];
 var isRunning = false;
 var activeBtn = null;
 var activeBtnText = '';
@@ -442,7 +461,9 @@ function poll() {
       if (d.running) {
         var isRestore = d.action.indexOf('restore') !== -1;
         var isDry = d.action.indexOf('dry') !== -1;
-        if (isRestore) { bCls = 'danger'; bTxt = isDry ? 'Restore dry-run...' : 'Restoring...'; }
+        if (d.action === 'stop-all') { bCls = 'active'; bTxt = 'Stopping all...'; }
+        else if (d.action === 'start-all') { bCls = 'active'; bTxt = 'Starting all...'; }
+        else if (isRestore) { bCls = 'danger'; bTxt = isDry ? 'Restore dry-run...' : 'Restoring...'; }
         else if (d.action.indexOf('backup') !== -1 || d.action === '') { bCls = 'active'; bTxt = isDry ? 'Backup dry-run...' : 'Backing up...'; }
       }
       backupStatusEl.textContent = bTxt;
