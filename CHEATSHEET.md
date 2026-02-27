@@ -17,7 +17,13 @@ cat ~/.ssh/id_ed25519.pub                        # view public key
 ssh-add -l                                       # list agent keys
 ```
 
-Add the public key to `~/.ssh/authorized_keys` on the remote host.
+On the remote host:
+
+```bash
+mkdir -p ~/.ssh && chmod 700 ~/.ssh
+echo "your-public-key-content" >> ~/.ssh/authorized_keys
+chmod 600 ~/.ssh/authorized_keys
+```
 
 ## Docker Stacks
 

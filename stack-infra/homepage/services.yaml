@@ -220,6 +220,17 @@
         description: Docker stack management & monitoring
         container: dockge
         server: local-docker
+    - Proxmox:
+        icon: proxmox.png
+        href: https://proxmox.lundmark.tech/
+        description: Virtual machine & container hypervisor
+        siteMonitor: https://proxmox.lundmark.tech/
+        # widget:
+        #   type: proxmox
+        #   url: https://10.0.1.4:8006
+        #   username: api@pam!homepage
+        #   password: {{HOMEPAGE_VAR_PROXMOX_TOKEN}}
+        #   node: proxmox
     - Synology VMM:
         icon: /icons/synology-vmm.png
         href: https://vm.lundmark.tech/

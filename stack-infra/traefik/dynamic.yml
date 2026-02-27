@@ -119,6 +119,13 @@ http:
         - authelia
       service: adguardhome
 
+    # Proxmox
+    proxmox:
+      rule: 'Host(`proxmox.lundmark.tech`)'
+      middlewares:
+        - authelia
+      service: proxmox
+
     # UniFi Controller
     unifi:
       rule: 'Host(`network.lundmark.tech`)'
@@ -181,4 +188,10 @@ http:
       loadBalancer:
         servers:
           - url: 'http://10.0.1.6'
+        passHostHeader: true
+
+    proxmox:
+      loadBalancer:
+        servers:
+          - url: 'https://10.0.1.3:8006'
         passHostHeader: true

@@ -14,8 +14,8 @@ Domain: `lundmark.tech` (wildcard TLS via Cloudflare DNS challenge).
 | -------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
 | `stack-infra`  | Core infra: Traefik, Homepage dashboard, Portainer, Dockge, Uptime Kuma, dockerproxy                                                    |
 | `stack-auth`   | Authelia SSO + Redis session backend                                                                                                    |
-| `stack-ops`    | apcupsd, Ops Dashboard (UPS + backup web UI), Docker backup (hourly rsync), Watchtower, iperf3, OpenSpeedTest, HandBrake                 |
-| `stack-arr`    | Sonarr, Radarr, Lidarr, Bazarr, Prowlarr, NZBHydra2, SABnzbd, qBittorrent, Seerr, Aurral                                               |
+| `stack-ops`    | apcupsd, Ops Dashboard (UPS + backup web UI), Docker backup (hourly rsync), Watchtower, iperf3, OpenSpeedTest, HandBrake                |
+| `stack-arr`    | Sonarr, Radarr, Lidarr, Bazarr, Prowlarr, NZBHydra2, SABnzbd, qBittorrent, Seerr, Aurral                                                |
 | `stack-plex`   | Plex (host network) + Tautulli                                                                                                          |
 | `stack-dns`    | AdGuard Home primary + sync                                                                                                             |
 | `stack-home`   | Home Assistant, Homebridge, Scrypted (all host network)                                                                                 |
@@ -50,6 +50,7 @@ Non-Docker services (Synology apps, UniFi, UPS NMCs, iCloudPD on NAS) are routed
 - `ups1/ups2.lundmark.tech` → APC NMC web interfaces
 - `icloudpd/icloudpd-shared.lundmark.tech` → NAS `10.0.1.2:8080/8081`
 - `dns2.lundmark.tech` → NAS AdGuard `10.0.1.2:3000`
+- `proxmox.lundmark.tech` → Proxmox `10.0.1.3:8006`
 
 ### Authelia middleware
 

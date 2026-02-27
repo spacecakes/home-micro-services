@@ -14,7 +14,7 @@ During installation:
 After installation, reboot and SSH in:
 
 ```bash
-ssh gabriel@home-server.local
+ssh server
 ```
 
 ## 2. Basic Setup
