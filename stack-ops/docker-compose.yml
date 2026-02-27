@@ -20,8 +20,6 @@ services:
       - nfs-backup-docker:/destination
       - /srv/docker/stack-ops/docker-backup/web.py:/app/web.py:ro
       - /var/run/docker.sock:/var/run/docker.sock:ro
-    ports:
-      - '8000:8000'
     labels:
       - 'traefik.enable=false'
 
@@ -49,8 +47,6 @@ services:
     networks:
       - default
       - traefik-proxy
-    ports:
-      - '5000:5000' # Keep this open so we can run this without Traefik
     labels:
       - 'traefik.http.routers.ops-dashboard.rule=Host(`ops.lundmark.tech`)'
       - 'traefik.http.routers.ops-dashboard.middlewares=authelia@file'
