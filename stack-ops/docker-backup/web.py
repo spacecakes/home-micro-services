@@ -9,7 +9,7 @@ import os
 app = Flask(__name__)
 LOG_FILE = "/var/log/backup.log"
 LOG_MAX_LINES = 5000
-SELF_CONTAINER = "docker-backup"
+SELF_CONTAINERS = {"docker-backup", "ops-dashboard"}
 EXCLUDES = [".git/", "temp/", "downloads/", ".DS_Store", "._*", "@eaDir", "logs/", "Logs/"]
 RSYNC_BASE = ["rsync", "-avh", "--no-perms", "--no-owner", "--no-group", "-l", "--delete"]
 STACK_PRIORITY = {"stack-infra": 0, "stack-auth": 1}
@@ -134,7 +134,7 @@ def run_restore(dry_run=False):
                 capture_output=True, text=True
             )
             all_containers = [c.strip() for c in result.stdout.strip().split("\n") if c.strip()]
-            to_stop = [c for c in all_containers if c != SELF_CONTAINER]
+            to_stop = [c for c in all_containers if c not in SELF_CONTAINERS]
 
             if to_stop:
                 log(f"Stopping containers: {', '.join(to_stop)}")
