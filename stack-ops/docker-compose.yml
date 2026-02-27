@@ -59,6 +59,7 @@ services:
     image: containrrr/watchtower:latest
     environment:
       - WATCHTOWER_CLEANUP=true
+      - DOCKER_API_VERSION=1.44
     labels:
       - 'traefik.enable=false'
     volumes:
