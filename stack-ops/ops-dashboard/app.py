@@ -417,28 +417,48 @@ function timeAgo(iso) {
   return Math.floor(s / 86400) + 'd ago';
 }
 
+var backupFails = 0;
+var backupStopped = false;
+
 function poll() {
-  return fetch('/api/backup').then(function(r) { return r.json(); }).then(function(d) {
-    isRunning = d.running;
-    var bCls = 'idle', bTxt = 'Idle';
-    if (d.running) {
-      var isRestore = d.action.indexOf('restore') !== -1;
-      var isDry = d.action.indexOf('dry') !== -1;
-      if (isRestore) { bCls = 'danger'; bTxt = isDry ? 'Restore dry-run...' : 'Restoring...'; }
-      else if (d.action.indexOf('backup') !== -1 || d.action === '') { bCls = 'active'; bTxt = isDry ? 'Backup dry-run...' : 'Backing up...'; }
+  function showUnreachable() {
+    backupFails++;
+    backupStatusEl.textContent = 'Unreachable';
+    backupStatusEl.className = 'status danger';
+    if (backupFails >= 3) {
+      backupStopped = true;
+      logEl.textContent = 'Error: docker-backup container is not reachable. Polling stopped — reload page to retry.';
+    } else {
+      logEl.textContent = 'Error: docker-backup container is not reachable. Retrying...';
     }
-    backupStatusEl.textContent = bTxt;
-    backupStatusEl.className = 'status ' + bCls;
-    setDisabled(d.running);
-    if (!d.running) clearLoading();
-    var atBottom = logEl.scrollHeight - logEl.scrollTop - logEl.clientHeight < 50;
-    logEl.textContent = d.log || 'No activity yet.';
-    if (atBottom) logEl.scrollTop = logEl.scrollHeight;
-    lastBackupEl.textContent = d.last_backup ? 'Last backup: ' + timeAgo(d.last_backup) : '';
-  }).catch(function() {});
+    setDisabled(true);
+  }
+  return fetch('/api/backup').then(function(r) {
+    if (!r.ok) { showUnreachable(); return; }
+    backupFails = 0;
+    return r.json().then(function(d) {
+      isRunning = d.running;
+      var bCls = 'idle', bTxt = 'Idle';
+      if (d.running) {
+        var isRestore = d.action.indexOf('restore') !== -1;
+        var isDry = d.action.indexOf('dry') !== -1;
+        if (isRestore) { bCls = 'danger'; bTxt = isDry ? 'Restore dry-run...' : 'Restoring...'; }
+        else if (d.action.indexOf('backup') !== -1 || d.action === '') { bCls = 'active'; bTxt = isDry ? 'Backup dry-run...' : 'Backing up...'; }
+      }
+      backupStatusEl.textContent = bTxt;
+      backupStatusEl.className = 'status ' + bCls;
+      setDisabled(d.running);
+      if (!d.running) clearLoading();
+      var atBottom = logEl.scrollHeight - logEl.scrollTop - logEl.clientHeight < 50;
+      logEl.textContent = d.log || 'No activity yet.';
+      if (atBottom) logEl.scrollTop = logEl.scrollHeight;
+      lastBackupEl.textContent = d.last_backup ? 'Last backup: ' + timeAgo(d.last_backup) : '';
+    });
+  }).catch(showUnreachable);
 }
 
 (function schedule() {
+  if (backupStopped) return;
   setTimeout(function() { poll().then(schedule); }, isRunning ? 2000 : 15000);
 })();
 poll();
