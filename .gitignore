@@ -13,3 +13,6 @@ model-cache
 @eaDir
 temp/
 downloads/
+
+# Misc
+.claude
