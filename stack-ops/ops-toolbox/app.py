@@ -254,9 +254,6 @@ TEMPLATE = """<!DOCTYPE html>
         <button class="btn-backup" onclick="runAction('/backup/run','btn-backup')" id="btn-backup">Run backup</button>
         <button class="btn-restore" onclick="showRestore()" id="btn-restore">Restore</button>
         <label class="checkbox-label"><input type="checkbox" id="dry-run"> Dry run</label>
-        <span class="sep">|</span>
-        <button class="btn-stop" onclick="runAction('/containers/stop-all','btn-stop-all')" id="btn-stop-all">Stop all</button>
-        <button class="btn-start" onclick="runAction('/containers/start-all','btn-start-all')" id="btn-start-all">Start all</button>
       </div>
 
       <div class="modal-overlay" id="restore-modal">
@@ -272,6 +269,16 @@ TEMPLATE = """<!DOCTYPE html>
             <button class="btn-restore" onclick="doRestore()">Restore</button>
           </div>
         </div>
+      </div>
+    </div>
+
+    <!-- Container Control -->
+    <div class="panel">
+      <h2>Container Control</h2>
+      <p class="meta">Stop or start all Docker stacks (except ops-worker and ops-toolbox).</p>
+      <div class="actions">
+        <button class="btn-stop" onclick="runAction('/containers/stop-all','btn-stop-all')" id="btn-stop-all">Stop all</button>
+        <button class="btn-start" onclick="runAction('/containers/start-all','btn-start-all')" id="btn-start-all">Start all</button>
       </div>
     </div>
 
