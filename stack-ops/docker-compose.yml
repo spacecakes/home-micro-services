@@ -28,7 +28,7 @@ services:
     <<: *common
     container_name: apcupsd
     image: apcupsd:latest
-    build: /srv/docker/stack-ops/apcupsd
+    build: ./apcupsd
     security_opt:
       - apparmor:unconfined
     ports:
@@ -43,7 +43,7 @@ services:
     <<: *common
     container_name: ops-toolbox
     image: ops-toolbox:latest
-    build: /srv/docker/stack-ops/ops-toolbox
+    build: ./ops-toolbox
     networks:
       - default
       - traefik-proxy
