@@ -2,7 +2,7 @@ server:
   address: 'tcp://:9091'
 
 log:
-  level: info
+  level: debug
 
 theme: dark
 
@@ -63,6 +63,24 @@ identity_providers:
           - profile
           - groups
           - email
+
+      - client_id: proxmox
+        client_name: Proxmox
+        client_secret: '$pbkdf2-sha512$310000$LAyjNvxwBbb98C7Ng1NjLw$sbactVaH8.wmX0KZsz8dSJFjWNnkaIJS38S85pVJohPcURplo1iwccj6vUXCEEA8ACYzLsU2oBM6p.3IRcvVHg'
+        token_endpoint_auth_method: client_secret_basic
+        require_pkce: true
+        pkce_challenge_method: S256
+        redirect_uris:
+          - https://proxmox.lundmark.tech
+        scopes:
+          - openid
+          - profile
+          - email
+          - groups
+        response_types:
+          - code
+        grant_types:
+          - authorization_code
 
       - client_id: immich
         client_name: Immich

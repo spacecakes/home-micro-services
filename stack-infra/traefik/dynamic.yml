@@ -119,11 +119,9 @@ http:
         - authelia
       service: adguardhome
 
-    # Proxmox
+    # Proxmox (no authelia middleware - Proxmox handles auth itself via OIDC)
     proxmox:
       rule: 'Host(`proxmox.lundmark.tech`)'
-      middlewares:
-        - authelia
       service: proxmox
 
     # UniFi Controller
