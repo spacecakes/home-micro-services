@@ -90,8 +90,6 @@
         href: https://home.lundmark.tech/
         description: Smart home automation hub
         siteMonitor: https://home.lundmark.tech/
-        container: homeassistant
-        server: local-docker
     - Scrypted:
         icon: scrypted.png
         href: https://cameras.lundmark.tech/

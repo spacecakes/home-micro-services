@@ -3,24 +3,6 @@ x-common: &common
   restart: unless-stopped
 
 services:
-  homeassistant:
-    <<: *common
-    container_name: homeassistant
-    image: linuxserver/homeassistant:latest
-    environment:
-      - TZ=Europe/Stockholm
-      - PUID=1000
-      - PGID=1000
-    labels:
-      - 'traefik.http.routers.homeassistant.rule=Host(`home.lundmark.tech`)'
-      - 'traefik.http.services.homeassistant.loadbalancer.server.port=8123'
-      - 'com.centurylinklabs.watchtower.enable=false'
-    volumes:
-      - /srv/docker/stack-home/data/homeassistant:/config
-      - nfs-music:/music:ro
-    devices:
-      - /dev/ttyUSB0:/dev/ttyUSB0
-
   homebridge:
     <<: *common
     container_name: homebridge
@@ -43,10 +25,3 @@ services:
     volumes:
       - /srv/docker/stack-home/data/scrypted:/server/volume
 
-volumes:
-  nfs-music:
-    driver: local
-    driver_opts:
-      type: nfs
-      o: "addr=10.0.1.2,soft,timeo=50,vers=4.1,noatime"
-      device: ":/volume1/music"

@@ -13,7 +13,7 @@
 | **stack-ops** | apcupsd, ops-toolbox, ops-worker, Watchtower, HandBrake |
 | **stack-arr** | Sonarr, Radarr, Lidarr, Bazarr, Prowlarr, SABnzbd, qBittorrent, Seerr |
 | **stack-plex** | Plex + Tautulli |
-| **stack-home** | Home Assistant, Homebridge, Scrypted |
+| **stack-home** | Homebridge, Scrypted |
 | **stack-immich** | Immich + ML + PostgreSQL + Valkey |
 | **stack-nas** | *runs on Synology NAS (10.0.1.2)* |
 

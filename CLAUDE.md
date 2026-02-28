@@ -17,7 +17,7 @@ Domain: `lundmark.tech` (wildcard TLS via Cloudflare DNS challenge).
 | `stack-ops`    | apcupsd, ops-toolbox (UPS + ops web UI), ops-worker (hourly rsync + API), Watchtower, iperf3, OpenSpeedTest, HandBrake                  |
 | `stack-arr`    | Sonarr, Radarr, Lidarr, Bazarr, Prowlarr, NZBHydra2, SABnzbd, qBittorrent, Seerr, Aurral                                                |
 | `stack-plex`   | Plex (host network) + Tautulli                                                                                                          |
-| `stack-home`   | Home Assistant, Homebridge, Scrypted (all host network)                                                                                 |
+| `stack-home`   | Homebridge, Scrypted (both host network)                                                                                                |
 | `stack-immich` | Immich server + ML + PostgreSQL (custom vectorchord) + Valkey                                                                           |
 | `stack-nas`    | Portainer Edge Agent, Dockge Agent, Watchtower, AdGuard Home, iCloudPD — **runs on the Synology NAS (`10.0.1.2`), not the home server** |
 
@@ -49,6 +49,7 @@ Non-Docker services (Synology apps, UniFi, UPS NMCs, iCloudPD on NAS) are routed
 - `ups1/ups2.lundmark.tech` → APC NMC web interfaces
 - `icloudpd/icloudpd-shared.lundmark.tech` → NAS `10.0.1.2:8080/8081`
 - `dns2.lundmark.tech` → NAS AdGuard `10.0.1.2:3000`
+- `home.lundmark.tech` → Home Assistant OS VM `10.0.1.7:8123`
 - `proxmox.lundmark.tech` → Proxmox `10.0.1.3:8006`
 
 ### Authelia middleware
@@ -62,7 +63,7 @@ Backend-only services use `traefik.enable=false`. Services that only need intra-
 ## Networking
 
 - **`traefik-proxy`**: External Docker network shared across all stacks. Needed for Traefik routing and cross-stack container DNS.
-- **Host network**: Used by Plex, Home Assistant, Homebridge, Scrypted (need device/port access).
+- **Host network**: Used by Plex, Homebridge, Scrypted (need device/port access).
 - **DNS override**: Some stacks (`stack-arr`) set explicit Cloudflare/Google DNS to bypass AdGuard filtering.
 
 ## Custom Images

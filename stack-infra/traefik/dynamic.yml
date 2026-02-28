@@ -124,6 +124,11 @@ http:
       rule: 'Host(`proxmox.lundmark.tech`)'
       service: proxmox
 
+    # Home Assistant OS VM (no authelia - HA handles auth itself)
+    homeassistant:
+      rule: 'Host(`home.lundmark.tech`)'
+      service: homeassistant
+
     # UniFi Controller
     unifi:
       rule: 'Host(`network.lundmark.tech`)'
@@ -186,6 +191,12 @@ http:
       loadBalancer:
         servers:
           - url: 'http://10.0.1.6'
+        passHostHeader: true
+
+    homeassistant:
+      loadBalancer:
+        servers:
+          - url: 'http://10.0.1.7:8123'
         passHostHeader: true
 
     proxmox:
