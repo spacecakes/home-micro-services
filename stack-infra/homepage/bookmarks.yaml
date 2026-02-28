@@ -35,7 +35,14 @@
     - Unifi docs:
         - abbr: UD
           href: https://help.ui.com/hc/en-us/
-- Developer:
+
+- Resources:
     - Github Repo:
         - abbr: GH
           href: https://github.com/spacecakes/home-micro-services/
+    - Docker Hub:
+        - abbr: DH
+          href: https://hub.docker.com/
+    - Proxmox VE Helper Scripts:
+        - abbr: PHS
+          href: https://community-scripts.github.io/
