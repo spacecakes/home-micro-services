@@ -1,6 +1,6 @@
 # Docker LXC — lundmark.tech
 
-45 services | 8 compose stacks | Traefik + Authelia SSO | hourly NAS backup
+Traefik + Authelia SSO | hourly NAS backup
 
 [Dashboard](https://homepage.lundmark.tech) | [Portainer](https://portainer.lundmark.tech) | [Dockge](https://dockge.lundmark.tech) | [Repo](https://github.com/spacecakes/home-micro-services)
 
