@@ -148,6 +148,47 @@ services:
     depends_on:
       - traefik
 
+  # DNS & ad blocking
+  adguardhome:
+    container_name: adguardhome
+    image: adguard/adguardhome
+    restart: always
+    networks:
+      - default
+      - traefik-proxy
+    ports:
+      - 53:53/tcp
+      - 53:53/udp
+    labels:
+      - 'traefik.docker.network=traefik-proxy'
+      - 'traefik.http.routers.adguardhome.rule=Host(`dns1.lundmark.tech`)'
+      - 'traefik.http.routers.adguardhome.middlewares=authelia@file'
+      - 'traefik.http.services.adguardhome.loadbalancer.server.port=3000'
+    volumes:
+      - /srv/docker/stack-infra/data/adguardhome/work:/opt/adguardhome/work
+      - /srv/docker/stack-infra/data/adguardhome/config:/opt/adguardhome/conf
+
+  adguardhome-sync:
+    <<: *common
+    image: lscr.io/linuxserver/adguardhome-sync:latest
+    container_name: adguardhome-sync
+    environment:
+      - TZ=Europe/Stockholm
+      - PUID=1000
+      - PGID=1000
+      - CONFIGFILE=/config/adguardhome-sync.yaml
+    networks:
+      - default
+      - traefik-proxy
+    volumes:
+      - /srv/docker/stack-infra/data/adguardhome-sync/config:/config
+    labels:
+      - 'traefik.docker.network=traefik-proxy'
+      - 'traefik.http.routers.adguardhome-sync.rule=Host(`dns-sync.lundmark.tech`)'
+      - 'traefik.http.routers.adguardhome-sync.middlewares=authelia@file'
+    depends_on:
+      - adguardhome
+
 networks:
   traefik-proxy:
     external: true

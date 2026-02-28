@@ -145,7 +145,6 @@ cd /srv/docker/stack-auth && docker compose up -d
 
 # 3. Everything else (order doesn't matter)
 cd /srv/docker/stack-ops && docker compose up -d
-cd /srv/docker/stack-dns && docker compose up -d
 cd /srv/docker/stack-arr && docker compose up -d
 cd /srv/docker/stack-plex && docker compose up -d
 cd /srv/docker/stack-home && docker compose up -d
@@ -155,7 +154,7 @@ cd /srv/docker/stack-immich && docker compose up -d
 Build custom images on first setup:
 
 ```bash
-cd /srv/docker/stack-ops && docker compose up -d --build apcupsd ops-dashboard
+cd /srv/docker/stack-ops && docker compose up -d --build apcupsd ops-toolbox
 ```
 
 ## 10. Free Port 53 (for AdGuard)

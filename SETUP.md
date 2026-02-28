@@ -81,7 +81,7 @@ The `apcupsd` container in `stack-infra` replaces it. It monitors the UPS over S
 
 ```bash
 cd /srv/docker/stack-infra
-docker compose up -d --build apcupsd ops-dashboard
+docker compose up -d --build apcupsd ops-toolbox
 ```
 
 ## 8. Free Port 53 (for AdGuard)

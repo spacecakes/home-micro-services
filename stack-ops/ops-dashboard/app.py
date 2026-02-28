@@ -7,7 +7,7 @@ app = Flask(__name__)
 
 APCUPSD_HOST = "apcupsd"
 APCUPSD_PORT = 3551
-BACKUP_API = "http://docker-backup:8000"
+BACKUP_API = "http://ops-worker:8000"
 
 
 # ---------------------------------------------------------------------------
@@ -263,7 +263,7 @@ TEMPLATE = """<!DOCTYPE html>
         <div class="modal">
           <h2>Restore from NAS backup</h2>
           <div class="warn">
-            This will stop all running Docker containers (except backup and ops-dashboard), then rsync from the NAS backup back to /srv/docker. Use "Start all" afterwards to bring stacks back up.
+            This will stop all running Docker containers (except ops-worker and ops-toolbox), then rsync from the NAS backup back to /srv/docker. Use "Start all" afterwards to bring stacks back up.
           </div>
           <p>Type <strong>RESTORE</strong> to confirm:</p>
           <input type="text" id="confirm-input" placeholder="Type RESTORE" autocomplete="off">
@@ -446,9 +446,9 @@ function poll() {
     backupStatusEl.className = 'status danger';
     if (backupFails >= 3) {
       backupStopped = true;
-      logEl.textContent = 'Error: docker-backup container is not reachable. Polling stopped — reload page to retry.';
+      logEl.textContent = 'Error: ops-worker container is not reachable. Polling stopped — reload page to retry.';
     } else {
-      logEl.textContent = 'Error: docker-backup container is not reachable. Retrying...';
+      logEl.textContent = 'Error: ops-worker container is not reachable. Retrying...';
     }
     setDisabled(true);
   }

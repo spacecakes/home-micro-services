@@ -12,12 +12,11 @@ Domain: `lundmark.tech` (wildcard TLS via Cloudflare DNS challenge).
 
 | Stack          | Purpose                                                                                                                                 |
 | -------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
-| `stack-infra`  | Core infra: Traefik, Homepage dashboard, Portainer, Dockge, Uptime Kuma, dockerproxy                                                    |
+| `stack-infra`  | Core infra: Traefik, Homepage dashboard, Portainer, Dockge, Uptime Kuma, dockerproxy, AdGuard Home + sync                               |
 | `stack-auth`   | Authelia SSO + Redis session backend                                                                                                    |
-| `stack-ops`    | apcupsd, Ops Dashboard (UPS + backup web UI), Docker backup (hourly rsync), Watchtower, iperf3, OpenSpeedTest, HandBrake                |
+| `stack-ops`    | apcupsd, ops-toolbox (UPS + ops web UI), ops-worker (hourly rsync + API), Watchtower, iperf3, OpenSpeedTest, HandBrake                  |
 | `stack-arr`    | Sonarr, Radarr, Lidarr, Bazarr, Prowlarr, NZBHydra2, SABnzbd, qBittorrent, Seerr, Aurral                                                |
 | `stack-plex`   | Plex (host network) + Tautulli                                                                                                          |
-| `stack-dns`    | AdGuard Home primary + sync                                                                                                             |
 | `stack-home`   | Home Assistant, Homebridge, Scrypted (all host network)                                                                                 |
 | `stack-immich` | Immich server + ML + PostgreSQL (custom vectorchord) + Valkey                                                                           |
 | `stack-nas`    | Portainer Edge Agent, Dockge Agent, Watchtower, AdGuard Home, iCloudPD — **runs on the Synology NAS (`10.0.1.2`), not the home server** |
@@ -26,7 +25,7 @@ Domain: `lundmark.tech` (wildcard TLS via Cloudflare DNS challenge).
 
 ### Stack startup order matters
 
-`stack-infra` first (Traefik), then `stack-auth` (Authelia), then the rest. The backup service respects this via `STACK_PRIORITY` in `stack-ops/docker-backup/web.py`.
+`stack-infra` first (Traefik + AdGuard), then `stack-auth` (Authelia), then the rest. The backup service respects this via `STACK_PRIORITY` in `stack-ops/ops-worker/web.py`.
 
 ## Routing & Traefik
 
@@ -58,7 +57,7 @@ Non-Docker services (Synology apps, UniFi, UPS NMCs, iCloudPD on NAS) are routed
 
 ### Services that disable Traefik
 
-Backend-only services use `traefik.enable=false`. Services that only need intra-stack communication use the default network (e.g. `apcupsd`, `docker-backup`).
+Backend-only services use `traefik.enable=false`. Services that only need intra-stack communication use the default network (e.g. `apcupsd`, `ops-worker`).
 
 ## Networking
 
@@ -70,22 +69,22 @@ Backend-only services use `traefik.enable=false`. Services that only need intra-
 
 Two services use `image:` + `build:` in compose. `docker compose up -d` uses the cached image; pass `--build` only when source changes.
 
-| Image                  | Source                     | Stack       |
-| ---------------------- | -------------------------- | ----------- |
-| `apcupsd:latest`       | `stack-ops/apcupsd/`       | `stack-ops` |
-| `ops-dashboard:latest` | `stack-ops/ops-dashboard/` | `stack-ops` |
+| Image                 | Source                    | Stack       |
+| --------------------- | ------------------------- | ----------- |
+| `apcupsd:latest`      | `stack-ops/apcupsd/`      | `stack-ops` |
+| `ops-toolbox:latest`  | `stack-ops/ops-toolbox/`  | `stack-ops` |
 
 ### apcupsd
 
 Debian-slim container running apcupsd in SNMP mode against UPS NMC at `10.0.1.5`. Exposes NIS on port 3551. On critical battery, `doshutdown` script triggers host shutdown via D-Bus (`org.freedesktop.login1.Manager.PowerOff`). Requires `security_opt: apparmor:unconfined` and the host D-Bus socket mounted.
 
-### Ops Dashboard
+### ops-toolbox
 
-Flask app that serves as a unified web UI. Pure Python NIS client talks to apcupsd, and all backup/setup actions proxy to `docker-backup:8000`. The `docker-backup` container (bind-mounted `web.py`) does the actual work — the dashboard is stateless and can be rebuilt anytime without affecting running jobs.
+Flask app serving as an ops web UI (rarely-used toolbox, not a glance-at dashboard). Pure Python NIS client talks to apcupsd, and all backup/setup actions proxy to `ops-worker:8000`. Stateless — can be rebuilt anytime without affecting running jobs.
 
 ## Backup System
 
-`stack-ops/docker-backup/web.py` is bind-mounted (`:ro`) into an Alpine container. Restart the container to pick up changes (no rebuild needed). It provides:
+`stack-ops/ops-worker/web.py` is bind-mounted (`:ro`) into an Alpine container. Restart the container to pick up changes (no rebuild needed). It provides:
 
 - Hourly rsync via cron: `/srv/docker/` → NAS backup (via Docker NFS volume)
 - Flask API for manual backup/restore

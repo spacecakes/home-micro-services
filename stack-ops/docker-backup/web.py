@@ -9,7 +9,7 @@ import os
 app = Flask(__name__)
 LOG_FILE = "/var/log/backup.log"
 LOG_MAX_LINES = 5000
-SELF_CONTAINERS = {"docker-backup", "ops-dashboard"}
+SELF_CONTAINERS = {"ops-worker", "ops-toolbox"}
 EXCLUDES = [".git/", "temp/", "downloads/", ".DS_Store", "._*", "@eaDir", "logs/", "Logs/"]
 RSYNC_BASE = ["rsync", "-avh", "-l", "--delete"]
 STACK_PRIORITY = {"stack-infra": 0, "stack-auth": 1}

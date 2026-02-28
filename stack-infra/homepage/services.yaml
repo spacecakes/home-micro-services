@@ -242,10 +242,10 @@
         description: Home server system monitoring
         container: glances
         server: local-docker
-    - Ops Dashboard:
+    - Ops Toolbox:
         href: https://ops.lundmark.tech/
         description: Custom ops tools — UPS monitoring & Docker backups
-        container: ops-dashboard
+        container: ops-toolbox
         server: local-docker
 
 - Infrastructure:

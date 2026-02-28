@@ -2,9 +2,9 @@ x-common: &common
   restart: unless-stopped
 
 services:
-  docker-backup:
+  ops-worker:
     <<: *common
-    container_name: docker-backup
+    container_name: ops-worker
     image: alpine:latest
     entrypoint: /bin/sh
     command:
@@ -18,7 +18,7 @@ services:
     volumes:
       - /srv/docker:/source
       - nfs-backup-docker:/destination
-      - /srv/docker/stack-ops/docker-backup/web.py:/app/web.py:ro
+      - /srv/docker/stack-ops/ops-worker/web.py:/app/web.py:ro
       - /var/run/docker.sock:/var/run/docker.sock:ro
     labels:
       - 'traefik.enable=false'
@@ -39,18 +39,18 @@ services:
       - /srv/docker/stack-ops/apcupsd/apcupsd.conf:/etc/apcupsd/apcupsd.conf:ro
       - /run/dbus/system_bus_socket:/run/dbus/system_bus_socket
 
-  ops-dashboard:
+  ops-toolbox:
     <<: *common
-    container_name: ops-dashboard
-    image: ops-dashboard:latest
-    build: /srv/docker/stack-ops/ops-dashboard
+    container_name: ops-toolbox
+    image: ops-toolbox:latest
+    build: /srv/docker/stack-ops/ops-toolbox
     networks:
       - default
       - traefik-proxy
     labels:
-      - 'traefik.http.routers.ops-dashboard.rule=Host(`ops.lundmark.tech`)'
-      - 'traefik.http.routers.ops-dashboard.middlewares=authelia@file'
-      - 'traefik.http.services.ops-dashboard.loadbalancer.server.port=5000'
+      - 'traefik.http.routers.ops-toolbox.rule=Host(`ops.lundmark.tech`)'
+      - 'traefik.http.routers.ops-toolbox.middlewares=authelia@file'
+      - 'traefik.http.services.ops-toolbox.loadbalancer.server.port=5000'
       - 'traefik.docker.network=traefik-proxy'
 
   watchtower:
