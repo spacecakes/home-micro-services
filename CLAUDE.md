@@ -4,7 +4,7 @@ Update this file whenever changes are made so it is always up to date.
 
 ## Repository Overview
 
-Home server Docker infrastructure. ~40 containerized services across 9 compose stacks, reverse-proxied through Traefik with Authelia SSO, backed up hourly to a Synology NAS.
+Home server Docker infrastructure. ~45 containerized services across 8 compose stacks, reverse-proxied through Traefik with Authelia SSO, backed up hourly to a Synology NAS.
 
 Domain: `lundmark.tech` (wildcard TLS via Cloudflare DNS challenge).
 
@@ -91,7 +91,7 @@ Flask app serving as an ops web UI (rarely-used toolbox, not a glance-at dashboa
 
 ## Homepage Dashboard
 
-When adding or renaming a service, update `stack-infra/homepage/services.yaml`. Format:
+When adding or renaming a service, update `stack-infra/homepage/services.yaml` and `proxmox-notes.md` (the Proxmox LXC notes template — Markdown format, copy-paste into Proxmox notes field). Format:
 
 ```yaml
 - Service Name:
