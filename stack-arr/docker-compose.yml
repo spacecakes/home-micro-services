@@ -37,9 +37,9 @@ services:
     container_name: aurral
     image: ghcr.io/lklynet/aurral:latest
     environment:
-      - DOWNLOAD_FOLDER=/srv/docker/downloads
+      - DOWNLOAD_FOLDER=/mnt/downloads
     volumes:
-      - /srv/docker/downloads:/app/downloads
+      - /mnt/downloads:/app/downloads
       - /srv/docker/stack-arr/data/aurral:/app/backend/data
     labels:
       - 'traefik.docker.network=traefik-proxy'
@@ -59,7 +59,7 @@ services:
       - 'traefik.http.routers.sabnzbd.middlewares=authelia@file'
     volumes:
       - /srv/docker/stack-arr/data/sabnzbd:/config
-      - /srv/docker/downloads:/downloads
+      - /mnt/downloads:/downloads
       - nfs-downloads:/downloads-nas
       - nfs-media:/media
 
@@ -77,7 +77,7 @@ services:
       - '6881:6881/udp'
     volumes:
       - /srv/docker/stack-arr/data/qbittorrent:/config
-      - /srv/docker/downloads:/downloads
+      - /mnt/downloads:/downloads
       - nfs-downloads:/downloads-nas
       - nfs-media:/media
 
@@ -92,7 +92,7 @@ services:
       - 'traefik.http.routers.sonarr.middlewares=authelia@file'
     volumes:
       - /srv/docker/stack-arr/data/sonarr:/config
-      - /srv/docker/downloads:/downloads
+      - /mnt/downloads:/downloads
       - nfs-media:/media
     depends_on:
       - prowlarr
@@ -110,7 +110,7 @@ services:
       - 'traefik.http.routers.radarr.middlewares=authelia@file'
     volumes:
       - /srv/docker/stack-arr/data/radarr:/config
-      - /srv/docker/downloads:/downloads
+      - /mnt/downloads:/downloads
       - nfs-media:/media
     depends_on:
       - prowlarr
@@ -140,7 +140,7 @@ services:
       - 'traefik.http.routers.lidarr.middlewares=authelia@file'
     volumes:
       - /srv/docker/stack-arr/data/lidarr:/config
-      - /srv/docker/downloads:/downloads
+      - /mnt/downloads:/downloads
       - nfs-music:/music
     depends_on:
       - prowlarr
@@ -159,7 +159,7 @@ services:
       - 'traefik.http.routers.nzbhydra.middlewares=authelia@file'
     volumes:
       - /srv/docker/stack-arr/data/nzbhydra:/config
-      - /srv/docker/downloads:/downloads
+      - /mnt/downloads:/downloads
       - nfs-downloads:/downloads-nas
       - nfs-media:/media
 
