@@ -136,6 +136,13 @@ http:
         - authelia
       service: unifi
 
+    # OpenClaw AI assistant VM
+    openclaw:
+      rule: 'Host(`bot.lundmark.tech`)'
+      middlewares:
+        - authelia
+      service: openclaw
+
     # APC UPS
     apcups1:
       rule: 'Host(`ups1.lundmark.tech`)'
@@ -197,6 +204,12 @@ http:
       loadBalancer:
         servers:
           - url: 'http://10.0.1.7:8123'
+        passHostHeader: true
+
+    openclaw:
+      loadBalancer:
+        servers:
+          - url: 'http://10.0.1.9:18789'
         passHostHeader: true
 
     proxmox:

@@ -50,6 +50,7 @@ Non-Docker services (Synology apps, UniFi, UPS NMCs, iCloudPD on NAS) are routed
 - `icloudpd/icloudpd-shared.lundmark.tech` → NAS `10.0.1.2:8080/8081`
 - `dns2.lundmark.tech` → NAS AdGuard `10.0.1.2:3000`
 - `home.lundmark.tech` → Home Assistant OS VM `10.0.1.7:8123`
+- `bot.lundmark.tech` → OpenClaw AI assistant VM `10.0.1.9:18789`
 - `proxmox.lundmark.tech` → Proxmox `10.0.1.3:8006`
 
 ### Authelia middleware

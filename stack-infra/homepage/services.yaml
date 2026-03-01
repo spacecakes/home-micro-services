@@ -102,6 +102,11 @@
         description: HomeKit bridge for non-Apple devices
         container: homebridge
         server: local-docker
+    - OpenClaw:
+        icon: openclaw.png
+        href: https://bot.lundmark.tech/?token={{HOMEPAGE_VAR_OPENCLAW_TOKEN}}
+        description: Personal AI assistant
+        siteMonitor: https://bot.lundmark.tech/
 
 - Media & Entertainment:
     - Plex:
