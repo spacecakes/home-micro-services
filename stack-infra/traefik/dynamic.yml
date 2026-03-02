@@ -121,7 +121,7 @@ http:
 
     # Proxmox (no authelia middleware - Proxmox handles auth itself via OIDC)
     proxmox:
-      rule: 'Host(`proxmox.lundmark.tech`)'
+      rule: 'Host(`hypervisor.lundmark.tech`)'
       service: proxmox
 
     # Home Assistant OS VM (no authelia - HA handles auth itself)

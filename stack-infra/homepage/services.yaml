@@ -220,9 +220,9 @@
     - Dockge:
         icon: dockge.png
         href: https://stacks.lundmark.tech/
-        description: Docker stack management & monitoring
+        description: Dhypervisor.lundmark.techt & monitoring
         container: dockge
-        server: local-docker
+        server: local-dockerhypervisor.lundmark.tech
     - Proxmox:
         icon: proxmox.png
         href: https://proxmox.lundmark.tech/

@@ -51,7 +51,7 @@ Non-Docker services (Synology apps, UniFi, UPS NMCs, iCloudPD on NAS) are routed
 - `dns2.lundmark.tech` → NAS AdGuard `10.0.1.2:3000`
 - `home.lundmark.tech` → Home Assistant OS VM `10.0.1.7:8123`
 - `bot.lundmark.tech` → OpenClaw AI assistant VM `10.0.1.9:18789`
-- `proxmox.lundmark.tech` → Proxmox `10.0.1.3:8006`
+- `hypervisor.lundmark.tech` → Proxmox `10.0.1.3:8006`
 
 ### Authelia middleware
 
@@ -71,10 +71,10 @@ Backend-only services use `traefik.enable=false`. Services that only need intra-
 
 Two services use `image:` + `build:` in compose. `docker compose up -d` uses the cached image; pass `--build` only when source changes.
 
-| Image                 | Source                    | Stack       |
-| --------------------- | ------------------------- | ----------- |
-| `apcupsd:latest`      | `stack-ops/apcupsd/`      | `stack-ops` |
-| `ops-toolbox:latest`  | `stack-ops/ops-toolbox/`  | `stack-ops` |
+| Image                | Source                   | Stack       |
+| -------------------- | ------------------------ | ----------- |
+| `apcupsd:latest`     | `stack-ops/apcupsd/`     | `stack-ops` |
+| `ops-toolbox:latest` | `stack-ops/ops-toolbox/` | `stack-ops` |
 
 ### apcupsd
 
