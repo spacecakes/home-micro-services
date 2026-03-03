@@ -105,6 +105,7 @@ services:
       HOMEPAGE_ALLOWED_HOSTS: 'lundmark.tech'
       HOMEPAGE_VAR_UNIFI_PASSWORD: ${HOMEPAGE_UNIFI_PASSWORD}
       HOMEPAGE_VAR_OPENCLAW_TOKEN: ${HOMEPAGE_OPENCLAW_TOKEN}
+      HOMEPAGE_VAR_PROXMOX_TOKEN: ${HOMEPAGE_PROXMOX_TOKEN}
     labels:
       - 'traefik.http.routers.homepage.rule=Host(`lundmark.tech`)'
       - 'traefik.http.routers.homepage.middlewares=authelia@file'

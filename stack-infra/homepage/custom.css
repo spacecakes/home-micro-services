@@ -1,0 +1,17 @@
+/* Larger icons for the Favorites row */
+.services-group:first-of-type a {
+    width: auto !important;
+}
+.services-group:first-of-type img {
+    width: 54px !important;
+    height: 54px !important;
+}
+.services-group:first-of-type li div > div {
+    padding: 8px;
+}
+.services-group:first-of-type .service-title {
+    justify-content: center !important;
+}
+.services-group:first-of-type a + a{
+    flex: unset !important;
+}

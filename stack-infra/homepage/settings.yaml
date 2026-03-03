@@ -1,10 +1,16 @@
 ---
 # For configuration options and examples, please see:
 # https://gethomepage.dev/configs/settings/
+title: Gabriel's micro services
 
 providers:
   openweathermap: openweathermapapikey
   weatherapi: weatherapiapikey
+
+quicklaunch:
+  # hideInternetSearch: true
+  # hideVisitURL: true
+  provider: google
 
 cardBlur: md
 useEqualHeights: true
@@ -12,48 +18,38 @@ headerStyle: clean
 target: _self
 statusStyle: 'dot'
 hideErrors: true
-title: Gabriel's micro services
-quicklaunch:
-  # hideInternetSearch: true
-  # hideVisitURL: true
-provider: google
+
 # background:
 #   image: https://images.unsplash.com/photo-1475924156734-496f6cac6ec1?ixid=M3w1MjQwNDl8MHwxfHNlYXJjaHw5fHxiZWFjaHxlbnwwfDB8fHwxNzU5MDg1MjgxfDA&ixlib=rb-4.1.0
-#   blur: xs # sm, "", md, xl... see https://tailwindcss.com/docs/backdrop-blur
+#   blur: md # sm, "", md, xl... see https://tailwindcss.com/docs/backdrop-blur
 
 layout:
-  Storage & Files:
+  Favorites:
+    tab: Services
     style: row
-    columns: 3
-
-  Network & DNS:
+    columns: 6
+    disableCollapse: true
+    header: false
+  Home:
+    tab: Services
     style: row
     columns: 4
-
   Photos:
+    tab: Services
     style: row
     columns: 3
-
-  Home Automation:
+  Media:
+    tab: Services
     style: row
     columns: 3
-
-  Media & Entertainment:
-    style: row
-    columns: 4
-
-  Media Automation:
-    style: row
-    columns: 5
-
-  Downloads & Indexers:
-    style: row
-    columns: 4
-
-  Monitoring & Management:
-    style: row
-    columns: 4
-
+  Downloads:
+    tab: Services
+    initiallyCollapsed: true
+  Storage:
+    tab: Admin
+  Network:
+    tab: Admin
+  Monitoring:
+    tab: Admin
   Infrastructure:
-    style: row
-    columns: 4
+    tab: Admin

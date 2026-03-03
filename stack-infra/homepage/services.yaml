@@ -2,113 +2,27 @@
 # For configuration options and examples, please see:
 # https://gethomepage.dev/configs/services/
 
-- Storage & Files:
-    - DSM (homecloud):
+- Favorites:
+    - PVE:
+        icon: proxmox.png
+        href: https://hypervisor.lundmark.tech/
+    - Homecloud:
         icon: /icons/synology-dsm.png
         href: https://dsm.lundmark.tech/
-        description: On-site NAS management
-        siteMonitor: https://dsm.lundmark.tech/
-    - DSM (offsite):
+    - Offsite:
         icon: /icons/synology-dsm.png
         href: https://offsite.lemming-escalator.ts.net/
-        description: Off-site NAS management
-    - File Browser:
-        icon: filebrowser.png
-        href: https://files-server.lundmark.tech/
-        description: File explorer for the home server
-        container: filebrowser
-        server: local-docker
-    - Synology Drive:
-        icon: /icons/synology-drive.png
-        href: https://drive.lundmark.tech/
-        description: Personal file sync across devices
-        siteMonitor: https://drive.lundmark.tech/
-    - File Station:
-        icon: /icons/synology-file-station.png
-        href: https://files-nas.lundmark.tech/
-        description: File explorer for the on-site NAS
-        siteMonitor: https://files-nas.lundmark.tech/
-    - Active Backup for Business:
-        icon: /icons/synology-abb.png
-        href: https://backup.lundmark.tech/
-        description: Client restore portal for backups
-        siteMonitor: https://backup.lundmark.tech/
-
-- Network & DNS:
-    - UniFi Controller:
+    - UniFi:
         icon: unifi.png
         href: https://network.lundmark.tech/
-        description: Network & WiFi management
-        siteMonitor: https://network.lundmark.tech/
-    - 'AdGuard Home #1':
-        icon: /icons/adguard-home.png
-        href: https://dns1.lundmark.tech/
-        description: Primary DNS — ad blocking & filtering
-        container: adguardhome
-        server: local-docker
-    - 'AdGuard Home #2':
-        icon: /icons/adguard-home.png
-        href: https://dns2.lundmark.tech/
-        description: Secondary DNS — synced with primary
-        siteMonitor: https://dns2.lundmark.tech/
-    - AdGuard Home Sync:
-        icon: /icons/adguard-home-sync.svg
-        href: https://dns-sync.lundmark.tech
-        description: Keeps AdGuard Home instances in sync
-        container: adguardhome-sync
-        server: local-docker
-    - OpenSpeedTest:
-        icon: openspeedtest.png
-        href: https://speedtest.lundmark.tech/
-        description: Internet speed test
-        container: openspeedtest
-        server: local-docker
-
-- Photos:
-    - Immich:
-        icon: immich.png
-        href: https://photos.lundmark.tech/
-        description: Photos & album
-        container: immich_server
-        server: local-docker
-    - iCloudPD:
-        icon: icloud.png
-        href: https://icloudpd.lundmark.tech/
-        description: Personal iCloud photo backup
-        container: icloudpd
-        server: homecloud-docker
-    - iCloudPD (Shared):
-        icon: icloud.png
-        href: https://icloudpd-shared.lundmark.tech/
-        description: Shared iCloud library backup
-        container: icloudpd-shared
-        server: homecloud-docker
-
-- Home Automation:
-    - Home Assistant:
+    - HaOS:
         icon: /icons/home-assistant.png
         href: https://home.lundmark.tech/
-        description: Smart home automation hub
-        siteMonitor: https://home.lundmark.tech/
-    - Scrypted:
-        icon: scrypted.png
-        href: https://cameras.lundmark.tech/
-        description: Integrates cameras with HomeKit & HA
-        container: scrypted
-        server: local-docker
-    - Homebridge:
-        icon: homebridge.png
-        href: https://homebridge.lundmark.tech/
-        description: HomeKit bridge for non-Apple devices
-        container: homebridge
-        server: local-docker
-    - OpenClaw:
-        icon: openclaw.png
-        href: https://bot.lundmark.tech/?token={{HOMEPAGE_VAR_OPENCLAW_TOKEN}}
-        description: Personal AI assistant
-        siteMonitor: https://bot.lundmark.tech/
+    - Seerr:
+        icon: overseerr.png
+        href: https://requests.lundmark.tech/
 
-- Media & Entertainment:
+- Media:
     - Plex:
         icon: plex.png
         href: https://watch.lundmark.tech/
@@ -121,10 +35,6 @@
         description: Request & discover movies/TV shows for Plex
         container: seerr
         server: local-docker
-        # widget:
-        #   type: overseerr
-        #   url: http://seerr:5055
-        #   key: MTc0MDA4NDk3OTAxNGQ0NzY3NWQ0LTVjZTEtNDAyZi04MzE1LWYxZDljN2NmMGY3MQ==
     - Aurral:
         icon: /icons/aurral.svg
         href: https://request-music.lundmark.tech/
@@ -137,8 +47,6 @@
         description: Plex monitoring & analytics
         container: tautulli
         server: local-docker
-
-- Media Automation:
     - Sonarr:
         icon: sonarr.png
         href: https://tv.lundmark.tech/
@@ -170,17 +78,13 @@
         container: handbrake
         server: local-docker
 
-- Downloads & Indexers:
+- Downloads:
     - SABnzbd:
         icon: sabnzbd.png
         href: https://usenet.lundmark.tech/
         description: Usenet downloader for *arr apps
         container: sabnzbd
         server: local-docker
-        # widget:
-        #   type: sabnzbd
-        #   url: http://sabnzbd:8080
-        #   key: ec47452ce1faf0bf61df30ddd986593d
     - qBittorrent:
         icon: qbittorrent.png
         href: https://torrents.lundmark.tech/
@@ -191,10 +95,6 @@
         icon: prowlarr.png
         href: https://indexers.lundmark.tech/
         description: Indexer manager - sync sources to all *arr apps
-        # widget:
-        #   type: prowlarr
-        #   url: http://prowlarr:9696
-        #   key: 5bc908a2bc8b471bb0d31ee60c0596e7
         container: prowlarr
         server: local-docker
     - NZBHydra2:
@@ -204,41 +104,119 @@
         container: nzbhydra
         server: local-docker
 
-- Monitoring & Management:
+- Home:
+    - Home Assistant OS:
+        icon: /icons/home-assistant.png
+        href: https://home.lundmark.tech/
+        description: Smart home automation hub
+        siteMonitor: https://home.lundmark.tech/
+    - Scrypted:
+        icon: scrypted.png
+        href: https://cameras.lundmark.tech/
+        description: Integrates cameras with HomeKit & HA
+        container: scrypted
+        server: local-docker
+    - Homebridge:
+        icon: homebridge.png
+        href: https://homebridge.lundmark.tech/
+        description: HomeKit bridge for non-Apple devices
+        container: homebridge
+        server: local-docker
+    - OpenClaw:
+        icon: openclaw.png
+        href: https://bot.lundmark.tech/?token={{HOMEPAGE_VAR_OPENCLAW_TOKEN}}
+        description: Personal AI assistant
+        siteMonitor: https://bot.lundmark.tech/
+
+- Photos:
+    - Immich:
+        icon: immich.png
+        href: https://photos.lundmark.tech/
+        description: Photos & album
+        container: immich_server
+        server: local-docker
+    - iCloudPD:
+        icon: icloud.png
+        href: https://icloudpd.lundmark.tech/
+        description: Personal iCloud photo backup
+        container: icloudpd
+        server: homecloud-docker
+    - iCloudPD (Shared):
+        icon: icloud.png
+        href: https://icloudpd-shared.lundmark.tech/
+        description: Shared iCloud library backup
+        container: icloudpd-shared
+        server: homecloud-docker
+
+- Storage:
+    - DSM (homecloud):
+        icon: /icons/synology-dsm.png
+        href: https://dsm.lundmark.tech/
+        description: On-site NAS management
+        siteMonitor: https://dsm.lundmark.tech/
+    - DSM (offsite):
+        icon: /icons/synology-dsm.png
+        href: https://offsite.lemming-escalator.ts.net/
+        description: Off-site NAS management
+    - File Browser:
+        icon: filebrowser.png
+        href: https://files-server.lundmark.tech/
+        description: File explorer for the home server
+        container: filebrowser
+        server: local-docker
+    - Synology Drive:
+        icon: /icons/synology-drive.png
+        href: https://drive.lundmark.tech/
+        description: Personal file sync across devices
+        siteMonitor: https://drive.lundmark.tech/
+    - File Station:
+        icon: /icons/synology-file-station.png
+        href: https://files-nas.lundmark.tech/
+        description: File explorer for the on-site NAS
+        siteMonitor: https://files-nas.lundmark.tech/
+    - Active Backup for Business:
+        icon: /icons/synology-abb.png
+        href: https://backup.lundmark.tech/
+        description: Client restore portal for backups
+        siteMonitor: https://backup.lundmark.tech/
+
+- Network:
+    - UniFi Controller:
+        icon: unifi.png
+        href: https://network.lundmark.tech/
+        description: Network & WiFi management
+        siteMonitor: https://network.lundmark.tech/
+    - 'AdGuard Home #1':
+        icon: /icons/adguard-home.png
+        href: https://dns1.lundmark.tech/
+        description: Primary DNS — ad blocking & filtering
+        container: adguardhome
+        server: local-docker
+    - 'AdGuard Home #2':
+        icon: /icons/adguard-home.png
+        href: https://dns2.lundmark.tech/
+        description: Secondary DNS — synced with primary
+        siteMonitor: https://dns2.lundmark.tech/
+    - AdGuard Home Sync:
+        icon: /icons/adguard-home-sync.svg
+        href: https://dns-sync.lundmark.tech
+        description: Keeps AdGuard Home instances in sync
+        container: adguardhome-sync
+        server: local-docker
+    - OpenSpeedTest:
+        icon: openspeedtest.png
+        href: https://speedtest.lundmark.tech/
+        description: Internet speed test
+        container: openspeedtest
+        server: local-docker
+
+- Monitoring:
     - Uptime Kuma:
         icon: uptime-kuma.png
         href: https://status.lundmark.tech/
         description: Service uptime monitoring & status dashboard
         container: uptime-kuma
         server: local-docker
-    - Portainer:
-        icon: portainer.png
-        href: https://containers.lundmark.tech/
-        description: Docker container management & monitoring
-        container: portainer
-        server: local-docker
-    - Dockge:
-        icon: dockge.png
-        href: https://stacks.lundmark.tech/
-        description: Dhypervisor.lundmark.techt & monitoring
-        container: dockge
-        server: local-dockerhypervisor.lundmark.tech
-    - Proxmox:
-        icon: proxmox.png
-        href: https://proxmox.lundmark.tech/
-        description: Virtual machine & container hypervisor
-        siteMonitor: https://proxmox.lundmark.tech/
-        # widget:
-        #   type: proxmox
-        #   url: https://10.0.1.4:8006
-        #   username: api@pam!homepage
-        #   password: {{HOMEPAGE_VAR_PROXMOX_TOKEN}}
-        #   node: proxmox
-    - Synology VMM:
-        icon: /icons/synology-vmm.png
-        href: https://vm.lundmark.tech/
-        siteMonitor: https://vm.lundmark.tech/
-        description: Virtual machine hosting & management
     - Glances:
         icon: glances.png
         href: https://glances.lundmark.tech/
@@ -250,8 +228,46 @@
         description: Custom ops tools — UPS monitoring & Docker backups
         container: ops-toolbox
         server: local-docker
+    - APC UPS (Rack):
+        icon: /icons/apc.svg
+        href: https://ups1.lundmark.tech/
+        description: Backbone rack UPS monitoring & management
+        siteMonitor: https://ups1.lundmark.tech/
+    - APC UPS (Desktop):
+        icon: /icons/apc.svg
+        href: https://ups2.lundmark.tech/
+        description: Desktop UPS monitoring & management
+        siteMonitor: https://ups2.lundmark.tech/
 
 - Infrastructure:
+    - Portainer:
+        icon: portainer.png
+        href: https://containers.lundmark.tech/
+        description: Docker container management & monitoring
+        container: portainer
+        server: local-docker
+    - Dockge:
+        icon: dockge.png
+        href: https://stacks.lundmark.tech/
+        description: Docker compose stack management & monitoring
+        container: dockge
+        server: local-docker
+    - Proxmox:
+        icon: proxmox.png
+        href: https://hypervisor.lundmark.tech/
+        description: Virtual machine & container hypervisor
+        siteMonitor: https://hypervisor.lundmark.tech/
+        # widget:
+        #     type: proxmox
+        #     url: https://10.0.1.3:8006
+        #     username: api@pve!homepage
+        #     password: '{{HOMEPAGE_VAR_PROXMOX_TOKEN}}'
+        #     node: pve
+    - Synology VMM:
+        icon: /icons/synology-vmm.png
+        href: https://vm.lundmark.tech/
+        description: Virtual machine hosting & management
+        siteMonitor: https://vm.lundmark.tech/
     - Traefik:
         icon: traefik.png
         href: https://proxy.lundmark.tech/
@@ -264,13 +280,3 @@
         description: Single sign-on & 2FA for all services
         container: authelia
         server: local-docker
-    - APC UPS (Rack):
-        icon: /icons/apc.svg
-        href: https://ups1.lundmark.tech/
-        description: Backbone rack UPS monitoring & management
-        siteMonitor: https://ups1.lundmark.tech/
-    - APC UPS (Desktop):
-        icon: /icons/apc.svg
-        href: https://ups2.lundmark.tech/
-        description: Desktop UPS monitoring & management
-        siteMonitor: https://ups2.lundmark.tech/
