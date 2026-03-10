@@ -2,27 +2,6 @@ x-common: &common
   restart: unless-stopped
 
 services:
-  ops-worker:
-    <<: *common
-    container_name: ops-worker
-    image: alpine:latest
-    entrypoint: /bin/sh
-    command:
-      - -c
-      - |
-        apk add --no-cache rsync py3-pip docker-cli docker-cli-compose curl > /dev/null
-        pip install --break-system-packages flask > /dev/null
-        echo '0 * * * * curl -sX POST http://localhost:8000/run' | crontab -
-        crond -l 2
-        python3 /app/web.py
-    volumes:
-      - /srv/docker:/source
-      - nfs-backup-docker:/destination
-      - /srv/docker/stack-ops/ops-worker/web.py:/app/web.py:ro
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-    labels:
-      - 'traefik.enable=false'
-
   # Rack UPS monitoring (APC NMC via SNMP, triggers host shutdown on critical battery)
   apcupsd:
     <<: *common
@@ -58,13 +37,19 @@ services:
     container_name: ops-toolbox
     image: ops-toolbox:latest
     build: ./ops-toolbox
+    command: /bin/sh -c "echo '0 * * * * curl -sX POST http://localhost:8000/backup/run' | crontab - && crond -l 2 && python3 /app/app.py"
     networks:
       - default
       - traefik-proxy
+    volumes:
+      - /srv/docker:/source
+      - nfs-backup-docker:/destination
+      - /srv/docker/stack-ops/ops-toolbox/app.py:/app/app.py:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
     labels:
-      - 'traefik.http.routers.ops-toolbox.rule=Host(`ops.lundmark.tech`)'
-      - 'traefik.http.routers.ops-toolbox.middlewares=authelia@file'
-      - 'traefik.http.services.ops-toolbox.loadbalancer.server.port=5000'
+      - 'traefik.http.routers.ops.rule=Host(`ops.lundmark.tech`)'
+      - 'traefik.http.routers.ops.middlewares=authelia@file'
+      - 'traefik.http.services.ops.loadbalancer.server.port=8000'
       - 'traefik.docker.network=traefik-proxy'
 
   watchtower:

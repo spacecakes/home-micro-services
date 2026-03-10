@@ -1,11 +1,14 @@
-FROM python:3-slim
+FROM node:22-alpine AS frontend
+WORKDIR /build
+COPY frontend/package.json frontend/package-lock.json ./
+RUN npm ci
+COPY frontend/ .
+RUN npm run build
 
+FROM alpine:latest
+RUN apk add --no-cache rsync python3 py3-pip docker-cli docker-cli-compose curl \
+    && pip install --break-system-packages flask
+COPY --from=frontend /build/dist /app/dist
 WORKDIR /app
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
 
-COPY app.py .
-
-EXPOSE 5000
-
-CMD ["python", "app.py"]
+EXPOSE 8000

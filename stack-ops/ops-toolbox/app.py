@@ -1,16 +1,83 @@
-from flask import Flask, request, jsonify
+import os
+import re
+import glob
 import socket
 import struct
-import requests as http_requests
+import subprocess
+import threading
+import datetime
+from flask import Flask, request, jsonify, send_from_directory
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder="dist", static_url_path="")
 
-BACKUP_API = "http://ops-worker:8000"
+LOG_FILE = "/var/log/backup.log"
+LOG_MAX_LINES = 5000
+SELF_CONTAINERS = {"ops-toolbox"}
+EXCLUDES = [".git/", "temp/", "downloads/", ".DS_Store", "._*", "@eaDir", "logs/", "Logs/"]
+RSYNC_BASE = ["rsync", "-avh", "-l", "--delete"]
+STACK_PRIORITY = {"stack-infra": 0, "stack-auth": 1}
 
 UPS_INSTANCES = {
     "rack":    {"host": "apcupsd",  "port": 3551},
     "desktop": {"host": "apcupsd2", "port": 3551},
 }
+
+running = False
+action = ""
+last_backup_cache = None
+
+
+# ---------------------------------------------------------------------------
+# Utilities
+# ---------------------------------------------------------------------------
+
+def _now():
+    return datetime.datetime.now().astimezone().isoformat(timespec="seconds")
+
+
+def _exclude_args():
+    args = []
+    for e in EXCLUDES:
+        args.extend(["--exclude", e])
+    return args
+
+
+def _read_log(tail=200):
+    if not os.path.exists(LOG_FILE):
+        return ""
+    with open(LOG_FILE) as f:
+        lines = f.readlines()
+        return "".join(lines[-tail:])
+
+
+def _init_last_backup_cache():
+    global last_backup_cache
+    if not os.path.exists(LOG_FILE):
+        return
+    with open(LOG_FILE) as f:
+        content = f.read()
+    matches = re.findall(r"==== Backup completed at (.+?) ====", content)
+    if matches:
+        last_backup_cache = matches[-1]
+
+
+def _truncate_log():
+    if not os.path.exists(LOG_FILE):
+        return
+    with open(LOG_FILE, "r+") as f:
+        lines = f.readlines()
+        if len(lines) > LOG_MAX_LINES:
+            f.seek(0)
+            f.writelines(lines[-LOG_MAX_LINES:])
+            f.truncate()
+
+
+def _rsync(src, dst, f, dry_run=False):
+    cmd = RSYNC_BASE + _exclude_args()
+    if dry_run:
+        cmd.append("--dry-run")
+    cmd += [src, dst]
+    subprocess.run(cmd, stdout=f, stderr=f)
 
 
 # ---------------------------------------------------------------------------
@@ -23,7 +90,6 @@ def query_apcupsd(host="apcupsd", port=3551):
     sock.settimeout(5)
     try:
         sock.connect((host, port))
-
         cmd = b"status"
         sock.send(struct.pack("!H", len(cmd)) + cmd)
 
@@ -42,7 +108,6 @@ def query_apcupsd(host="apcupsd", port=3551):
             if ":" in line:
                 key, _, value = line.partition(":")
                 result[key.strip()] = value.strip()
-
         return {"ok": True, "data": result}
     except Exception as e:
         return {"ok": False, "error": str(e)}
@@ -51,7 +116,6 @@ def query_apcupsd(host="apcupsd", port=3551):
 
 
 def _recv_exact(sock, n):
-    """Read exactly n bytes from socket."""
     buf = b""
     while len(buf) < n:
         chunk = sock.recv(n - len(buf))
@@ -62,36 +126,129 @@ def _recv_exact(sock, n):
 
 
 # ---------------------------------------------------------------------------
-# Backup API proxy
+# Background operations
 # ---------------------------------------------------------------------------
 
-def proxy_backup_get(path):
-    try:
-        r = http_requests.get(f"{BACKUP_API}{path}", timeout=10)
-        return r.json(), r.status_code
-    except Exception as e:
-        return {"error": str(e)}, 502
+def run_backup(dry_run=False):
+    global running, action, last_backup_cache
+    running = True
+    label = "Backup dry-run" if dry_run else "Backup"
+    action = "backup-dry" if dry_run else "backup"
+    with open(LOG_FILE, "a") as f:
+        def log(msg):
+            f.write(msg + "\n")
+            f.flush()
+        log(f"==== {label} started at {_now()} ====")
+        _rsync("/source/", "/destination/", f, dry_run=dry_run)
+        ts = _now()
+        log(f"==== {label} completed at {ts} ====")
+        log("")
+        if not dry_run:
+            last_backup_cache = ts
+    _truncate_log()
+    running = False
+    action = ""
 
 
-def proxy_backup_post(path, query_string=""):
-    try:
-        url = f"{BACKUP_API}{path}"
-        if query_string:
-            url += f"?{query_string}"
-        r = http_requests.post(url, timeout=10)
-        return r.text, r.status_code
-    except Exception as e:
-        return str(e), 502
+def _compose_up_stacks(f, log):
+    subprocess.run(
+        ["docker", "network", "create", "traefik-proxy"],
+        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
+    )
+    compose_files = glob.glob("/source/stack-*/docker-compose.yml")
+    compose_files.sort(key=lambda p: (
+        STACK_PRIORITY.get(os.path.basename(os.path.dirname(p)), 99),
+        os.path.basename(os.path.dirname(p))
+    ))
+    for compose_file in compose_files:
+        stack = os.path.basename(os.path.dirname(compose_file))
+        if stack == "stack-ops":
+            continue
+        log(f"Starting {stack}...")
+        subprocess.run(
+            ["docker", "compose", "-f", compose_file, "up", "-d"],
+            stdout=f, stderr=f
+        )
+
+
+def run_restore(dry_run=False):
+    global running, action
+    running = True
+    action = "restore-dry" if dry_run else "restore"
+    with open(LOG_FILE, "a") as f:
+        def log(msg):
+            f.write(msg + "\n")
+            f.flush()
+        label = "Restore dry-run" if dry_run else "Restore"
+        log(f"==== {label} started at {_now()} ====")
+        if not dry_run:
+            result = subprocess.run(
+                ["docker", "ps", "--format", "{{.Names}}"],
+                capture_output=True, text=True
+            )
+            all_containers = [c.strip() for c in result.stdout.strip().split("\n") if c.strip()]
+            to_stop = [c for c in all_containers if c not in SELF_CONTAINERS]
+            if to_stop:
+                log(f"Stopping containers: {', '.join(to_stop)}")
+                subprocess.run(["docker", "stop"] + to_stop, stdout=f, stderr=f)
+            else:
+                log("No other containers to stop")
+        log("Restoring files from NAS backup..." + (" (dry-run)" if dry_run else ""))
+        _rsync("/destination/", "/source/", f, dry_run=dry_run)
+        log(f"==== {label} completed at {_now()} ====")
+        log("")
+    _truncate_log()
+    running = False
+    action = ""
+
+
+def run_stop_all():
+    global running, action
+    running = True
+    action = "stop-all"
+    with open(LOG_FILE, "a") as f:
+        def log(msg):
+            f.write(msg + "\n")
+            f.flush()
+        log(f"==== Stop all started at {_now()} ====")
+        result = subprocess.run(
+            ["docker", "ps", "--format", "{{.Names}}"],
+            capture_output=True, text=True
+        )
+        all_containers = [c.strip() for c in result.stdout.strip().split("\n") if c.strip()]
+        to_stop = [c for c in all_containers if c not in SELF_CONTAINERS]
+        if to_stop:
+            log(f"Stopping containers: {', '.join(to_stop)}")
+            subprocess.run(["docker", "stop"] + to_stop, stdout=f, stderr=f)
+        else:
+            log("No other containers to stop")
+        log(f"==== Stop all completed at {_now()} ====")
+        log("")
+    _truncate_log()
+    running = False
+    action = ""
+
+
+def run_start_all():
+    global running, action
+    running = True
+    action = "start-all"
+    with open(LOG_FILE, "a") as f:
+        def log(msg):
+            f.write(msg + "\n")
+            f.flush()
+        log(f"==== Start all started at {_now()} ====")
+        _compose_up_stacks(f, log)
+        log(f"==== Start all completed at {_now()} ====")
+        log("")
+    _truncate_log()
+    running = False
+    action = ""
 
 
 # ---------------------------------------------------------------------------
-# Routes
+# API routes — UPS
 # ---------------------------------------------------------------------------
-
-@app.route("/")
-def index():
-    return TEMPLATE
-
 
 @app.route("/api/ups")
 def api_ups():
@@ -103,449 +260,92 @@ def api_ups2():
     return jsonify(query_apcupsd(**UPS_INSTANCES["desktop"]))
 
 
+# ---------------------------------------------------------------------------
+# API routes — Backup & containers
+# ---------------------------------------------------------------------------
+
 @app.route("/api/backup")
 def api_backup():
-    data, status = proxy_backup_get("/api/status")
-    return jsonify(data), status
+    return jsonify(
+        running=running,
+        action=action,
+        log=_read_log(),
+        last_backup=last_backup_cache
+    )
 
 
 @app.route("/backup/run", methods=["POST"])
 def backup_run():
-    text, status = proxy_backup_post("/run", request.query_string.decode())
-    return text, status
+    if not running:
+        dry = request.args.get("dry") == "1"
+        threading.Thread(target=run_backup, args=(dry,), daemon=True).start()
+    return "ok"
 
 
 @app.route("/backup/restore", methods=["POST"])
 def backup_restore():
-    text, status = proxy_backup_post("/restore", request.query_string.decode())
-    return text, status
+    if not running:
+        dry = request.args.get("dry") == "1"
+        threading.Thread(target=run_restore, args=(dry,), daemon=True).start()
+    return "ok"
 
 
 @app.route("/backup/clear-log", methods=["POST"])
 def backup_clear_log():
-    text, status = proxy_backup_post("/clear-log")
-    return text, status
+    global last_backup_cache
+    if os.path.exists(LOG_FILE):
+        with open(LOG_FILE, "w"):
+            pass
+    last_backup_cache = None
+    return "ok"
 
 
 @app.route("/containers/stop-all", methods=["POST"])
 def containers_stop_all():
-    text, status = proxy_backup_post("/stop-all")
-    return text, status
+    if not running:
+        threading.Thread(target=run_stop_all, daemon=True).start()
+    return "ok"
 
 
 @app.route("/containers/start-all", methods=["POST"])
 def containers_start_all():
-    text, status = proxy_backup_post("/start-all")
-    return text, status
+    if not running:
+        threading.Thread(target=run_start_all, daemon=True).start()
+    return "ok"
 
 
 @app.route("/api/test-shutdown", methods=["POST"])
 def test_shutdown():
     try:
-        r = http_requests.post(f"{BACKUP_API}/test-shutdown", timeout=15)
-        return jsonify(r.json()), r.status_code
+        result = subprocess.run(
+            ["docker", "exec", "apcupsd", "dbus-send", "--system", "--print-reply",
+             "--dest=org.freedesktop.login1",
+             "/org/freedesktop/login1",
+             "org.freedesktop.login1.Manager.CanPowerOff"],
+            capture_output=True, text=True, timeout=10
+        )
+        output = result.stdout + result.stderr
+        if result.returncode == 0 and 'string "yes"' in output:
+            return jsonify(ok=True, message="D-Bus shutdown path is working")
+        else:
+            return jsonify(ok=False, message=output.strip() or "Unknown error")
     except Exception as e:
-        return jsonify(ok=False, message=str(e)), 502
+        return jsonify(ok=False, message=str(e))
 
 
 # ---------------------------------------------------------------------------
-# HTML template
+# SPA catch-all (serves Vue build from dist/)
 # ---------------------------------------------------------------------------
 
-TEMPLATE = """<!DOCTYPE html>
-<html>
-<head>
-<title>Ops Dashboard</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<style>
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { font-family: -apple-system, system-ui, sans-serif; background: #0d1117; color: #c9d1d9; padding: 2rem; }
-  h1 { font-size: 1.4rem; margin-bottom: 1rem; }
-  h2 { font-size: 1.1rem; display: inline; margin-right: 0.6rem; }
-
-  .dashboard { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
-  .panel { background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 1.5rem; }
-  .panel-wide { grid-column: 1 / -1; }
-
-  .status { display: inline-block; padding: 0.2rem 0.6rem; border-radius: 4px; font-size: 0.75rem; vertical-align: middle; }
-  .idle { background: #238636; }
-  .active { background: #d29922; }
-  .danger { background: #da3633; }
-  .offline { background: #484f58; }
-
-  .meta { font-size: 0.8rem; color: #8b949e; margin-top: 0.4rem; }
-
-  /* UPS metrics */
-  .metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin: 1rem 0; }
-  .metric { background: #0d1117; border: 1px solid #30363d; border-radius: 6px; padding: 0.75rem; }
-  .metric .label { font-size: 0.75rem; color: #8b949e; }
-  .metric .value { font-size: 1.2rem; font-weight: 600; margin-top: 0.2rem; }
-
-  details { margin-top: 0.75rem; }
-  summary { font-size: 0.8rem; color: #8b949e; cursor: pointer; }
-  details table { width: 100%; margin-top: 0.5rem; font-size: 0.8rem; }
-  details td { padding: 0.25rem 0.5rem; border-bottom: 1px solid #21262d; }
-  details td:first-child { color: #8b949e; width: 40%; }
-
-  /* Backup panel */
-  button { color: #fff; border: none; padding: 0.5rem 1.2rem; border-radius: 6px; cursor: pointer; font-size: 0.9rem; }
-  .btn-backup { background: #238636; }
-  .btn-backup:hover { background: #2ea043; }
-  .btn-restore { background: #da3633; }
-  .btn-restore:hover { background: #f85149; }
-  .btn-stop { background: #d29922; }
-  .btn-stop:hover { background: #e3b341; }
-  .btn-start { background: #1f6feb; }
-  .btn-start:hover { background: #388bfd; }
-  .btn-secondary { background: transparent; border: 1px solid #30363d; color: #8b949e; font-size: 0.8rem; padding: 0.4rem 0.8rem; }
-  .btn-secondary:hover { border-color: #8b949e; color: #c9d1d9; }
-  button:disabled { background: #484f58 !important; border-color: #484f58 !important; cursor: not-allowed; color: #8b949e !important; }
-  .checkbox-label { font-size: 0.8rem; color: #8b949e; cursor: pointer; display: flex; align-items: center; gap: 0.3rem; }
-  .checkbox-label input { accent-color: #8b949e; }
-  pre { background: #0d1117; border: 1px solid #30363d; border-radius: 6px; padding: 1rem; margin-top: 1rem;
-        overflow-x: auto; font-size: 0.8rem; line-height: 1.5; max-height: 55vh; overflow-y: auto; white-space: pre-wrap; }
-  .actions { margin-top: 1rem; display: flex; align-items: center; flex-wrap: wrap; gap: 0.5rem; }
-  .sep { color: #30363d; }
-
-  .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 10; }
-  .modal { background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 1.5rem; max-width: 500px; margin: 15vh auto; }
-  .modal h2 { font-size: 1.1rem; margin-bottom: 0.8rem; color: #f85149; }
-  .modal p { font-size: 0.85rem; margin-bottom: 1rem; line-height: 1.5; }
-  .modal .warn { background: #da36331a; border: 1px solid #da3633; border-radius: 4px; padding: 0.8rem; margin-bottom: 1rem; font-size: 0.8rem; }
-  .modal input { background: #0d1117; border: 1px solid #30363d; color: #c9d1d9; padding: 0.4rem 0.6rem; border-radius: 4px;
-                 width: 100%; font-size: 0.85rem; margin-bottom: 1rem; }
-  .modal-buttons { display: flex; gap: 0.5rem; justify-content: flex-end; }
-
-  .spinner { display: inline-block; width: 0.8em; height: 0.8em; border: 2px solid rgba(255,255,255,0.3);
-             border-top-color: #fff; border-radius: 50%; animation: spin 0.6s linear infinite;
-             vertical-align: middle; margin-left: 0.4em; }
-  .btn-secondary .spinner { border-color: rgba(139,148,158,0.3); border-top-color: #c9d1d9; }
-  @keyframes spin { to { transform: rotate(360deg); } }
-
-  @media (max-width: 800px) { .dashboard { grid-template-columns: 1fr; } }
-</style>
-</head>
-<body>
-  <h1>Ops Dashboard</h1>
-  <div class="dashboard">
-
-    <!-- Rack UPS Panel -->
-    <div class="panel">
-      <div>
-        <h2>Rack UPS</h2>
-        <span class="status offline" id="ups-status">Loading...</span>
-        <p class="meta" id="ups-model"></p>
-      </div>
-      <div class="metrics">
-        <div class="metric"><div class="label">Load</div><div class="value" id="ups-load">—</div></div>
-        <div class="metric"><div class="label">Battery</div><div class="value" id="ups-battery">—</div></div>
-        <div class="metric"><div class="label">Runtime</div><div class="value" id="ups-runtime">—</div></div>
-        <div class="metric"><div class="label">Line voltage</div><div class="value" id="ups-voltage">—</div></div>
-        <div class="metric"><div class="label">Temperature</div><div class="value" id="ups-temp">—</div></div>
-        <div class="metric"><div class="label">Output voltage</div><div class="value" id="ups-outputv">—</div></div>
-      </div>
-      <p class="meta" id="ups-lastxfer"></p>
-      <div class="actions">
-        <button class="btn-secondary" onclick="testShutdown()" id="btn-test-shutdown">Test shutdown path</button>
-        <span class="meta" id="shutdown-result"></span>
-      </div>
-      <details>
-        <summary>Show raw output</summary>
-        <table id="ups-raw"></table>
-      </details>
-    </div>
-
-    <!-- Desktop UPS Panel -->
-    <div class="panel">
-      <div>
-        <h2>Desktop UPS</h2>
-        <span class="status offline" id="ups2-status">Loading...</span>
-        <p class="meta" id="ups2-model"></p>
-      </div>
-      <div class="metrics">
-        <div class="metric"><div class="label">Load</div><div class="value" id="ups2-load">—</div></div>
-        <div class="metric"><div class="label">Battery</div><div class="value" id="ups2-battery">—</div></div>
-        <div class="metric"><div class="label">Runtime</div><div class="value" id="ups2-runtime">—</div></div>
-        <div class="metric"><div class="label">Line voltage</div><div class="value" id="ups2-voltage">—</div></div>
-        <div class="metric"><div class="label">Temperature</div><div class="value" id="ups2-temp">—</div></div>
-        <div class="metric"><div class="label">Output voltage</div><div class="value" id="ups2-outputv">—</div></div>
-      </div>
-      <p class="meta" id="ups2-lastxfer"></p>
-      <details>
-        <summary>Show raw output</summary>
-        <table id="ups2-raw"></table>
-      </details>
-    </div>
-
-    <!-- Backup & Restore Panel -->
-    <div class="panel">
-      <div>
-        <h2>Backup & Restore</h2>
-        <span class="status idle" id="backup-status">Idle</span>
-        <p class="meta" id="last-backup"></p>
-      </div>
-      <div class="actions">
-        <button class="btn-backup" onclick="runAction('/backup/run','btn-backup')" id="btn-backup">Run backup</button>
-        <button class="btn-restore" onclick="showRestore()" id="btn-restore">Restore</button>
-        <label class="checkbox-label"><input type="checkbox" id="dry-run"> Dry run</label>
-      </div>
-
-      <div class="modal-overlay" id="restore-modal">
-        <div class="modal">
-          <h2>Restore from NAS backup</h2>
-          <div class="warn">
-            This will stop all running Docker containers (except ops-worker and ops-toolbox), then rsync from the NAS backup back to /srv/docker. Use "Start all" afterwards to bring stacks back up.
-          </div>
-          <p>Type <strong>RESTORE</strong> to confirm:</p>
-          <input type="text" id="confirm-input" placeholder="Type RESTORE" autocomplete="off">
-          <div class="modal-buttons">
-            <button class="btn-backup" onclick="hideRestore()">Cancel</button>
-            <button class="btn-restore" onclick="doRestore()">Restore</button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Container Control -->
-    <div class="panel">
-      <h2>Container Control</h2>
-      <p class="meta">Stop or start all Docker stacks (except ops-worker and ops-toolbox).</p>
-      <div class="actions">
-        <button class="btn-stop" onclick="runAction('/containers/stop-all','btn-stop-all')" id="btn-stop-all">Stop all</button>
-        <button class="btn-start" onclick="runAction('/containers/start-all','btn-start-all')" id="btn-start-all">Start all</button>
-      </div>
-    </div>
-
-    <!-- Activity Log -->
-    <div class="panel panel-wide">
-      <h2>Activity Log</h2>
-      <pre id="log">Loading...</pre>
-      <div class="actions">
-        <button class="btn-secondary" onclick="clearLog()" id="btn-clear">Clear log</button>
-      </div>
-    </div>
-
-  </div>
-
-<script>
-// === UPS Panels ===
-function stripUnit(val) {
-  if (!val) return '—';
-  return val.replace(/ (Percent|Volts|Minutes|Seconds|Hz|Watts|VA)$/i, '').trim();
-}
-
-function pollUpsPanel(apiUrl, prefix) {
-  var els = {
-    status: document.getElementById(prefix + '-status'),
-    model: document.getElementById(prefix + '-model'),
-    load: document.getElementById(prefix + '-load'),
-    battery: document.getElementById(prefix + '-battery'),
-    runtime: document.getElementById(prefix + '-runtime'),
-    voltage: document.getElementById(prefix + '-voltage'),
-    temp: document.getElementById(prefix + '-temp'),
-    outputv: document.getElementById(prefix + '-outputv'),
-    lastxfer: document.getElementById(prefix + '-lastxfer'),
-    raw: document.getElementById(prefix + '-raw')
-  };
-  fetch(apiUrl).then(function(r) { return r.json(); }).then(function(d) {
-    if (!d.ok) {
-      els.status.textContent = 'Offline';
-      els.status.className = 'status offline';
-      els.model.textContent = '';
-      els.load.textContent = '—';
-      els.battery.textContent = '—';
-      els.runtime.textContent = '—';
-      els.voltage.textContent = '—';
-      els.temp.textContent = '—';
-      els.outputv.textContent = '—';
-      els.lastxfer.textContent = '';
-      return;
-    }
-    var data = d.data;
-    var st = data.STATUS || 'UNKNOWN';
-    els.status.textContent = st;
-    if (st.indexOf('ONLINE') !== -1) els.status.className = 'status idle';
-    else if (st.indexOf('ONBATT') !== -1) els.status.className = 'status danger';
-    else els.status.className = 'status active';
-
-    els.model.textContent = data.MODEL || '';
-    els.load.textContent = stripUnit(data.LOADPCT) + '%';
-    els.battery.textContent = stripUnit(data.BCHARGE) + '%';
-    els.runtime.textContent = stripUnit(data.TIMELEFT) + ' min';
-    els.voltage.textContent = stripUnit(data.LINEV) + ' V';
-    els.temp.textContent = data.ITEMP ? stripUnit(data.ITEMP) + '\u00b0C' : '—';
-    els.outputv.textContent = data.OUTPUTV ? stripUnit(data.OUTPUTV) + ' V' : '—';
-    els.lastxfer.textContent = data.LASTXFER ? 'Last transfer: ' + data.LASTXFER : '';
-
-    els.raw.innerHTML = '';
-    for (var key in data) {
-      var tr = document.createElement('tr');
-      var td1 = document.createElement('td');
-      var td2 = document.createElement('td');
-      td1.textContent = key;
-      td2.textContent = data[key];
-      tr.appendChild(td1);
-      tr.appendChild(td2);
-      els.raw.appendChild(tr);
-    }
-  }).catch(function() {
-    els.status.textContent = 'Offline';
-    els.status.className = 'status offline';
-  });
-}
-
-function pollAllUps() {
-  pollUpsPanel('/api/ups', 'ups');
-  pollUpsPanel('/api/ups2', 'ups2');
-}
-setInterval(pollAllUps, 30000);
-pollAllUps();
-
-var shutdownResultEl = document.getElementById('shutdown-result');
-var btnTestShutdown = document.getElementById('btn-test-shutdown');
-
-function testShutdown() {
-  btnTestShutdown.disabled = true;
-  var span = document.createElement('span');
-  span.className = 'spinner';
-  btnTestShutdown.appendChild(span);
-  shutdownResultEl.textContent = '';
-  fetch('/api/test-shutdown', {method: 'POST'}).then(function(r) { return r.json(); }).then(function(d) {
-    shutdownResultEl.textContent = d.ok ? 'OK — ' + d.message : 'FAIL — ' + d.message;
-    shutdownResultEl.style.color = d.ok ? '#3fb950' : '#f85149';
-  }).catch(function() {
-    shutdownResultEl.textContent = 'FAIL — request error';
-    shutdownResultEl.style.color = '#f85149';
-  }).finally(function() {
-    btnTestShutdown.disabled = false;
-    btnTestShutdown.textContent = 'Test shutdown path';
-  });
-}
-
-// === Actions & Activity Log ===
-var logEl = document.getElementById('log');
-var backupStatusEl = document.getElementById('backup-status');
-var lastBackupEl = document.getElementById('last-backup');
-var dryEl = document.getElementById('dry-run');
-var btns = ['btn-backup', 'btn-restore', 'btn-stop-all', 'btn-start-all'];
-var isRunning = false;
-var activeBtn = null;
-var activeBtnText = '';
-
-function setDisabled(disabled) {
-  btns.forEach(function(id) { document.getElementById(id).disabled = disabled; });
-  dryEl.disabled = disabled;
-}
-
-function setLoading(btnId) {
-  activeBtn = btnId;
-  var el = document.getElementById(btnId);
-  activeBtnText = el.textContent;
-  var span = document.createElement('span');
-  span.className = 'spinner';
-  el.appendChild(span);
-}
-
-function clearLoading() {
-  if (!activeBtn) return;
-  var el = document.getElementById(activeBtn);
-  el.textContent = activeBtnText;
-  activeBtn = null;
-  activeBtnText = '';
-}
-
-function runAction(url, btnId) {
-  if (dryEl.checked) url += (url.indexOf('?') === -1 ? '?' : '&') + 'dry=1';
-  setDisabled(true);
-  setLoading(btnId);
-  isRunning = true;
-  fetch(url, {method: 'POST'});
-}
-
-function showRestore() {
-  if (dryEl.checked) { runAction('/backup/restore', 'btn-restore'); return; }
-  document.getElementById('restore-modal').style.display = 'block';
-  document.getElementById('confirm-input').value = '';
-  document.getElementById('confirm-input').focus();
-}
-
-function hideRestore() {
-  document.getElementById('restore-modal').style.display = 'none';
-}
-
-function doRestore() {
-  if (document.getElementById('confirm-input').value.trim() !== 'RESTORE') {
-    alert('Please type RESTORE to confirm.');
-    return;
-  }
-  hideRestore();
-  runAction('/backup/restore', 'btn-restore');
-}
-
-function clearLog() {
-  fetch('/backup/clear-log', {method: 'POST'}).then(function() { poll(); });
-}
-
-function timeAgo(iso) {
-  if (!iso) return '';
-  var s = (Date.now() - new Date(iso).getTime()) / 1000;
-  if (s < 60) return 'just now';
-  if (s < 3600) return Math.floor(s / 60) + 'm ago';
-  if (s < 86400) return Math.floor(s / 3600) + 'h ago';
-  return Math.floor(s / 86400) + 'd ago';
-}
-
-var backupFails = 0;
-var backupStopped = false;
-
-function poll() {
-  function showUnreachable() {
-    backupFails++;
-    backupStatusEl.textContent = 'Unreachable';
-    backupStatusEl.className = 'status danger';
-    if (backupFails >= 3) {
-      backupStopped = true;
-      logEl.textContent = 'Error: ops-worker container is not reachable. Polling stopped — reload page to retry.';
-    } else {
-      logEl.textContent = 'Error: ops-worker container is not reachable. Retrying...';
-    }
-    setDisabled(true);
-  }
-  return fetch('/api/backup').then(function(r) {
-    if (!r.ok) { showUnreachable(); return; }
-    backupFails = 0;
-    return r.json().then(function(d) {
-      isRunning = d.running;
-      var bCls = 'idle', bTxt = 'Idle';
-      if (d.running) {
-        var isRestore = d.action.indexOf('restore') !== -1;
-        var isDry = d.action.indexOf('dry') !== -1;
-        if (d.action === 'stop-all') { bCls = 'active'; bTxt = 'Stopping all...'; }
-        else if (d.action === 'start-all') { bCls = 'active'; bTxt = 'Starting all...'; }
-        else if (isRestore) { bCls = 'danger'; bTxt = isDry ? 'Restore dry-run...' : 'Restoring...'; }
-        else if (d.action.indexOf('backup') !== -1 || d.action === '') { bCls = 'active'; bTxt = isDry ? 'Backup dry-run...' : 'Backing up...'; }
-      }
-      backupStatusEl.textContent = bTxt;
-      backupStatusEl.className = 'status ' + bCls;
-      setDisabled(d.running);
-      if (!d.running) clearLoading();
-      var atBottom = logEl.scrollHeight - logEl.scrollTop - logEl.clientHeight < 50;
-      logEl.textContent = d.log || 'No activity yet.';
-      if (atBottom) logEl.scrollTop = logEl.scrollHeight;
-      lastBackupEl.textContent = d.last_backup ? 'Last backup: ' + timeAgo(d.last_backup) : '';
-    });
-  }).catch(showUnreachable);
-}
-
-(function schedule() {
-  if (backupStopped) return;
-  setTimeout(function() { poll().then(schedule); }, isRunning ? 2000 : 15000);
-})();
-poll();
-</script>
-</body>
-</html>"""
+@app.route("/", defaults={"path": ""})
+@app.route("/<path:path>")
+def serve_spa(path):
+    if path and os.path.exists(os.path.join(app.static_folder, path)):
+        return send_from_directory(app.static_folder, path)
+    return send_from_directory(app.static_folder, "index.html")
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000)
+    os.makedirs(os.path.dirname(LOG_FILE), exist_ok=True)
+    _init_last_backup_cache()
+    app.run(host="0.0.0.0", port=8000)

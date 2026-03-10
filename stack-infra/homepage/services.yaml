@@ -184,7 +184,7 @@
     - 'AdGuard Home #1':
         icon: /icons/adguard-home.png
         href: https://dns1.lundmark.tech/
-        description: Primary DNS — ad blocking & filtering (LXC)
+        description: Primary DNS — ad blocking & filtering
         siteMonitor: https://dns1.lundmark.tech/
     - 'AdGuard Home #2':
         icon: /icons/adguard-home.png
@@ -194,7 +194,7 @@
     - AdGuard Home Sync:
         icon: /icons/adguard-home-sync.svg
         href: https://dns-sync.lundmark.tech/
-        description: Keeps AdGuard Home instances in sync (LXC)
+        description: Keeps AdGuard Home instances in sync
         siteMonitor: https://dns-sync.lundmark.tech/
 
 - Network:

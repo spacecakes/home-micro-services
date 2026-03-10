@@ -15,7 +15,7 @@ Domain: `lundmark.tech` (wildcard TLS via Cloudflare DNS challenge).
 | `stack-infra`  | Core infra: Traefik, Homepage dashboard, Portainer, Dockge, Uptime Kuma, dockerproxy, Glances, File Browser                             |
 | `stack-dns`    | Legacy AdGuard Home + sync containers (now running in Proxmox LXC `10.0.1.10`; kept for rollback, normally stopped)                     |
 | `stack-auth`   | Authelia SSO + Redis session backend                                                                                                    |
-| `stack-ops`    | apcupsd + apcupsd2 (dual UPS monitoring), ops-toolbox (UPS + ops web UI), ops-worker (hourly rsync + API), Watchtower, iperf3, OpenSpeedTest, HandBrake |
+| `stack-ops`    | apcupsd + apcupsd2 (dual UPS monitoring), ops-toolbox (UPS + backup/restore + ops web UI), Watchtower, iperf3, OpenSpeedTest, HandBrake |
 | `stack-arr`    | Sonarr, Radarr, Lidarr, Bazarr, Prowlarr, NZBHydra2, SABnzbd, qBittorrent, Seerr, Aurral                                                |
 | `stack-plex`   | Plex (host network) + Tautulli                                                                                                          |
 | `stack-home`   | Homebridge, Scrypted (both host network)                                                                                                |
@@ -26,7 +26,7 @@ Domain: `lundmark.tech` (wildcard TLS via Cloudflare DNS challenge).
 
 ### Stack startup order matters
 
-`stack-infra` first (Traefik), then `stack-auth` (Authelia), then the rest. AdGuard Home now runs in a Proxmox LXC (`10.0.1.10`), not Docker. The backup service respects this via `STACK_PRIORITY` in `stack-ops/ops-worker/web.py`.
+`stack-infra` first (Traefik), then `stack-auth` (Authelia), then the rest. AdGuard Home now runs in a Proxmox LXC (`10.0.1.10`), not Docker. The backup service respects this via `STACK_PRIORITY` in `stack-ops/ops-toolbox/app.py`.
 
 ## Routing & Traefik
 
@@ -62,7 +62,7 @@ Non-Docker services (Synology apps, UniFi, UPS NMCs, iCloudPD on NAS) are routed
 
 ### Services that disable Traefik
 
-Backend-only services use `traefik.enable=false`. Services that only need intra-stack communication use the default network (e.g. `apcupsd`, `ops-worker`).
+Backend-only services use `traefik.enable=false`. Services that only need intra-stack communication use the default network (e.g. `apcupsd`).
 
 ## Networking
 
@@ -88,14 +88,12 @@ Debian-slim container running apcupsd in SNMP mode. The `UPS_DEVICE` env var set
 
 ### ops-toolbox
 
-Flask app serving as an ops web UI (rarely-used toolbox, not a glance-at dashboard). Pure Python NIS client talks to apcupsd, and all backup/setup actions proxy to `ops-worker:8000`. Stateless — can be rebuilt anytime without affecting running jobs.
+Alpine multi-stage build: Node builds the Vue 3 + Vite + Tailwind SPA, Alpine runtime runs Flask + rsync + docker-cli. Serves as the ops web UI with:
 
-## Backup System
-
-`stack-ops/ops-worker/web.py` is bind-mounted (`:ro`) into an Alpine container. Restart the container to pick up changes (no rebuild needed). It provides:
-
+- Pure Python NIS client for dual UPS monitoring (apcupsd + apcupsd2)
 - Hourly rsync via cron: `/srv/docker/` → NAS backup (via Docker NFS volume)
-- Flask API for manual backup/restore
+- Flask API for manual backup/restore/container control
+- Vue 3 SPA baked into image (`dist/`); `app.py` bind-mounted for backend changes without rebuild
 
 ## Homepage Dashboard
 

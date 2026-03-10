@@ -1,0 +1,114 @@
+import { ref, computed, onMounted, onUnmounted } from 'vue'
+import type { Ref, ComputedRef } from 'vue'
+
+type BadgeColor = 'green' | 'red' | 'yellow' | 'gray'
+
+interface BackupResponse {
+  running: boolean
+  action: string
+  log: string
+  last_backup: string | null
+}
+
+export interface BackupState {
+  running: Ref<boolean>
+  action: Ref<string>
+  log: Ref<string>
+  lastBackup: Ref<string>
+  dryRun: Ref<boolean>
+  statusText: ComputedRef<string>
+  statusColor: ComputedRef<BadgeColor>
+  runAction: (url: string) => void
+  poll: () => Promise<void>
+}
+
+export function useBackup(): BackupState {
+  const running = ref(false)
+  const action = ref('')
+  const log = ref('')
+  const lastBackup = ref('')
+  const dryRun = ref(false)
+  const fails = ref(0)
+  const stopped = ref(false)
+
+  let pollTimer: ReturnType<typeof setTimeout> | null = null
+
+  const statusText = computed((): string => {
+    if (fails.value >= 3) return 'Unreachable'
+    if (!running.value) return 'Idle'
+    const a = action.value
+    const isDry = a.includes('dry')
+    if (a === 'stop-all') return 'Stopping all...'
+    if (a === 'start-all') return 'Starting all...'
+    if (a.includes('restore')) return isDry ? 'Restore dry-run...' : 'Restoring...'
+    return isDry ? 'Backup dry-run...' : 'Backing up...'
+  })
+
+  const statusColor = computed((): BadgeColor => {
+    if (fails.value >= 3) return 'red'
+    if (!running.value) return 'green'
+    const a = action.value
+    if (a.includes('restore')) return 'red'
+    return 'yellow'
+  })
+
+  async function poll(): Promise<void> {
+    try {
+      const res = await fetch('/api/backup')
+      if (!res.ok) throw new Error()
+      const d: BackupResponse = await res.json()
+      fails.value = 0
+      running.value = d.running
+      action.value = d.action || ''
+      log.value = d.log || ''
+      lastBackup.value = d.last_backup || ''
+    } catch {
+      fails.value++
+      if (fails.value >= 3) {
+        stopped.value = true
+        log.value = 'Error: ops-toolbox container is not reachable. Polling stopped \u2014 reload page to retry.'
+      } else {
+        log.value = 'Error: ops-toolbox container is not reachable. Retrying...'
+      }
+    }
+  }
+
+  function schedule(): void {
+    if (stopped.value) return
+    pollTimer = setTimeout(async () => {
+      await poll()
+      schedule()
+    }, running.value ? 2000 : 15000)
+  }
+
+  function runAction(url: string): void {
+    let u = url
+    if (dryRun.value) u += (u.includes('?') ? '&' : '?') + 'dry=1'
+    running.value = true
+    fetch(u, { method: 'POST' }).then(() => {
+      if (pollTimer) clearTimeout(pollTimer)
+      poll().then(schedule)
+    })
+  }
+
+  onMounted(() => {
+    poll()
+    schedule()
+  })
+
+  onUnmounted(() => {
+    if (pollTimer) clearTimeout(pollTimer)
+  })
+
+  return {
+    running,
+    action,
+    log,
+    lastBackup,
+    dryRun,
+    statusText,
+    statusColor,
+    runAction,
+    poll,
+  }
+}
