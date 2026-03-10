@@ -5,21 +5,24 @@ import requests as http_requests
 
 app = Flask(__name__)
 
-APCUPSD_HOST = "apcupsd"
-APCUPSD_PORT = 3551
 BACKUP_API = "http://ops-worker:8000"
+
+UPS_INSTANCES = {
+    "rack":    {"host": "apcupsd",  "port": 3551},
+    "desktop": {"host": "apcupsd2", "port": 3551},
+}
 
 
 # ---------------------------------------------------------------------------
 # apcupsd NIS client (pure Python, no apcupsd package needed)
 # ---------------------------------------------------------------------------
 
-def query_apcupsd():
+def query_apcupsd(host="apcupsd", port=3551):
     """Query apcupsd NIS and return status dict."""
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     sock.settimeout(5)
     try:
-        sock.connect((APCUPSD_HOST, APCUPSD_PORT))
+        sock.connect((host, port))
 
         cmd = b"status"
         sock.send(struct.pack("!H", len(cmd)) + cmd)
@@ -92,7 +95,12 @@ def index():
 
 @app.route("/api/ups")
 def api_ups():
-    return jsonify(query_apcupsd())
+    return jsonify(query_apcupsd(**UPS_INSTANCES["rack"]))
+
+
+@app.route("/api/ups2")
+def api_ups2():
+    return jsonify(query_apcupsd(**UPS_INSTANCES["desktop"]))
 
 
 @app.route("/api/backup")
@@ -221,18 +229,22 @@ TEMPLATE = """<!DOCTYPE html>
   <h1>Ops Dashboard</h1>
   <div class="dashboard">
 
-    <!-- UPS Panel -->
+    <!-- Rack UPS Panel -->
     <div class="panel">
       <div>
-        <h2>UPS Status</h2>
+        <h2>Rack UPS</h2>
         <span class="status offline" id="ups-status">Loading...</span>
+        <p class="meta" id="ups-model"></p>
       </div>
       <div class="metrics">
         <div class="metric"><div class="label">Load</div><div class="value" id="ups-load">—</div></div>
         <div class="metric"><div class="label">Battery</div><div class="value" id="ups-battery">—</div></div>
         <div class="metric"><div class="label">Runtime</div><div class="value" id="ups-runtime">—</div></div>
         <div class="metric"><div class="label">Line voltage</div><div class="value" id="ups-voltage">—</div></div>
+        <div class="metric"><div class="label">Temperature</div><div class="value" id="ups-temp">—</div></div>
+        <div class="metric"><div class="label">Output voltage</div><div class="value" id="ups-outputv">—</div></div>
       </div>
+      <p class="meta" id="ups-lastxfer"></p>
       <div class="actions">
         <button class="btn-secondary" onclick="testShutdown()" id="btn-test-shutdown">Test shutdown path</button>
         <span class="meta" id="shutdown-result"></span>
@@ -240,6 +252,28 @@ TEMPLATE = """<!DOCTYPE html>
       <details>
         <summary>Show raw output</summary>
         <table id="ups-raw"></table>
+      </details>
+    </div>
+
+    <!-- Desktop UPS Panel -->
+    <div class="panel">
+      <div>
+        <h2>Desktop UPS</h2>
+        <span class="status offline" id="ups2-status">Loading...</span>
+        <p class="meta" id="ups2-model"></p>
+      </div>
+      <div class="metrics">
+        <div class="metric"><div class="label">Load</div><div class="value" id="ups2-load">—</div></div>
+        <div class="metric"><div class="label">Battery</div><div class="value" id="ups2-battery">—</div></div>
+        <div class="metric"><div class="label">Runtime</div><div class="value" id="ups2-runtime">—</div></div>
+        <div class="metric"><div class="label">Line voltage</div><div class="value" id="ups2-voltage">—</div></div>
+        <div class="metric"><div class="label">Temperature</div><div class="value" id="ups2-temp">—</div></div>
+        <div class="metric"><div class="label">Output voltage</div><div class="value" id="ups2-outputv">—</div></div>
+      </div>
+      <p class="meta" id="ups2-lastxfer"></p>
+      <details>
+        <summary>Show raw output</summary>
+        <table id="ups2-raw"></table>
       </details>
     </div>
 
@@ -294,43 +328,56 @@ TEMPLATE = """<!DOCTYPE html>
   </div>
 
 <script>
-// === UPS Panel ===
-var upsStatusEl = document.getElementById('ups-status');
-var upsLoadEl = document.getElementById('ups-load');
-var upsBatteryEl = document.getElementById('ups-battery');
-var upsRuntimeEl = document.getElementById('ups-runtime');
-var upsVoltageEl = document.getElementById('ups-voltage');
-var upsRawEl = document.getElementById('ups-raw');
-
+// === UPS Panels ===
 function stripUnit(val) {
   if (!val) return '—';
   return val.replace(/ (Percent|Volts|Minutes|Seconds|Hz|Watts|VA)$/i, '').trim();
 }
 
-function pollUps() {
-  fetch('/api/ups').then(function(r) { return r.json(); }).then(function(d) {
+function pollUpsPanel(apiUrl, prefix) {
+  var els = {
+    status: document.getElementById(prefix + '-status'),
+    model: document.getElementById(prefix + '-model'),
+    load: document.getElementById(prefix + '-load'),
+    battery: document.getElementById(prefix + '-battery'),
+    runtime: document.getElementById(prefix + '-runtime'),
+    voltage: document.getElementById(prefix + '-voltage'),
+    temp: document.getElementById(prefix + '-temp'),
+    outputv: document.getElementById(prefix + '-outputv'),
+    lastxfer: document.getElementById(prefix + '-lastxfer'),
+    raw: document.getElementById(prefix + '-raw')
+  };
+  fetch(apiUrl).then(function(r) { return r.json(); }).then(function(d) {
     if (!d.ok) {
-      upsStatusEl.textContent = 'Offline';
-      upsStatusEl.className = 'status offline';
-      upsLoadEl.textContent = '—';
-      upsBatteryEl.textContent = '—';
-      upsRuntimeEl.textContent = '—';
-      upsVoltageEl.textContent = '—';
+      els.status.textContent = 'Offline';
+      els.status.className = 'status offline';
+      els.model.textContent = '';
+      els.load.textContent = '—';
+      els.battery.textContent = '—';
+      els.runtime.textContent = '—';
+      els.voltage.textContent = '—';
+      els.temp.textContent = '—';
+      els.outputv.textContent = '—';
+      els.lastxfer.textContent = '';
       return;
     }
     var data = d.data;
     var st = data.STATUS || 'UNKNOWN';
-    upsStatusEl.textContent = st;
-    if (st.indexOf('ONLINE') !== -1) upsStatusEl.className = 'status idle';
-    else if (st.indexOf('ONBATT') !== -1) upsStatusEl.className = 'status danger';
-    else upsStatusEl.className = 'status active';
+    els.status.textContent = st;
+    if (st.indexOf('ONLINE') !== -1) els.status.className = 'status idle';
+    else if (st.indexOf('ONBATT') !== -1) els.status.className = 'status danger';
+    else els.status.className = 'status active';
 
-    upsLoadEl.textContent = stripUnit(data.LOADPCT) + '%';
-    upsBatteryEl.textContent = stripUnit(data.BCHARGE) + '%';
-    upsRuntimeEl.textContent = stripUnit(data.TIMELEFT) + ' min';
-    upsVoltageEl.textContent = stripUnit(data.LINEV) + ' V';
+    els.model.textContent = data.MODEL || '';
+    els.load.textContent = stripUnit(data.LOADPCT) + '%';
+    els.battery.textContent = stripUnit(data.BCHARGE) + '%';
+    els.runtime.textContent = stripUnit(data.TIMELEFT) + ' min';
+    els.voltage.textContent = stripUnit(data.LINEV) + ' V';
+    els.temp.textContent = data.ITEMP ? stripUnit(data.ITEMP) + '\u00b0C' : '—';
+    els.outputv.textContent = data.OUTPUTV ? stripUnit(data.OUTPUTV) + ' V' : '—';
+    els.lastxfer.textContent = data.LASTXFER ? 'Last transfer: ' + data.LASTXFER : '';
 
-    upsRawEl.innerHTML = '';
+    els.raw.innerHTML = '';
     for (var key in data) {
       var tr = document.createElement('tr');
       var td1 = document.createElement('td');
@@ -339,15 +386,20 @@ function pollUps() {
       td2.textContent = data[key];
       tr.appendChild(td1);
       tr.appendChild(td2);
-      upsRawEl.appendChild(tr);
+      els.raw.appendChild(tr);
     }
   }).catch(function() {
-    upsStatusEl.textContent = 'Offline';
-    upsStatusEl.className = 'status offline';
+    els.status.textContent = 'Offline';
+    els.status.className = 'status offline';
   });
 }
-setInterval(pollUps, 30000);
-pollUps();
+
+function pollAllUps() {
+  pollUpsPanel('/api/ups', 'ups');
+  pollUpsPanel('/api/ups2', 'ups2');
+}
+setInterval(pollAllUps, 30000);
+pollAllUps();
 
 var shutdownResultEl = document.getElementById('shutdown-result');
 var btnTestShutdown = document.getElementById('btn-test-shutdown');

@@ -15,7 +15,7 @@ Domain: `lundmark.tech` (wildcard TLS via Cloudflare DNS challenge).
 | `stack-infra`  | Core infra: Traefik, Homepage dashboard, Portainer, Dockge, Uptime Kuma, dockerproxy, Glances, File Browser                             |
 | `stack-dns`    | Legacy AdGuard Home + sync containers (now running in Proxmox LXC `10.0.1.10`; kept for rollback, normally stopped)                     |
 | `stack-auth`   | Authelia SSO + Redis session backend                                                                                                    |
-| `stack-ops`    | apcupsd, ops-toolbox (UPS + ops web UI), ops-worker (hourly rsync + API), Watchtower, iperf3, OpenSpeedTest, HandBrake                  |
+| `stack-ops`    | apcupsd + apcupsd2 (dual UPS monitoring), ops-toolbox (UPS + ops web UI), ops-worker (hourly rsync + API), Watchtower, iperf3, OpenSpeedTest, HandBrake |
 | `stack-arr`    | Sonarr, Radarr, Lidarr, Bazarr, Prowlarr, NZBHydra2, SABnzbd, qBittorrent, Seerr, Aurral                                                |
 | `stack-plex`   | Plex (host network) + Tautulli                                                                                                          |
 | `stack-home`   | Homebridge, Scrypted (both host network)                                                                                                |
@@ -81,7 +81,10 @@ Two services use `image:` + `build:` in compose. `docker compose up -d` uses the
 
 ### apcupsd
 
-Debian-slim container running apcupsd in SNMP mode against UPS NMC at `10.0.1.5`. Exposes NIS on port 3551. On critical battery, `doshutdown` script triggers host shutdown via D-Bus (`org.freedesktop.login1.Manager.PowerOff`). Requires `security_opt: apparmor:unconfined` and the host D-Bus socket mounted.
+Debian-slim container running apcupsd in SNMP mode. The `UPS_DEVICE` env var sets the NMC IP (entrypoint.sh substitutes it into the baked-in config). Two instances:
+
+- **apcupsd** (Rack UPS, `10.0.1.5`, port 3551): On critical battery, `doshutdown` triggers host shutdown via D-Bus. Requires `apparmor:unconfined` and host D-Bus socket.
+- **apcupsd2** (Desktop UPS, `10.0.1.6`, port 3552): Monitor-only — no D-Bus, no shutdown capability.
 
 ### ops-toolbox
 

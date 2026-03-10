@@ -23,21 +23,35 @@ services:
     labels:
       - 'traefik.enable=false'
 
-  # UPS monitoring (APC NMC via SNMP)
+  # Rack UPS monitoring (APC NMC via SNMP, triggers host shutdown on critical battery)
   apcupsd:
     <<: *common
     container_name: apcupsd
     image: apcupsd:latest
     build: ./apcupsd
+    environment:
+      - UPS_DEVICE=10.0.1.5
     security_opt:
       - apparmor:unconfined
     ports:
-      - '3551:3551' # NIS (apcaccess)
+      - '3551:3551'
     labels:
       - 'traefik.enable=false'
     volumes:
-      - /srv/docker/stack-ops/apcupsd/apcupsd.conf:/etc/apcupsd/apcupsd.conf:ro
       - /run/dbus/system_bus_socket:/run/dbus/system_bus_socket
+
+  # Desktop UPS monitoring (monitor-only, no host shutdown)
+  apcupsd2:
+    <<: *common
+    container_name: apcupsd2
+    image: apcupsd:latest
+    build: ./apcupsd
+    environment:
+      - UPS_DEVICE=10.0.1.6
+    ports:
+      - '3552:3551'
+    labels:
+      - 'traefik.enable=false'
 
   ops-toolbox:
     <<: *common
