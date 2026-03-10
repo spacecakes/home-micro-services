@@ -113,6 +113,20 @@ http:
         - authelia
       service: icloudpd-shared
 
+    # AdGuard Home LXC (10.0.1.10)
+    adguardhome-primary:
+      rule: 'Host(`dns1.lundmark.tech`)'
+      middlewares:
+        - authelia
+      service: adguardhome-primary
+
+    adguardhome-sync:
+      rule: 'Host(`dns-sync.lundmark.tech`)'
+      middlewares:
+        - authelia
+      service: adguardhome-sync
+
+    # AdGuard Home on NAS
     adguardhome:
       rule: 'Host(`dns2.lundmark.tech`)'
       middlewares:
@@ -174,6 +188,18 @@ http:
       loadBalancer:
         servers:
           - url: 'http://10.0.1.2:8081'
+        passHostHeader: true
+
+    adguardhome-primary:
+      loadBalancer:
+        servers:
+          - url: 'http://10.0.1.10'
+        passHostHeader: true
+
+    adguardhome-sync:
+      loadBalancer:
+        servers:
+          - url: 'http://10.0.1.10:8080'
         passHostHeader: true
 
     adguardhome:

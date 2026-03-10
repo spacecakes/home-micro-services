@@ -12,7 +12,8 @@ Domain: `lundmark.tech` (wildcard TLS via Cloudflare DNS challenge).
 
 | Stack          | Purpose                                                                                                                                 |
 | -------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
-| `stack-infra`  | Core infra: Traefik, Homepage dashboard, Portainer, Dockge, Uptime Kuma, dockerproxy, AdGuard Home + sync                               |
+| `stack-infra`  | Core infra: Traefik, Homepage dashboard, Portainer, Dockge, Uptime Kuma, dockerproxy, Glances, File Browser                             |
+| `stack-dns`    | Legacy AdGuard Home + sync containers (now running in Proxmox LXC `10.0.1.10`; kept for rollback, normally stopped)                     |
 | `stack-auth`   | Authelia SSO + Redis session backend                                                                                                    |
 | `stack-ops`    | apcupsd, ops-toolbox (UPS + ops web UI), ops-worker (hourly rsync + API), Watchtower, iperf3, OpenSpeedTest, HandBrake                  |
 | `stack-arr`    | Sonarr, Radarr, Lidarr, Bazarr, Prowlarr, NZBHydra2, SABnzbd, qBittorrent, Seerr, Aurral                                                |
@@ -25,7 +26,7 @@ Domain: `lundmark.tech` (wildcard TLS via Cloudflare DNS challenge).
 
 ### Stack startup order matters
 
-`stack-infra` first (Traefik + AdGuard), then `stack-auth` (Authelia), then the rest. The backup service respects this via `STACK_PRIORITY` in `stack-ops/ops-worker/web.py`.
+`stack-infra` first (Traefik), then `stack-auth` (Authelia), then the rest. AdGuard Home now runs in a Proxmox LXC (`10.0.1.10`), not Docker. The backup service respects this via `STACK_PRIORITY` in `stack-ops/ops-worker/web.py`.
 
 ## Routing & Traefik
 
@@ -48,6 +49,8 @@ Non-Docker services (Synology apps, UniFi, UPS NMCs, iCloudPD on NAS) are routed
 - `network.lundmark.tech` → UniFi `10.0.1.1`
 - `ups1/ups2.lundmark.tech` → APC NMC web interfaces
 - `icloudpd/icloudpd-shared.lundmark.tech` → NAS `10.0.1.2:8080/8081`
+- `dns1.lundmark.tech` → AdGuard Home LXC `10.0.1.10`
+- `dns-sync.lundmark.tech` → AdGuard Home Sync LXC `10.0.1.10:8080`
 - `dns2.lundmark.tech` → NAS AdGuard `10.0.1.2:3000`
 - `home.lundmark.tech` → Home Assistant OS VM `10.0.1.7:8123`
 - `bot.lundmark.tech` → OpenClaw AI assistant VM `10.0.1.9:18789`
