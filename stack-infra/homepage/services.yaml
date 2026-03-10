@@ -180,12 +180,7 @@
         description: Client restore portal for backups
         siteMonitor: https://backup.lundmark.tech/
 
-- Network:
-    - UniFi Controller:
-        icon: unifi.png
-        href: https://network.lundmark.tech/
-        description: Network & WiFi management
-        siteMonitor: https://network.lundmark.tech/
+- DNS:
     - 'AdGuard Home #1':
         icon: /icons/adguard-home.png
         href: https://dns1.lundmark.tech/
@@ -201,6 +196,13 @@
         href: https://dns-sync.lundmark.tech/
         description: Keeps AdGuard Home instances in sync (LXC)
         siteMonitor: https://dns-sync.lundmark.tech/
+
+- Network:
+    - UniFi Controller:
+        icon: unifi.png
+        href: https://network.lundmark.tech/
+        description: Network & WiFi management
+        siteMonitor: https://network.lundmark.tech/
     - OpenSpeedTest:
         icon: openspeedtest.png
         href: https://speedtest.lundmark.tech/

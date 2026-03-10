@@ -47,9 +47,19 @@ layout:
     initiallyCollapsed: true
   Storage:
     tab: Admin
+    style: row
+    columns: 3
+  DNS:
+    tab: Admin
+    columns: 3
   Network:
     tab: Admin
+    columns: 2
   Monitoring:
     tab: Admin
+    style: row
+    columns: 3
   Infrastructure:
     tab: Admin
+    style: row
+    columns: 3
