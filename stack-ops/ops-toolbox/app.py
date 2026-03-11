@@ -1,6 +1,6 @@
 import os
 import re
-import glob
+import shutil
 import socket
 import struct
 import subprocess
@@ -10,21 +10,38 @@ from flask import Flask, request, jsonify, send_from_directory
 
 app = Flask(__name__, static_folder="dist", static_url_path="")
 
+# ---------------------------------------------------------------------------
+# Configuration (all overridable via environment variables)
+# ---------------------------------------------------------------------------
+
 LOG_FILE = "/var/log/backup.log"
 LOG_MAX_LINES = 5000
 SELF_CONTAINERS = {"ops-toolbox"}
-EXCLUDES = [".git/", "temp/", "downloads/", ".DS_Store", "._*", "@eaDir", "logs/", "Logs/"]
-RSYNC_BASE = ["rsync", "-avh", "-l", "--delete"]
-STACK_PRIORITY = {"stack-infra": 0, "stack-auth": 1}
 
-UPS_INSTANCES = {
-    "rack":    {"host": "apcupsd",  "port": 3551},
-    "desktop": {"host": "apcupsd2", "port": 3551},
-}
+# UPS
+UPS1_HOST = os.environ["UPS1_HOST"]
+UPS1_PORT = int(os.environ["UPS1_PORT"])
+UPS2_HOST = os.environ["UPS2_HOST"]
+UPS2_PORT = int(os.environ["UPS2_PORT"])
+
+# Docker backup
+BACKUP_SRC = os.environ["BACKUP_SRC"]
+BACKUP_DST = os.environ["BACKUP_DST"]
+BACKUP_EXCLUDES = os.environ["BACKUP_EXCLUDES"].split(",")
+
+# PVE backup (rsync over SSH)
+PVE_HOST = os.environ["PVE_HOST"]
+PVE_SSH_KEY = os.environ["PVE_SSH_KEY"]
+PVE_SRC = os.environ["PVE_SRC"]
+PVE_DST = os.environ["PVE_DST"]
+
+RSYNC_BASE = ["rsync", "-avh", "-l", "--delete"]
 
 running = False
 action = ""
 last_backup_cache = None
+last_pve_backup_cache = None
+last_error = None
 
 
 # ---------------------------------------------------------------------------
@@ -37,8 +54,10 @@ def _now():
 
 def _exclude_args():
     args = []
-    for e in EXCLUDES:
-        args.extend(["--exclude", e])
+    for e in BACKUP_EXCLUDES:
+        e = e.strip()
+        if e:
+            args.extend(["--exclude", e])
     return args
 
 
@@ -51,7 +70,7 @@ def _read_log(tail=200):
 
 
 def _init_last_backup_cache():
-    global last_backup_cache
+    global last_backup_cache, last_pve_backup_cache
     if not os.path.exists(LOG_FILE):
         return
     with open(LOG_FILE) as f:
@@ -59,6 +78,9 @@ def _init_last_backup_cache():
     matches = re.findall(r"==== Backup completed at (.+?) ====", content)
     if matches:
         last_backup_cache = matches[-1]
+    pve_matches = re.findall(r"==== PVE backup completed at (.+?) ====", content)
+    if pve_matches:
+        last_pve_backup_cache = pve_matches[-1]
 
 
 def _truncate_log():
@@ -72,12 +94,17 @@ def _truncate_log():
             f.truncate()
 
 
-def _rsync(src, dst, f, dry_run=False):
-    cmd = RSYNC_BASE + _exclude_args()
+def _rsync(src, dst, f, dry_run=False, exclude=True, ssh=False):
+    cmd = RSYNC_BASE[:]
+    if exclude:
+        cmd += _exclude_args()
+    if ssh:
+        cmd += ["-e", f"ssh -i {PVE_SSH_KEY} -o StrictHostKeyChecking=no -o BatchMode=yes"]
     if dry_run:
         cmd.append("--dry-run")
     cmd += [src, dst]
-    subprocess.run(cmd, stdout=f, stderr=f)
+    result = subprocess.run(cmd, stdout=f, stderr=f)
+    return result.returncode
 
 
 # ---------------------------------------------------------------------------
@@ -130,7 +157,7 @@ def _recv_exact(sock, n):
 # ---------------------------------------------------------------------------
 
 def run_backup(dry_run=False):
-    global running, action, last_backup_cache
+    global running, action, last_backup_cache, last_error
     running = True
     label = "Backup dry-run" if dry_run else "Backup"
     action = "backup-dry" if dry_run else "backup"
@@ -139,40 +166,25 @@ def run_backup(dry_run=False):
             f.write(msg + "\n")
             f.flush()
         log(f"==== {label} started at {_now()} ====")
-        _rsync("/source/", "/destination/", f, dry_run=dry_run)
+        rc = _rsync(BACKUP_SRC, BACKUP_DST, f, dry_run=dry_run)
         ts = _now()
-        log(f"==== {label} completed at {ts} ====")
+        if rc != 0:
+            log(f"==== {label} FAILED (exit {rc}) at {ts} ====")
+            last_error = f"{label} failed (exit {rc}) at {ts}"
+        else:
+            log(f"==== {label} completed at {ts} ====")
+            if not dry_run:
+                last_backup_cache = ts
+            last_error = None
         log("")
-        if not dry_run:
-            last_backup_cache = ts
     _truncate_log()
     running = False
     action = ""
 
 
-def _compose_up_stacks(f, log):
-    subprocess.run(
-        ["docker", "network", "create", "traefik-proxy"],
-        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
-    )
-    compose_files = glob.glob("/source/stack-*/docker-compose.yml")
-    compose_files.sort(key=lambda p: (
-        STACK_PRIORITY.get(os.path.basename(os.path.dirname(p)), 99),
-        os.path.basename(os.path.dirname(p))
-    ))
-    for compose_file in compose_files:
-        stack = os.path.basename(os.path.dirname(compose_file))
-        if stack == "stack-ops":
-            continue
-        log(f"Starting {stack}...")
-        subprocess.run(
-            ["docker", "compose", "-f", compose_file, "up", "-d"],
-            stdout=f, stderr=f
-        )
-
 
 def run_restore(dry_run=False):
-    global running, action
+    global running, action, last_error
     running = True
     action = "restore-dry" if dry_run else "restore"
     with open(LOG_FILE, "a") as f:
@@ -194,52 +206,41 @@ def run_restore(dry_run=False):
             else:
                 log("No other containers to stop")
         log("Restoring files from NAS backup..." + (" (dry-run)" if dry_run else ""))
-        _rsync("/destination/", "/source/", f, dry_run=dry_run)
-        log(f"==== {label} completed at {_now()} ====")
-        log("")
-    _truncate_log()
-    running = False
-    action = ""
-
-
-def run_stop_all():
-    global running, action
-    running = True
-    action = "stop-all"
-    with open(LOG_FILE, "a") as f:
-        def log(msg):
-            f.write(msg + "\n")
-            f.flush()
-        log(f"==== Stop all started at {_now()} ====")
-        result = subprocess.run(
-            ["docker", "ps", "--format", "{{.Names}}"],
-            capture_output=True, text=True
-        )
-        all_containers = [c.strip() for c in result.stdout.strip().split("\n") if c.strip()]
-        to_stop = [c for c in all_containers if c not in SELF_CONTAINERS]
-        if to_stop:
-            log(f"Stopping containers: {', '.join(to_stop)}")
-            subprocess.run(["docker", "stop"] + to_stop, stdout=f, stderr=f)
+        rc = _rsync(BACKUP_DST, BACKUP_SRC, f, dry_run=dry_run)
+        ts = _now()
+        if rc != 0:
+            log(f"==== {label} FAILED (exit {rc}) at {ts} ====")
+            last_error = f"{label} failed (exit {rc}) at {ts}"
         else:
-            log("No other containers to stop")
-        log(f"==== Stop all completed at {_now()} ====")
+            log(f"==== {label} completed at {ts} ====")
+            last_error = None
         log("")
     _truncate_log()
     running = False
     action = ""
 
 
-def run_start_all():
-    global running, action
+
+def run_pve_backup(dry_run=False):
+    global running, action, last_pve_backup_cache, last_error
     running = True
-    action = "start-all"
+    label = "PVE backup dry-run" if dry_run else "PVE backup"
+    action = "pve-backup-dry" if dry_run else "pve-backup"
     with open(LOG_FILE, "a") as f:
         def log(msg):
             f.write(msg + "\n")
             f.flush()
-        log(f"==== Start all started at {_now()} ====")
-        _compose_up_stacks(f, log)
-        log(f"==== Start all completed at {_now()} ====")
+        log(f"==== {label} started at {_now()} ====")
+        rc = _rsync(f"{PVE_HOST}:{PVE_SRC}", PVE_DST, f, dry_run=dry_run, exclude=False, ssh=True)
+        ts = _now()
+        if rc != 0:
+            log(f"==== {label} FAILED (exit {rc}) at {ts} ====")
+            last_error = f"{label} failed (exit {rc}) at {ts}"
+        else:
+            log(f"==== {label} completed at {ts} ====")
+            if not dry_run:
+                last_pve_backup_cache = ts
+            last_error = None
         log("")
     _truncate_log()
     running = False
@@ -252,12 +253,12 @@ def run_start_all():
 
 @app.route("/api/ups")
 def api_ups():
-    return jsonify(query_apcupsd(**UPS_INSTANCES["rack"]))
+    return jsonify(query_apcupsd(UPS1_HOST, UPS1_PORT))
 
 
 @app.route("/api/ups2")
 def api_ups2():
-    return jsonify(query_apcupsd(**UPS_INSTANCES["desktop"]))
+    return jsonify(query_apcupsd(UPS2_HOST, UPS2_PORT))
 
 
 # ---------------------------------------------------------------------------
@@ -270,7 +271,9 @@ def api_backup():
         running=running,
         action=action,
         log=_read_log(),
-        last_backup=last_backup_cache
+        last_backup=last_backup_cache,
+        last_pve_backup=last_pve_backup_cache,
+        last_error=last_error
     )
 
 
@@ -290,28 +293,25 @@ def backup_restore():
     return "ok"
 
 
+@app.route("/proxmox/run", methods=["POST"])
+def proxmox_run():
+    if not running:
+        dry = request.args.get("dry") == "1"
+        threading.Thread(target=run_pve_backup, args=(dry,), daemon=True).start()
+    return "ok"
+
+
 @app.route("/backup/clear-log", methods=["POST"])
 def backup_clear_log():
-    global last_backup_cache
+    global last_backup_cache, last_pve_backup_cache, last_error
     if os.path.exists(LOG_FILE):
         with open(LOG_FILE, "w"):
             pass
     last_backup_cache = None
+    last_pve_backup_cache = None
+    last_error = None
     return "ok"
 
-
-@app.route("/containers/stop-all", methods=["POST"])
-def containers_stop_all():
-    if not running:
-        threading.Thread(target=run_stop_all, daemon=True).start()
-    return "ok"
-
-
-@app.route("/containers/start-all", methods=["POST"])
-def containers_start_all():
-    if not running:
-        threading.Thread(target=run_start_all, daemon=True).start()
-    return "ok"
 
 
 @app.route("/api/test-shutdown", methods=["POST"])
@@ -331,6 +331,25 @@ def test_shutdown():
             return jsonify(ok=False, message=output.strip() or "Unknown error")
     except Exception as e:
         return jsonify(ok=False, message=str(e))
+
+
+# ---------------------------------------------------------------------------
+# API routes — Storage
+# ---------------------------------------------------------------------------
+
+def _disk_usage(path):
+    try:
+        u = shutil.disk_usage(path)
+        return {"total": u.total, "used": u.used, "free": u.free, "ok": True}
+    except Exception as e:
+        return {"ok": False, "error": str(e)}
+
+
+@app.route("/api/storage")
+def api_storage():
+    host = _disk_usage(BACKUP_SRC)
+    nas = _disk_usage(BACKUP_DST)
+    return jsonify(host=host, nas=nas)
 
 
 # ---------------------------------------------------------------------------

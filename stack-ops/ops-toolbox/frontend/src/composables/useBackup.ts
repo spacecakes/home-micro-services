@@ -8,6 +8,8 @@ interface BackupResponse {
   action: string
   log: string
   last_backup: string | null
+  last_pve_backup: string | null
+  last_error: string | null
 }
 
 export interface BackupState {
@@ -15,6 +17,8 @@ export interface BackupState {
   action: Ref<string>
   log: Ref<string>
   lastBackup: Ref<string>
+  lastPveBackup: Ref<string>
+  lastError: Ref<string>
   dryRun: Ref<boolean>
   statusText: ComputedRef<string>
   statusColor: ComputedRef<BadgeColor>
@@ -27,6 +31,8 @@ export function useBackup(): BackupState {
   const action = ref('')
   const log = ref('')
   const lastBackup = ref('')
+  const lastPveBackup = ref('')
+  const lastError = ref('')
   const dryRun = ref(false)
   const fails = ref(0)
   const stopped = ref(false)
@@ -35,18 +41,17 @@ export function useBackup(): BackupState {
 
   const statusText = computed((): string => {
     if (fails.value >= 3) return 'Unreachable'
-    if (!running.value) return 'Idle'
+    if (!running.value) return lastError.value ? 'Last run failed' : 'Idle'
     const a = action.value
     const isDry = a.includes('dry')
-    if (a === 'stop-all') return 'Stopping all...'
-    if (a === 'start-all') return 'Starting all...'
     if (a.includes('restore')) return isDry ? 'Restore dry-run...' : 'Restoring...'
+    if (a.includes('pve')) return isDry ? 'PVE backup dry-run...' : 'PVE backup...'
     return isDry ? 'Backup dry-run...' : 'Backing up...'
   })
 
   const statusColor = computed((): BadgeColor => {
     if (fails.value >= 3) return 'red'
-    if (!running.value) return 'green'
+    if (!running.value) return lastError.value ? 'red' : 'green'
     const a = action.value
     if (a.includes('restore')) return 'red'
     return 'yellow'
@@ -62,6 +67,8 @@ export function useBackup(): BackupState {
       action.value = d.action || ''
       log.value = d.log || ''
       lastBackup.value = d.last_backup || ''
+      lastPveBackup.value = d.last_pve_backup || ''
+      lastError.value = d.last_error || ''
     } catch {
       fails.value++
       if (fails.value >= 3) {
@@ -105,6 +112,8 @@ export function useBackup(): BackupState {
     action,
     log,
     lastBackup,
+    lastPveBackup,
+    lastError,
     dryRun,
     statusText,
     statusColor,

@@ -5,10 +5,12 @@ withDefaults(defineProps<{
   variant?: 'ghost' | 'green' | 'red' | 'yellow' | 'blue'
   disabled?: boolean
   icon?: string
+  loading?: boolean
 }>(), {
   variant: 'ghost',
   disabled: false,
   icon: '',
+  loading: false,
 })
 
 const colors: Record<string, string> = {
@@ -26,7 +28,8 @@ const colors: Record<string, string> = {
     :disabled="disabled"
     v-bind="$attrs"
   >
-    <Icon v-if="icon" :icon="icon" class="h-3.5 w-3.5" />
+    <Icon v-if="icon && !loading" :icon="icon" class="h-3.5 w-3.5" />
+    <Icon v-else-if="loading" icon="lucide:loader-2" class="h-3.5 w-3.5 animate-spin" />
     <slot />
   </button>
   <button
@@ -36,7 +39,8 @@ const colors: Record<string, string> = {
     :disabled="disabled"
     v-bind="$attrs"
   >
-    <Icon v-if="icon" :icon="icon" class="h-4 w-4" />
+    <Icon v-if="icon && !loading" :icon="icon" class="h-4 w-4" />
+    <Icon v-else-if="loading" icon="lucide:loader-2" class="h-4 w-4 animate-spin" />
     <slot />
   </button>
 </template>

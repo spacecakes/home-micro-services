@@ -88,12 +88,15 @@ Debian-slim container running apcupsd in SNMP mode. The `UPS_DEVICE` env var set
 
 ### ops-toolbox
 
-Alpine multi-stage build: Node builds the Vue 3 + Vite + Tailwind SPA, Alpine runtime runs Flask + rsync + docker-cli. Serves as the ops web UI with:
+Alpine multi-stage build: Node builds the Vue 3 + Vite + Tailwind SPA, Alpine runtime runs Flask + rsync + docker-cli + openssh-client. Serves as the ops web UI with:
 
 - Pure Python NIS client for dual UPS monitoring (apcupsd + apcupsd2)
-- Hourly rsync via cron: `/srv/docker/` → NAS backup (via Docker NFS volume)
+- Hourly rsync via cron: `/srv/docker/` → NAS backup (`/destination/docker/` via NFS volume)
+- Daily rsync via cron (2am): Proxmox `/etc/pve/` → NAS backup (`/destination/pve-host/`) via rsync over SSH to `10.0.1.3`
 - Flask API for manual backup/restore/container control
 - Vue 3 SPA baked into image (`dist/`); `app.py` bind-mounted for backend changes without rebuild
+- All config via environment variables (UPS hosts/ports, backup paths, PVE host, SSH key path, rsync excludes)
+- SSH key for PVE backup stored in `data/ssh/` (gitignored, bind-mounted read-only)
 
 ## Homepage Dashboard
 

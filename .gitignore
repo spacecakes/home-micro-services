@@ -3,7 +3,7 @@
 secrets/
 
 # Container data
-*/data/
+**/data/
 postgres
 model-cache
 

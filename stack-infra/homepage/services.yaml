@@ -224,8 +224,9 @@
         container: glances
         server: local-docker
     - Ops Toolbox:
+        icon: /icons/ops-toolbox.svg
         href: https://ops.lundmark.tech/
-        description: Custom ops tools — UPS monitoring & Docker backups
+        description: UPS monitoring, backups & storage health
         container: ops-toolbox
         server: local-docker
     - APC UPS (Rack):
