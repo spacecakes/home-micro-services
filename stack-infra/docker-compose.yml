@@ -54,6 +54,7 @@ services:
     image: portainer/portainer-ce:latest
     ports:
       - '8000:8000' # Edge agent tunnel
+      - '9000:9000' # Portainer UI/API
     labels:
       - 'traefik.http.routers.portainer.rule=Host(`containers.lundmark.tech`)'
       - 'traefik.http.services.portainer.loadbalancer.server.port=9000'
