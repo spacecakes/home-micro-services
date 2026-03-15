@@ -119,8 +119,7 @@
         icon: homebridge.png
         href: https://homebridge.lundmark.tech/
         description: HomeKit bridge for non-Apple devices
-        container: homebridge
-        server: local-docker
+        siteMonitor: https://homebridge.lundmark.tech/
     - OpenClaw:
         icon: openclaw.png
         href: https://bot.lundmark.tech/?token={{HOMEPAGE_VAR_OPENCLAW_TOKEN}}

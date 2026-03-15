@@ -157,6 +157,13 @@ http:
         - authelia
       service: openclaw
 
+    # Homebridge LXC (10.0.1.13)
+    homebridge:
+      rule: 'Host(`homebridge.lundmark.tech`)'
+      middlewares:
+        - authelia
+      service: homebridge
+
     # Scrypted LXC (10.0.1.12)
     scrypted:
       rule: 'Host(`cameras.lundmark.tech`)'
@@ -231,6 +238,12 @@ http:
       loadBalancer:
         servers:
           - url: 'http://10.0.1.6'
+        passHostHeader: true
+
+    homebridge:
+      loadBalancer:
+        servers:
+          - url: 'http://10.0.1.13:8581'
         passHostHeader: true
 
     scrypted:
