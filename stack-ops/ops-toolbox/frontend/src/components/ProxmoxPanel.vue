@@ -22,7 +22,7 @@ const isPveAction = computed(() => backup.action.value.includes('pve'))
         </BaseBadge>
       </div>
       <p class="mt-1.5 text-xs text-gray-500">
-        Daily rsync of /etc/pve to NAS.
+        Daily rsync of /etc/pve &amp; /etc/nut to NAS.
         <span v-if="backup.lastPveBackup.value" class="inline-flex items-center gap-1">
           <Icon icon="lucide:clock" class="h-3 w-3" />
           Last: {{ timeAgo(backup.lastPveBackup.value) }}

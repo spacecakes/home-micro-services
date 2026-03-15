@@ -234,11 +234,17 @@
         href: https://ups1.lundmark.tech/
         description: Backbone rack UPS monitoring & management
         siteMonitor: https://ups1.lundmark.tech/
+        widget:
+            type: apcups
+            url: tcp://172.20.0.1:3551
     - APC UPS (Desktop):
         icon: /icons/apc.svg
         href: https://ups2.lundmark.tech/
         description: Desktop UPS monitoring & management
         siteMonitor: https://ups2.lundmark.tech/
+        widget:
+            type: apcups
+            url: tcp://172.20.0.1:3552
 
 - Infrastructure:
     - Portainer:

@@ -15,7 +15,7 @@ Domain: `lundmark.tech` (wildcard TLS via Cloudflare DNS challenge).
 | `stack-infra`  | Core infra: Traefik, Homepage dashboard, Portainer, Dockge, Uptime Kuma, dockerproxy, Glances, File Browser                             |
 | `stack-dns`    | Legacy AdGuard Home + sync containers (now running in Proxmox LXC `10.0.1.10`; kept for rollback, normally stopped)                     |
 | `stack-auth`   | Authelia SSO + Redis session backend                                                                                                    |
-| `stack-ops`    | apcupsd + apcupsd2 (dual UPS monitoring), ops-toolbox (UPS + backup/restore + ops web UI), Watchtower, iperf3, OpenSpeedTest, HandBrake |
+| `stack-ops`    | apcupsd + apcupsd2 (dual UPS monitoring, monitor-only), ops-toolbox (UPS + backup/restore + ops web UI), Watchtower, iperf3, OpenSpeedTest, HandBrake |
 | `stack-arr`    | Sonarr, Radarr, Lidarr, Bazarr, Prowlarr, NZBHydra2, SABnzbd, qBittorrent, Seerr, Aurral                                                |
 | `stack-plex`   | Plex (host network) + Tautulli                                                                                                          |
 | `stack-home`   | Homebridge, Scrypted (both host network)                                                                                                |
@@ -81,10 +81,19 @@ Two services use `image:` + `build:` in compose. `docker compose up -d` uses the
 
 ### apcupsd
 
-Debian-slim container running apcupsd in SNMP mode. The `UPS_DEVICE` env var sets the NMC IP (entrypoint.sh substitutes it into the baked-in config). Two instances:
+Debian-slim container running apcupsd in SNMP mode. The `UPS_DEVICE` env var sets the NMC IP (entrypoint.sh substitutes it into the baked-in config). Both instances are monitor-only — they serve UPS status to ops-toolbox via the NIS protocol. Graceful host shutdown is handled by NUT on the Proxmox host (see below).
 
-- **apcupsd** (Rack UPS, `10.0.1.5`, port 3551): On critical battery, `doshutdown` triggers host shutdown via D-Bus. Requires `apparmor:unconfined` and host D-Bus socket.
-- **apcupsd2** (Desktop UPS, `10.0.1.6`, port 3552): Monitor-only — no D-Bus, no shutdown capability.
+- **apcupsd** (Rack UPS, `10.0.1.5`, port 3551)
+- **apcupsd2** (Desktop UPS, `10.0.1.6`, port 3552)
+
+### NUT (Network UPS Tools) — runs on Proxmox host, not Docker
+
+NUT server runs directly on the Proxmox host (`10.0.1.3`) using the `snmp-ups` driver to monitor both APC UPS units via their NMCs (SNMPv3). Config files in `/etc/nut/` on the host, backed up daily to NAS via ops-toolbox.
+
+- **`rack-ups`** (Smart-UPS X 1500, NMC at `10.0.1.5`) — triggers Proxmox shutdown on battery via `upssched` (30s grace period)
+- **`desktop-ups`** (Smart-UPS 750, NMC at `10.0.1.6`) — monitored, no shutdown action
+
+Clients: Proxmox `upsmon` (local, master), Home Assistant NUT integration (`10.0.1.3:3493`, slave). The apcupsd Docker containers remain for ops-toolbox UPS status display only.
 
 ### ops-toolbox
 
@@ -92,7 +101,7 @@ Alpine multi-stage build: Node builds the Vue 3 + Vite + Tailwind SPA, Alpine ru
 
 - Pure Python NIS client for dual UPS monitoring (apcupsd + apcupsd2)
 - Hourly rsync via cron: `/srv/docker/` → NAS backup (`/destination/docker/` via NFS volume)
-- Daily rsync via cron (2am): Proxmox `/etc/pve/` → NAS backup (`/destination/pve-host/`) via rsync over SSH to `10.0.1.3`
+- Daily rsync via cron (2am): Proxmox `/etc/pve/` + `/etc/nut/` → NAS backup (`/destination/pve-host/`) via rsync over SSH to `10.0.1.3`
 - Flask API for manual backup/restore/container control
 - Vue 3 SPA baked into image (`dist/`); `app.py` bind-mounted for backend changes without rebuild
 - All config via environment variables (UPS hosts/ports, backup paths, PVE host, SSH key path, rsync excludes)

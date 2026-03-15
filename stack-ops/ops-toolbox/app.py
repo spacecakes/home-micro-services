@@ -18,11 +18,8 @@ LOG_FILE = "/var/log/backup.log"
 LOG_MAX_LINES = 5000
 SELF_CONTAINERS = {"ops-toolbox"}
 
-# UPS
-UPS1_HOST = os.environ["UPS1_HOST"]
-UPS1_PORT = int(os.environ["UPS1_PORT"])
-UPS2_HOST = os.environ["UPS2_HOST"]
-UPS2_PORT = int(os.environ["UPS2_PORT"])
+# UPS (apcupsd NIS always on port 3551)
+UPS_HOSTS = [h.strip() for h in os.environ["UPS_HOSTS"].split(",")]
 
 # Docker backup
 BACKUP_SRC = os.environ["BACKUP_SRC"]
@@ -32,8 +29,8 @@ BACKUP_EXCLUDES = os.environ["BACKUP_EXCLUDES"].split(",")
 # PVE backup (rsync over SSH)
 PVE_HOST = os.environ["PVE_HOST"]
 PVE_SSH_KEY = os.environ["PVE_SSH_KEY"]
-PVE_SRC = os.environ["PVE_SRC"]
 PVE_DST = os.environ["PVE_DST"]
+PVE_SRCS = [s.strip() for s in os.environ["PVE_SRCS"].split(",")]
 
 RSYNC_BASE = ["rsync", "-avh", "-l", "--delete"]
 
@@ -107,11 +104,12 @@ def _rsync(src, dst, f, dry_run=False, exclude=True, ssh=False):
     return result.returncode
 
 
+
 # ---------------------------------------------------------------------------
 # apcupsd NIS client (pure Python, no apcupsd package needed)
 # ---------------------------------------------------------------------------
 
-def query_apcupsd(host="apcupsd", port=3551):
+def query_apcupsd(host, port=3551):
     """Query apcupsd NIS and return status dict."""
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     sock.settimeout(5)
@@ -231,7 +229,14 @@ def run_pve_backup(dry_run=False):
             f.write(msg + "\n")
             f.flush()
         log(f"==== {label} started at {_now()} ====")
-        rc = _rsync(f"{PVE_HOST}:{PVE_SRC}", PVE_DST, f, dry_run=dry_run, exclude=False, ssh=True)
+        rc = 0
+        for src in PVE_SRCS:
+            dst = os.path.join(PVE_DST, src.strip("/")) + "/"
+            os.makedirs(dst, exist_ok=True)
+            log(f"--- {src} -> {dst}")
+            ret = _rsync(f"{PVE_HOST}:{src}", dst, f, dry_run=dry_run, exclude=False, ssh=True)
+            if ret != 0:
+                rc = ret
         ts = _now()
         if rc != 0:
             log(f"==== {label} FAILED (exit {rc}) at {ts} ====")
@@ -253,12 +258,12 @@ def run_pve_backup(dry_run=False):
 
 @app.route("/api/ups")
 def api_ups():
-    return jsonify(query_apcupsd(UPS1_HOST, UPS1_PORT))
+    return jsonify(query_apcupsd(UPS_HOSTS[0]))
 
 
 @app.route("/api/ups2")
 def api_ups2():
-    return jsonify(query_apcupsd(UPS2_HOST, UPS2_PORT))
+    return jsonify(query_apcupsd(UPS_HOSTS[1]) if len(UPS_HOSTS) > 1 else {"ok": False, "error": "No second UPS configured"})
 
 
 # ---------------------------------------------------------------------------
@@ -313,24 +318,6 @@ def backup_clear_log():
     return "ok"
 
 
-
-@app.route("/api/test-shutdown", methods=["POST"])
-def test_shutdown():
-    try:
-        result = subprocess.run(
-            ["docker", "exec", "apcupsd", "dbus-send", "--system", "--print-reply",
-             "--dest=org.freedesktop.login1",
-             "/org/freedesktop/login1",
-             "org.freedesktop.login1.Manager.CanPowerOff"],
-            capture_output=True, text=True, timeout=10
-        )
-        output = result.stdout + result.stderr
-        if result.returncode == 0 and 'string "yes"' in output:
-            return jsonify(ok=True, message="D-Bus shutdown path is working")
-        else:
-            return jsonify(ok=False, message=output.strip() or "Unknown error")
-    except Exception as e:
-        return jsonify(ok=False, message=str(e))
 
 
 # ---------------------------------------------------------------------------
