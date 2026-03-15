@@ -114,8 +114,7 @@
         icon: scrypted.png
         href: https://cameras.lundmark.tech/
         description: Integrates cameras with HomeKit & HA
-        container: scrypted
-        server: local-docker
+        siteMonitor: https://cameras.lundmark.tech/
     - Homebridge:
         icon: homebridge.png
         href: https://homebridge.lundmark.tech/

@@ -18,7 +18,7 @@ Domain: `lundmark.tech` (wildcard TLS via Cloudflare DNS challenge).
 | `stack-ops`    | apcupsd + apcupsd2 (dual UPS monitoring, monitor-only), ops-toolbox (UPS + backup/restore + ops web UI), Watchtower, iperf3, OpenSpeedTest, HandBrake |
 | `stack-arr`    | Sonarr, Radarr, Lidarr, Bazarr, Prowlarr, NZBHydra2, SABnzbd, qBittorrent, Seerr, Aurral                                                |
 | `stack-plex`   | Plex (host network) + Tautulli                                                                                                          |
-| `stack-home`   | Homebridge, Scrypted (both host network)                                                                                                |
+| `stack-home`   | Homebridge (host network)                                                                                                               |
 | `stack-immich` | Immich server + ML + PostgreSQL (custom vectorchord) + Valkey                                                                           |
 | `stack-nas`    | Portainer Edge Agent, Dockge Agent, Watchtower, AdGuard Home, iCloudPD — **runs on the Synology NAS (`10.0.1.2`), not the home server** |
 
@@ -52,6 +52,7 @@ Non-Docker services (Synology apps, UniFi, UPS NMCs, iCloudPD on NAS) are routed
 - `dns1.lundmark.tech` → AdGuard Home LXC `10.0.1.10`
 - `dns-sync.lundmark.tech` → AdGuard Home Sync LXC `10.0.1.10:8080`
 - `dns2.lundmark.tech` → NAS AdGuard `10.0.1.2:3000`
+- `cameras.lundmark.tech` → Scrypted LXC `10.0.1.12:10443`
 - `home.lundmark.tech` → Home Assistant OS VM `10.0.1.7:8123`
 - `bot.lundmark.tech` → OpenClaw AI assistant VM `10.0.1.9:18789`
 - `hypervisor.lundmark.tech` → Proxmox `10.0.1.3:8006`
@@ -67,7 +68,7 @@ Backend-only services use `traefik.enable=false`. Services that only need intra-
 ## Networking
 
 - **`traefik-proxy`**: External Docker network shared across all stacks. Needed for Traefik routing and cross-stack container DNS.
-- **Host network**: Used by Plex, Homebridge, Scrypted (need device/port access).
+- **Host network**: Used by Plex, Homebridge (need device/port access).
 - **DNS override**: Some stacks (`stack-arr`) set explicit Cloudflare/Google DNS to bypass AdGuard filtering.
 
 ## Custom Images
