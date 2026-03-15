@@ -1,19 +1,21 @@
 /* Larger icons for the Favorites row — only when Services tab is active */
-#tabs:has(li:first-child > [aria-selected="true"]) + #layout-groups > .services-group:first-of-type {
-    & a {
-        width: auto !important;
-    }
-    & img {
-        width: 54px !important;
-        height: 54px !important;
-    }
-    & li div > div {
-        padding: 8px;
-    }
-    & .service-title {
-        justify-content: center !important;
-    }
-    & a + a {
-        flex: unset !important;
+@media (min-width: 1024px) {
+    #tabs:has(li:first-child > [aria-selected="true"]) + #layout-groups > .services-group:first-of-type {
+        & a {
+            width: auto !important;
+        }
+        & img {
+            width: 54px !important;
+            height: 54px !important;
+        }
+        & li div > div {
+            padding: 8px;
+        }
+        & .service-title {
+            justify-content: center !important;
+        }
+        & a + a {
+            flex: unset !important;
+        }
     }
 }
