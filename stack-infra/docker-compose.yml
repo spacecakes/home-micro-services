@@ -7,9 +7,6 @@ services:
     <<: *common
     container_name: traefik
     image: traefik:3.6
-    dns:
-      - 1.1.1.1 # Cloudflare DNS
-      - 8.8.8.8 # Google DNS
     networks:
       - default
       - traefik-proxy

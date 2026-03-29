@@ -4,22 +4,33 @@ Update this file whenever changes are made so it is always up to date.
 
 ## Repository Overview
 
-Home server Docker infrastructure. ~45 containerized services across 8 compose stacks, reverse-proxied through Traefik with Authelia SSO, backed up hourly to a Synology NAS.
+Home server Docker infrastructure. ~40 containerized services across 7 compose stacks, reverse-proxied through Traefik with Authelia SSO, backed up hourly to a Synology NAS. Some services have been migrated to dedicated Proxmox LXCs.
 
 Domain: `lundmark.tech` (wildcard TLS via Cloudflare DNS challenge).
+
+### DNS Resolution
+
+`*.lundmark.tech` resolves to `10.0.1.4` (Docker LXC where Traefik runs) via three layers:
+
+- **UniFi**: DHCP hands out AdGuard (`10.0.1.10`) as DNS + has local A records for `lundmark.tech` / `*.lundmark.tech` → `10.0.1.4`.
+- **AdGuard Home** (`10.0.1.10`): DNS rewrites for `lundmark.tech` and `*.lundmark.tech` → `10.0.1.4`. Primary DNS for LAN clients.
+- **Cloudflare**: A record `lundmark.tech` → `10.0.1.4`, CNAME `*.lundmark.tech` → `lundmark.tech`. Fallback for clients not using AdGuard.
+- **Tailscale**: Split DNS configured to forward `lundmark.tech` queries to AdGuard (`10.0.1.10`) so VPN clients resolve correctly.
+
+External access (no VPN): `watch.lundmark.tech` and `home.lundmark.tech` are CNAME'd to `public.lundmark.tech` (public IP) with Cloudflare proxy enabled. Router port-forwards to Plex LXC (`10.0.1.19:32400`) and Home Assistant VM (`10.0.1.7:8123`).
 
 ## Stack Organization
 
 | Stack          | Purpose                                                                                                                                 |
 | -------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
-| `stack-infra`  | Core infra: Traefik, Homepage dashboard, Portainer, Dockge, Uptime Kuma, dockerproxy, Glances, File Browser                             |
+| `stack-infra`  | Core infra: Traefik, Homepage dashboard, Portainer, Dockge, Uptime Kuma, dockerproxy, Glances, File Browser, Tautulli                    |
 | `stack-dns`    | Legacy AdGuard Home + sync containers (now running in Proxmox LXC `10.0.1.10`; kept for rollback, normally stopped)                     |
 | `stack-auth`   | Authelia SSO + Redis session backend                                                                                                    |
 | `stack-ops`    | apcupsd + apcupsd2 (dual UPS monitoring, monitor-only), ops-toolbox (UPS + backup/restore + ops web UI), Watchtower, iperf3, OpenSpeedTest, HandBrake |
 | `stack-arr`    | Sonarr, Radarr, Lidarr, Bazarr, Prowlarr, NZBHydra2, SABnzbd, qBittorrent, Seerr, Aurral                                                |
-| `stack-plex`   | Plex (host network) + Tautulli                                                                                                          |
+| `stack-plex`   | Empty (Plex migrated to LXC `10.0.1.19`, Tautulli moved to `stack-infra`)                                                              |
 | `stack-home`   | Empty (Homebridge & Scrypted migrated to LXCs)                                                                                          |
-| `stack-immich` | Immich server + ML + PostgreSQL (custom vectorchord) + Valkey                                                                           |
+| `stack-immich` | Empty (Immich migrated to native LXC via community script)                                                                              |
 | `stack-nas`    | Portainer Edge Agent, Dockge Agent, Watchtower, AdGuard Home, iCloudPD — **runs on the Synology NAS (`10.0.1.2`), not the home server** |
 
 `stack-nas` is checked into this repo for versioning but deployed on the NAS. All other stacks run on the home server.
@@ -43,7 +54,7 @@ Multi-network services need explicit `traefik.docker.network=traefik-proxy`.
 
 ### Static routes in dynamic.yml
 
-Non-Docker services (Synology apps, UniFi, UPS NMCs, iCloudPD on NAS) are routed via `stack-infra/traefik/dynamic.yml`, not Docker labels. When adding routes for things outside Docker, edit dynamic.yml. Key static routes:
+Non-Docker services (Synology apps, UniFi, UPS NMCs, LXCs, VMs) are routed via `stack-infra/traefik/dynamic.yml`, not Docker labels. When adding routes for things outside Docker, edit dynamic.yml. Key static routes:
 
 - `dsm/drive/backup/downloads/files/vm.lundmark.tech` → Synology NAS `10.0.1.2:5001` (path-prefixed)
 - `network.lundmark.tech` → UniFi `10.0.1.1`
@@ -52,6 +63,7 @@ Non-Docker services (Synology apps, UniFi, UPS NMCs, iCloudPD on NAS) are routed
 - `dns1.lundmark.tech` → AdGuard Home LXC `10.0.1.10`
 - `dns-sync.lundmark.tech` → AdGuard Home Sync LXC `10.0.1.10:8080`
 - `dns2.lundmark.tech` → NAS AdGuard `10.0.1.2:3000`
+- `watch.lundmark.tech` → Plex LXC `10.0.1.19:32400`
 - `homebridge.lundmark.tech` → Homebridge LXC `10.0.1.13:8581`
 - `cameras.lundmark.tech` → Scrypted LXC `10.0.1.12:10443`
 - `home.lundmark.tech` → Home Assistant OS VM `10.0.1.7:8123`
@@ -69,7 +81,6 @@ Backend-only services use `traefik.enable=false`. Services that only need intra-
 ## Networking
 
 - **`traefik-proxy`**: External Docker network shared across all stacks. Needed for Traefik routing and cross-stack container DNS.
-- **Host network**: Used by Plex (needs device/port access).
 - **DNS override**: Some stacks (`stack-arr`) set explicit Cloudflare/Google DNS to bypass AdGuard filtering.
 
 ## Custom Images
@@ -103,7 +114,7 @@ Alpine multi-stage build: Node builds the Vue 3 + Vite + Tailwind SPA, Alpine ru
 
 - Pure Python NIS client for dual UPS monitoring (apcupsd + apcupsd2)
 - Hourly rsync via cron: `/srv/docker/` → NAS backup (`/destination/docker/` via NFS volume)
-- Daily rsync via cron (2am): Proxmox `/etc/pve/` + `/etc/nut/` → NAS backup (`/destination/pve-host/`) via rsync over SSH to `10.0.1.3`
+- Daily rsync via cron (2am): Proxmox `/etc/pve/` + `/etc/nut/` + `/etc/fstab` → NAS backup (`/destination/pve-host/`) via rsync over SSH to `10.0.1.3`
 - Flask API for manual backup/restore/container control
 - Vue 3 SPA baked into image (`dist/`); `app.py` bind-mounted for backend changes without rebuild
 - All config via environment variables (UPS hosts/ports, backup paths, PVE host, SSH key path, rsync excludes)
@@ -129,9 +140,7 @@ Two Docker servers: `local-docker` (via dockerproxy on localhost:2375) and `home
 Each stack has its own `.env` (gitignored). Key variables:
 
 - `stack-infra`: `CLOUDFLARE_API_TOKEN`, `HOMEPAGE_UNIFI_PASSWORD`
-- `stack-plex`: `PLEX_CLAIM`
 - `stack-nas`: `PORTAINER_EDGE_ID`, `PORTAINER_EDGE_KEY`, `APPLE_ID`, `ICLOUD_SHARED_LIBRARY`
-- `stack-immich`: `DB_PASSWORD`
 
 ## NAS Mounts
 
@@ -145,4 +154,21 @@ Volume naming convention: `nfs-{share}` (e.g. `nfs-media`, `nfs-music`, `nfs-dow
 - **Restart policy**: `unless-stopped` (most), `always` (critical: AdGuard, Immich, Redis)
 - **Data directories**: `/srv/docker/stack-*/data/` for persistent state
 - **Watchtower opt-out**: `com.centurylinklabs.watchtower.enable=false` on services needing manual control
-- **GPU passthrough**: `/dev/dri` for Intel Quick Sync (Plex, Immich)
+- **GPU passthrough**: `/dev/dri` for Intel Quick Sync (HandBrake). Plex and Immich now run in their own LXCs with GPU passthrough configured in Proxmox.
+
+## Proxmox LXC/VM Services (outside Docker)
+
+Services migrated out of Docker to dedicated Proxmox LXCs/VMs. NFS mounts inside privileged LXCs use `/etc/fstab`; unprivileged LXCs use host bind mounts. Prefer privileged with internal fstab for services needing NAS access (supports Proxmox snapshots).
+
+| Service        | Type           | IP           | Notes                                                     |
+| -------------- | -------------- | ------------ | --------------------------------------------------------- |
+| AdGuard Home   | LXC            | `10.0.1.10`  | Primary DNS, also handles `*.lundmark.tech` DNS rewrite   |
+| Homebridge     | LXC            | `10.0.1.13`  |                                                           |
+| Scrypted       | LXC            | `10.0.1.12`  | Camera management                                         |
+| Plex           | LXC (native)   | `10.0.1.19`  | Privileged, GPU passthrough, NFS via internal fstab       |
+| Immich         | LXC (native)   | TBD          | Community script install, internal upload library          |
+| Home Assistant | VM (HAOS)      | `10.0.1.7`   |                                                           |
+| OpenClaw       | VM             | `10.0.1.9`   | AI assistant                                              |
+| Tailscale      | LXC            |              | VPN access                                                |
+
+Proxmox backs up all LXCs/VMs to the NAS. The ops-toolbox daily rsync also backs up `/etc/fstab` from the Proxmox host.

@@ -1,10 +1,6 @@
 # Common config for *arr and linuxserver services
 x-common: &common
   restart: unless-stopped
-  # Bypass Adguard Home
-  dns:
-    - 1.1.1.1 # Cloudflare DNS
-    - 8.8.8.8 # Google DNS
   networks:
     - default
     - traefik-proxy
