@@ -130,8 +130,7 @@
         icon: immich.png
         href: https://photos.lundmark.tech/
         description: Photos & album
-        container: immich_server
-        server: local-docker
+        siteMonitor: https://photos.lundmark.tech/
     - iCloudPD:
         icon: icloud.png
         href: https://icloudpd.lundmark.tech/
@@ -213,7 +212,7 @@
         href: https://status.lundmark.tech/
         description: Service uptime monitoring & status dashboard
         container: uptime-kuma
-        server: local-docker
+        server: homecloud-docker
     - Glances:
         icon: glances.png
         href: https://glances.lundmark.tech/

@@ -100,6 +100,13 @@ http:
         - add-vm-prefix
       service: synology-vm
 
+    # Uptime Kuma on NAS (10.0.1.2)
+    uptime-kuma:
+      rule: 'Host(`status.lundmark.tech`)'
+      middlewares:
+        - authelia
+      service: uptime-kuma
+
     # Synology containers
     icloudpd:
       rule: 'Host(`icloudpd.lundmark.tech`)'
@@ -196,6 +203,12 @@ http:
     synology-download-station: *synology-service
     synology-file-station: *synology-service
     synology-vm: *synology-service
+
+    uptime-kuma:
+      loadBalancer:
+        servers:
+          - url: 'http://10.0.1.2:3001'
+        passHostHeader: true
 
     icloudpd:
       loadBalancer:

@@ -78,21 +78,6 @@ services:
     depends_on:
       - traefik
 
-  # Monitoring & dashboard
-  uptime-kuma:
-    <<: *common
-    container_name: uptime-kuma
-    image: louislam/uptime-kuma:latest
-    labels:
-      - 'traefik.http.routers.uptime-kuma.rule=Host(`status.lundmark.tech`)'
-      - 'traefik.http.routers.uptime-kuma.middlewares=authelia@file'
-      - 'traefik.http.services.uptime-kuma.loadbalancer.server.port=3001'
-    volumes:
-      - /srv/docker/stack-infra/data/uptime-kuma:/app/data
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-    depends_on:
-      - traefik
-
   homepage:
     <<: *common
     image: ghcr.io/gethomepage/homepage:latest

@@ -65,6 +65,15 @@ services:
       - /volume1/docker/stack-nas/data/adguardhome/config:/opt/adguardhome/conf
     restart: unless-stopped
 
+  uptime-kuma:
+    container_name: uptime-kuma
+    image: louislam/uptime-kuma:latest
+    restart: unless-stopped
+    ports:
+      - 3001:3001
+    volumes:
+      - /volume1/docker/stack-nas/data/uptime-kuma:/app/data
+
   # iCloud Photo Downloader - Personal Library
   icloudpd:
     image: icloudpd/icloudpd:latest
