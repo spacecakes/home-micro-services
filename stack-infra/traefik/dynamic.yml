@@ -171,6 +171,11 @@ http:
         - authelia
       service: scrypted
 
+    # Plex LXC (10.0.1.19)
+    plex:
+      rule: 'Host(`watch.lundmark.tech`)'
+      service: plex
+
     # APC UPS
     apcups1:
       rule: 'Host(`ups1.lundmark.tech`)'
@@ -262,6 +267,12 @@ http:
       loadBalancer:
         servers:
           - url: 'http://10.0.1.9:18789'
+        passHostHeader: true
+
+    plex:
+      loadBalancer:
+        servers:
+          - url: 'http://10.0.1.19:32400'
         passHostHeader: true
 
     proxmox:

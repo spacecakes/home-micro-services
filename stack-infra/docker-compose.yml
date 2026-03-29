@@ -136,6 +136,27 @@ services:
     depends_on:
       - traefik
 
+  # Plex monitoring (Plex runs on LXC 10.0.1.19)
+  tautulli:
+    <<: *common
+    image: lscr.io/linuxserver/tautulli:latest
+    container_name: tautulli
+    environment:
+      PUID: 1000
+      PGID: 1000
+      TZ: Europe/Stockholm
+    networks:
+      - default
+      - traefik-proxy
+    volumes:
+      - /srv/docker/stack-infra/data/tautulli:/config
+    labels:
+      - 'traefik.docker.network=traefik-proxy'
+      - 'traefik.http.routers.tautulli.rule=Host(`stats.lundmark.tech`)'
+      - 'traefik.http.routers.tautulli.middlewares=authelia@file'
+    depends_on:
+      - traefik
+
   # File explorer
   filebrowser:
     <<: *common

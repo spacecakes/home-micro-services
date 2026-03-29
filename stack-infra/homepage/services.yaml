@@ -27,8 +27,7 @@
         icon: plex.png
         href: https://watch.lundmark.tech/
         description: Stream movies & TV to any device
-        container: plex
-        server: local-docker
+        siteMonitor: https://watch.lundmark.tech/
     - Seerr:
         icon: overseerr.png
         href: https://requests.lundmark.tech/
