@@ -73,6 +73,7 @@ services:
       - 3001:3001
     volumes:
       - /volume1/docker/stack-nas/data/uptime-kuma:/app/data
+      - /var/run/docker.sock:/var/run/docker.sock:ro
 
   # iCloud Photo Downloader - Personal Library
   icloudpd:
