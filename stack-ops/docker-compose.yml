@@ -42,7 +42,7 @@ services:
       PVE_HOST: root@10.0.1.3
       PVE_SSH_KEY: /app/ssh/id_ed25519
       PVE_DST: /destination/pve-host/
-      PVE_SRCS: /etc/pve/,/etc/nut/
+      PVE_SRCS: /etc/pve/,/etc/nut/,/etc/fstab
     networks:
       - default
       - traefik-proxy

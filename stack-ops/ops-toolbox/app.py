@@ -231,7 +231,10 @@ def run_pve_backup(dry_run=False):
         log(f"==== {label} started at {_now()} ====")
         rc = 0
         for src in PVE_SRCS:
-            dst = os.path.join(PVE_DST, src.strip("/")) + "/"
+            if src.endswith("/"):
+                dst = os.path.join(PVE_DST, src.strip("/")) + "/"
+            else:
+                dst = os.path.join(PVE_DST, os.path.dirname(src).strip("/")) + "/"
             os.makedirs(dst, exist_ok=True)
             log(f"--- {src} -> {dst}")
             ret = _rsync(f"{PVE_HOST}:{src}", dst, f, dry_run=dry_run, exclude=False, ssh=True)
