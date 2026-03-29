@@ -176,7 +176,12 @@
         description: Client restore portal for backups
         siteMonitor: https://backup.lundmark.tech/
 
-- DNS:
+- Network:
+    - UniFi Controller:
+        icon: unifi.png
+        href: https://network.lundmark.tech/
+        description: Network & WiFi management
+        siteMonitor: https://network.lundmark.tech/
     - 'AdGuard Home #1':
         icon: /icons/adguard-home.png
         href: https://dns1.lundmark.tech/
@@ -192,19 +197,6 @@
         href: https://dns-sync.lundmark.tech/
         description: Keeps AdGuard Home instances in sync
         siteMonitor: https://dns-sync.lundmark.tech/
-
-- Network:
-    - UniFi Controller:
-        icon: unifi.png
-        href: https://network.lundmark.tech/
-        description: Network & WiFi management
-        siteMonitor: https://network.lundmark.tech/
-    - OpenSpeedTest:
-        icon: openspeedtest.png
-        href: https://speedtest.lundmark.tech/
-        description: Internet speed test
-        container: openspeedtest
-        server: local-docker
 
 - Monitoring:
     - Uptime Kuma:
@@ -243,6 +235,17 @@
             url: tcp://172.20.0.1:3552
 
 - Infrastructure:
+    - Proxmox:
+        icon: proxmox.png
+        href: https://hypervisor.lundmark.tech/
+        description: Virtual machine & container hypervisor
+        siteMonitor: https://hypervisor.lundmark.tech/
+        # widget:
+        #     type: proxmox
+        #     url: https://10.0.1.3:8006
+        #     username: api@pve!homepage
+        #     password: '{{HOMEPAGE_VAR_PROXMOX_TOKEN}}'
+        #     node: pve
     - Portainer:
         icon: portainer.png
         href: https://containers.lundmark.tech/
@@ -255,17 +258,7 @@
         description: Docker compose stack management & monitoring
         container: dockge
         server: local-docker
-    - Proxmox:
-        icon: proxmox.png
-        href: https://hypervisor.lundmark.tech/
-        description: Virtual machine & container hypervisor
-        siteMonitor: https://hypervisor.lundmark.tech/
-        # widget:
-        #     type: proxmox
-        #     url: https://10.0.1.3:8006
-        #     username: api@pve!homepage
-        #     password: '{{HOMEPAGE_VAR_PROXMOX_TOKEN}}'
-        #     node: pve
+
     - Synology VMM:
         icon: /icons/synology-vmm.png
         href: https://vm.lundmark.tech/

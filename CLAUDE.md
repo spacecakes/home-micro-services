@@ -26,7 +26,7 @@ External access (no VPN): `watch.lundmark.tech` and `home.lundmark.tech` are CNA
 | `stack-infra`  | Core infra: Traefik, Homepage dashboard, Portainer, Dockge, Uptime Kuma, dockerproxy, Glances, File Browser, Tautulli                    |
 | `stack-dns`    | Legacy AdGuard Home + sync containers (now running in Proxmox LXC `10.0.1.10`; kept for rollback, normally stopped)                     |
 | `stack-auth`   | Authelia SSO + Redis session backend                                                                                                    |
-| `stack-ops`    | apcupsd + apcupsd2 (dual UPS monitoring, monitor-only), ops-toolbox (UPS + backup/restore + ops web UI), Watchtower, iperf3, OpenSpeedTest, HandBrake |
+| `stack-ops`    | apcupsd + apcupsd2 (dual UPS monitoring, monitor-only), ops-toolbox (UPS + backup/restore + ops web UI), Watchtower, iperf3, HandBrake |
 | `stack-arr`    | Sonarr, Radarr, Lidarr, Bazarr, Prowlarr, NZBHydra2, SABnzbd, qBittorrent, Seerr, Aurral                                                |
 | `stack-plex`   | Empty (Plex migrated to LXC `10.0.1.19`, Tautulli moved to `stack-infra`)                                                              |
 | `stack-home`   | Empty (Homebridge & Scrypted migrated to LXCs)                                                                                          |

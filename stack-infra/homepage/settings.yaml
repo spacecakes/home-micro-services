@@ -49,12 +49,10 @@ layout:
     tab: Admin
     style: row
     columns: 3
-  DNS:
-    tab: Admin
-    columns: 3
   Network:
     tab: Admin
-    columns: 2
+    columns: 4
+    style: row
   Monitoring:
     tab: Admin
     style: row
