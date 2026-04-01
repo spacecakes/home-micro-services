@@ -3,12 +3,11 @@ import type { Ref, ComputedRef } from 'vue'
 
 type BadgeColor = 'green' | 'red' | 'yellow' | 'gray'
 
-interface BackupResponse {
+interface StatusResponse {
   running: boolean
   action: string
   log: string
   last_backup: string | null
-  last_pve_backup: string | null
   last_error: string | null
 }
 
@@ -17,7 +16,6 @@ export interface BackupState {
   action: Ref<string>
   log: Ref<string>
   lastBackup: Ref<string>
-  lastPveBackup: Ref<string>
   lastError: Ref<string>
   dryRun: Ref<boolean>
   statusText: ComputedRef<string>
@@ -31,11 +29,9 @@ export function useBackup(): BackupState {
   const action = ref('')
   const log = ref('')
   const lastBackup = ref('')
-  const lastPveBackup = ref('')
   const lastError = ref('')
   const dryRun = ref(false)
   const fails = ref(0)
-  const stopped = ref(false)
 
   let pollTimer: ReturnType<typeof setTimeout> | null = null
 
@@ -44,35 +40,29 @@ export function useBackup(): BackupState {
     if (!running.value) return lastError.value ? 'Last run failed' : 'Idle'
     const a = action.value
     const isDry = a.includes('dry')
-    if (a.includes('restore')) return isDry ? 'Restore dry-run...' : 'Restoring...'
-    if (a.includes('pve')) return isDry ? 'PVE backup dry-run...' : 'PVE backup...'
     return isDry ? 'Backup dry-run...' : 'Backing up...'
   })
 
   const statusColor = computed((): BadgeColor => {
     if (fails.value >= 3) return 'red'
     if (!running.value) return lastError.value ? 'red' : 'green'
-    const a = action.value
-    if (a.includes('restore')) return 'red'
     return 'yellow'
   })
 
   async function poll(): Promise<void> {
     try {
-      const res = await fetch('/api/backup')
+      const res = await fetch('/api/status')
       if (!res.ok) throw new Error()
-      const d: BackupResponse = await res.json()
+      const d: StatusResponse = await res.json()
       fails.value = 0
       running.value = d.running
       action.value = d.action || ''
       log.value = d.log || ''
       lastBackup.value = d.last_backup || ''
-      lastPveBackup.value = d.last_pve_backup || ''
       lastError.value = d.last_error || ''
     } catch {
       fails.value++
       if (fails.value >= 3) {
-        stopped.value = true
         log.value = 'Error: ops-toolbox container is not reachable. Polling stopped \u2014 reload page to retry.'
       } else {
         log.value = 'Error: ops-toolbox container is not reachable. Retrying...'
@@ -81,7 +71,7 @@ export function useBackup(): BackupState {
   }
 
   function schedule(): void {
-    if (stopped.value) return
+    if (fails.value >= 3) return
     pollTimer = setTimeout(async () => {
       await poll()
       schedule()
@@ -92,10 +82,12 @@ export function useBackup(): BackupState {
     let u = url
     if (dryRun.value) u += (u.includes('?') ? '&' : '?') + 'dry=1'
     running.value = true
-    fetch(u, { method: 'POST' }).then(() => {
-      if (pollTimer) clearTimeout(pollTimer)
-      poll().then(schedule)
-    })
+    fetch(u, { method: 'POST' })
+      .catch(() => {})
+      .finally(() => {
+        if (pollTimer) clearTimeout(pollTimer)
+        poll().then(schedule)
+      })
   }
 
   onMounted(() => {
@@ -112,7 +104,6 @@ export function useBackup(): BackupState {
     action,
     log,
     lastBackup,
-    lastPveBackup,
     lastError,
     dryRun,
     statusText,

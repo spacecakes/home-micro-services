@@ -4,7 +4,7 @@ Update this file whenever changes are made so it is always up to date.
 
 ## Repository Overview
 
-Home server Docker infrastructure. ~40 containerized services across 7 compose stacks, reverse-proxied through Traefik with Authelia SSO, backed up hourly to a Synology NAS. Some services have been migrated to dedicated Proxmox LXCs.
+Home server Docker infrastructure. ~40 containerized services across 7 compose stacks, reverse-proxied through Traefik with Authelia SSO. Some services have been migrated to dedicated Proxmox LXCs. Proxmox snapshots handle container/LXC backup; ops-toolbox backs up PVE host config daily to the NAS.
 
 Domain: `lundmark.tech` (wildcard TLS via Cloudflare DNS challenge).
 
@@ -26,18 +26,18 @@ External access (no VPN): `watch.lundmark.tech` and `home.lundmark.tech` are CNA
 | `stack-infra`  | Core infra: Traefik, Homepage dashboard, Portainer, Dockge, Uptime Kuma, dockerproxy, Glances, File Browser, Tautulli                    |
 | `stack-dns`    | Legacy AdGuard Home + sync containers (now running in Proxmox LXC `10.0.1.10`; kept for rollback, normally stopped)                     |
 | `stack-auth`   | Authelia SSO + Redis session backend                                                                                                    |
-| `stack-ops`    | apcupsd + apcupsd2 (dual UPS monitoring, monitor-only), ops-toolbox (UPS + backup/restore + ops web UI), Watchtower, iperf3, HandBrake |
+| `stack-ops`    | apcupsd + apcupsd2 (dual UPS monitoring, monitor-only), ops-toolbox (UPS monitoring + PVE host backup), Watchtower, iperf3, HandBrake |
 | `stack-arr`    | Sonarr, Radarr, Lidarr, Bazarr, Prowlarr, NZBHydra2, SABnzbd, qBittorrent, Seerr, Aurral                                                |
 | `stack-plex`   | Empty (Plex migrated to LXC `10.0.1.19`, Tautulli moved to `stack-infra`)                                                              |
 | `stack-home`   | Empty (Homebridge & Scrypted migrated to LXCs)                                                                                          |
-| `stack-immich` | Empty (Immich migrated to native LXC via community script)                                                                              |
+| `stack-immich` | Empty (Immich migrated to LXC `10.0.1.18`)                                                                                              |
 | `stack-nas`    | Portainer Edge Agent, Dockge Agent, Watchtower, AdGuard Home, iCloudPD — **runs on the Synology NAS (`10.0.1.2`), not the home server** |
 
 `stack-nas` is checked into this repo for versioning but deployed on the NAS. All other stacks run on the home server.
 
 ### Stack startup order matters
 
-`stack-infra` first (Traefik), then `stack-auth` (Authelia), then the rest. AdGuard Home now runs in a Proxmox LXC (`10.0.1.10`), not Docker. The backup service respects this via `STACK_PRIORITY` in `stack-ops/ops-toolbox/app.py`.
+`stack-infra` first (Traefik), then `stack-auth` (Authelia), then the rest. AdGuard Home now runs in a Proxmox LXC (`10.0.1.10`), not Docker.
 
 ## Routing & Traefik
 
@@ -59,6 +59,7 @@ Non-Docker services (Synology apps, UniFi, UPS NMCs, LXCs, VMs) are routed via `
 - `dsm/drive/backup/downloads/files/vm.lundmark.tech` → Synology NAS `10.0.1.2:5001` (path-prefixed)
 - `network.lundmark.tech` → UniFi `10.0.1.1`
 - `ups1/ups2.lundmark.tech` → APC NMC web interfaces
+- `photos.lundmark.tech` → Immich LXC `10.0.1.18:2283`
 - `icloudpd/icloudpd-shared.lundmark.tech` → NAS `10.0.1.2:8080/8081`
 - `dns1.lundmark.tech` → AdGuard Home LXC `10.0.1.10`
 - `dns-sync.lundmark.tech` → AdGuard Home Sync LXC `10.0.1.10:8080`
@@ -110,14 +111,13 @@ Clients: Proxmox `upsmon` (local, master), Home Assistant NUT integration (`10.0
 
 ### ops-toolbox
 
-Alpine multi-stage build: Node builds the Vue 3 + Vite + Tailwind SPA, Alpine runtime runs Flask + rsync + docker-cli + openssh-client. Serves as the ops web UI with:
+Alpine multi-stage build: Node builds the Vue 3 + Vite + Tailwind SPA, Alpine runtime runs Flask + rsync + openssh-client. Serves as the ops web UI with:
 
 - Pure Python NIS client for dual UPS monitoring (apcupsd + apcupsd2)
-- Hourly rsync via cron: `/srv/docker/` → NAS backup (`/destination/docker/` via NFS volume)
-- Daily rsync via cron (2am): Proxmox `/etc/pve/` + `/etc/nut/` + `/etc/fstab` → NAS backup (`/destination/pve-host/`) via rsync over SSH to `10.0.1.3`
-- Flask API for manual backup/restore/container control
+- Daily rsync via cron (2am): Proxmox host config (`/etc/pve/`, `/etc/nut/`, `/etc/fstab`, `/etc/network/interfaces`, `/etc/modprobe.d/`, `/etc/modules`, `/etc/sysctl.conf`, `/etc/apt/sources.list.d/`) → NAS backup (`/destination/` via NFS volume `nfs-backup-pve-host`)
+- Flask API for manual PVE backup trigger
 - Vue 3 SPA baked into image (`dist/`); `app.py` bind-mounted for backend changes without rebuild
-- All config via environment variables (UPS hosts/ports, backup paths, PVE host, SSH key path, rsync excludes)
+- All config via environment variables (UPS hosts, PVE host, SSH key path, backup destination)
 - SSH key for PVE backup stored in `data/ssh/` (gitignored, bind-mounted read-only)
 
 ## Homepage Dashboard
@@ -166,7 +166,7 @@ Services migrated out of Docker to dedicated Proxmox LXCs/VMs. NFS mounts inside
 | Homebridge     | LXC            | `10.0.1.13`  |                                                           |
 | Scrypted       | LXC            | `10.0.1.12`  | Camera management                                         |
 | Plex           | LXC (native)   | `10.0.1.19`  | Privileged, GPU passthrough, NFS via internal fstab       |
-| Immich         | LXC (native)   | TBD          | Community script install, internal upload library          |
+| Immich         | LXC (native)   | `10.0.1.18`  | Community script install, internal upload library          |
 | Home Assistant | VM (HAOS)      | `10.0.1.7`   |                                                           |
 | OpenClaw       | VM             | `10.0.1.9`   | AI assistant                                              |
 | Tailscale      | LXC            |              | VPN access                                                |

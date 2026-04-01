@@ -33,25 +33,29 @@ services:
     container_name: ops-toolbox
     image: ops-toolbox:latest
     build: ./ops-toolbox
-    command: /bin/sh -c "(echo '0 * * * * curl -sX POST http://localhost:8000/backup/run'; echo '0 2 * * * curl -sX POST http://localhost:8000/proxmox/run') | crontab - && crond -l 2 && python3 /app/app.py"
+    command: /bin/sh -c "echo '0 2 * * * curl -sX POST http://localhost:8000/backup/run' | crontab - && crond -l 2 && python3 /app/app.py"
     environment:
+      # UPS monitoring (apcupsd NIS)
       UPS_HOSTS: apcupsd,apcupsd2
-      BACKUP_SRC: /source/
-      BACKUP_DST: /destination/docker/
-      BACKUP_EXCLUDES: '.git/,temp/,downloads/,.DS_Store,._*,@eaDir,logs/,Logs/'
+      # Backup root (NFS mount)
+      BACKUP_DST: /destination
+      # PVE host config (rsync over SSH)
       PVE_HOST: root@10.0.1.3
       PVE_SSH_KEY: /app/ssh/id_ed25519
-      PVE_DST: /destination/pve-host/
-      PVE_SRCS: /etc/pve/,/etc/nut/,/etc/fstab
+      PVE_DIR: pve-host
+      PVE_SRCS: /etc/pve/,/etc/nut/,/etc/fstab,/etc/network/interfaces,/etc/modprobe.d/,/etc/modules,/etc/sysctl.d/,/etc/apt/sources.list.d/
+      # UPS NMC config (FTP)
+      NMC_HOSTS: 'rack-ups:10.0.1.5,desktop-ups:10.0.1.6'
+      NMC_USER: apc
+      NMC_PASS: ${NMC_PASS}
+      NMC_DIR: apc-ups
     networks:
       - default
       - traefik-proxy
     volumes:
-      - /srv/docker:/source
-      - nfs-backup-docker:/destination
+      - nfs-backup-nodes:/destination
       - /srv/docker/stack-ops/data/ssh:/app/ssh:ro
       - /srv/docker/stack-ops/ops-toolbox/app.py:/app/app.py:ro
-      - /var/run/docker.sock:/var/run/docker.sock:ro
     labels:
       - 'traefik.http.routers.ops.rule=Host(`ops.lundmark.tech`)'
       - 'traefik.http.routers.ops.middlewares=authelia@file'
@@ -108,12 +112,12 @@ services:
       - /srv/docker/temp/handbrake:/output
 
 volumes:
-  nfs-backup-docker:
+  nfs-backup-nodes:
     driver: local
     driver_opts:
       type: nfs
       o: 'addr=10.0.1.2,soft,timeo=50,vers=4.1,noatime'
-      device: ':/volume1/backup-homeserver'
+      device: ':/volume1/backup-nodes'
   nfs-media:
     driver: local
     driver_opts:

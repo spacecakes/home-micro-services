@@ -6,7 +6,7 @@ COPY frontend/ .
 RUN npm run build
 
 FROM alpine:latest
-RUN apk add --no-cache rsync python3 py3-pip docker-cli docker-cli-compose curl openssh-client \
+RUN apk add --no-cache rsync python3 py3-pip curl openssh-client \
     && pip install --break-system-packages flask
 COPY --from=frontend /build/dist /app/dist
 WORKDIR /app

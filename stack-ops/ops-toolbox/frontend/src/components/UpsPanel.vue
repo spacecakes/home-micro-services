@@ -15,11 +15,6 @@ interface UpsResponse {
   error?: string
 }
 
-interface ShutdownResult {
-  ok: boolean
-  message: string
-}
-
 interface Metric {
   label: string
   key: string
@@ -27,19 +22,13 @@ interface Metric {
   icon: string
 }
 
-const props = withDefaults(defineProps<{
+const props = defineProps<{
   title: string
   apiUrl: string
-  showShutdown?: boolean
-}>(), {
-  showShutdown: false,
-})
+}>()
 
 const data = ref<UpsData | null>(null)
 const error = ref(false)
-
-const shutdownLoading = ref(false)
-const shutdownResult = ref<ShutdownResult | null>(null)
 
 let interval: ReturnType<typeof setInterval> | null = null
 
@@ -69,19 +58,6 @@ async function poll(): Promise<void> {
   } catch {
     data.value = null
     error.value = true
-  }
-}
-
-async function testShutdown(): Promise<void> {
-  shutdownLoading.value = true
-  shutdownResult.value = null
-  try {
-    const res = await fetch('/api/test-shutdown', { method: 'POST' })
-    shutdownResult.value = await res.json()
-  } catch {
-    shutdownResult.value = { ok: false, message: 'Request error' }
-  } finally {
-    shutdownLoading.value = false
   }
 }
 
@@ -139,20 +115,6 @@ onUnmounted(() => {
       <Icon icon="lucide:arrow-right-left" class="h-3 w-3" />
       Last transfer: {{ data.LASTXFER }}
     </p>
-
-    <div v-if="showShutdown" class="mt-3 flex items-center gap-3">
-      <BaseButton icon="lucide:power" :disabled="shutdownLoading" @click="testShutdown">
-        Test shutdown path
-        <span v-if="shutdownLoading" class="ml-1 inline-block h-3 w-3 animate-spin rounded-full border-2 border-gray-500 border-t-white align-middle" />
-      </BaseButton>
-      <span
-        v-if="shutdownResult"
-        class="text-xs"
-        :class="shutdownResult.ok ? 'text-green-400' : 'text-red-400'"
-      >
-        {{ shutdownResult.ok ? 'OK' : 'FAIL' }} &mdash; {{ shutdownResult.message }}
-      </span>
-    </div>
 
     <details class="group mt-3">
       <summary class="flex cursor-pointer items-center gap-1 text-xs text-gray-500 select-none hover:text-gray-400">

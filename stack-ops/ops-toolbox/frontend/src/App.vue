@@ -3,10 +3,7 @@ import { provide } from 'vue'
 import { Icon } from '@iconify/vue'
 import { useBackup } from './composables/useBackup'
 import UpsPanel from './components/UpsPanel.vue'
-import BackupPanel from './components/BackupPanel.vue'
-import ProxmoxPanel from './components/ProxmoxPanel.vue'
-import StoragePanel from './components/StoragePanel.vue'
-import ActivityLog from './components/ActivityLog.vue'
+import ConfigBackupPanel from './components/ConfigBackupPanel.vue'
 
 const backup = useBackup()
 provide('backup', backup)
@@ -29,11 +26,8 @@ provide('backup', backup)
     </div>
   </div>
   <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-    <UpsPanel title="Rack UPS" api-url="/api/ups" :show-shutdown="true" />
+    <ConfigBackupPanel />
+    <UpsPanel title="Rack UPS" api-url="/api/ups" />
     <UpsPanel title="Desktop UPS" api-url="/api/ups2" />
-    <BackupPanel />
-    <ProxmoxPanel />
-    <StoragePanel />
-    <ActivityLog />
   </div>
 </template>

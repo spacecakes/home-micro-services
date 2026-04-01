@@ -214,7 +214,7 @@
     - Ops Toolbox:
         icon: /icons/ops-toolbox.svg
         href: https://ops.lundmark.tech/
-        description: UPS monitoring, backups & storage health
+        description: UPS monitoring & PVE host backup
         container: ops-toolbox
         server: local-docker
     - APC UPS (Rack):
