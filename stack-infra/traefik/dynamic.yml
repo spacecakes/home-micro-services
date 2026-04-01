@@ -178,6 +178,13 @@ http:
         - authelia
       service: scrypted
 
+    # Immich LXC (10.0.1.18)
+    immich:
+      rule: 'Host(`photos.lundmark.tech`)'
+      middlewares:
+        - authelia
+      service: immich
+
     # Plex LXC (10.0.1.19)
     plex:
       rule: 'Host(`watch.lundmark.tech`)'
@@ -280,6 +287,12 @@ http:
       loadBalancer:
         servers:
           - url: 'http://10.0.1.9:18789'
+        passHostHeader: true
+
+    immich:
+      loadBalancer:
+        servers:
+          - url: 'http://10.0.1.18:2283'
         passHostHeader: true
 
     plex:

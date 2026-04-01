@@ -129,8 +129,8 @@
     - Immich:
         icon: immich.png
         href: https://photos.lundmark.tech/
-        description: Photos & album
-        siteMonitor: https://photos.lundmark.tech/
+        description: Photos & albums
+        siteMonitor: https://photos.lundmark.tech
     - iCloudPD:
         icon: icloud.png
         href: https://icloudpd.lundmark.tech/
