@@ -223,6 +223,11 @@
         #     username: api@pve!homepage
         #     password: '{{HOMEPAGE_VAR_PROXMOX_TOKEN}}'
         #     node: pve
+    - Proxmox Backup Server:
+        icon: proxmox.png
+        href: https://pbs.lundmark.tech/
+        description: VM & LXC backups
+        siteMonitor: https://pbs.lundmark.tech/
     - Portainer:
         icon: portainer.png
         href: https://containers.lundmark.tech/

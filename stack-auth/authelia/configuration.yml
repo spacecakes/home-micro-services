@@ -82,6 +82,24 @@ identity_providers:
         grant_types:
           - authorization_code
 
+      - client_id: pbs
+        client_name: Proxmox Backup Server
+        client_secret: '$pbkdf2-sha512$310000$TmS3I7la2rk2Vr3ELfurhg$FcK..83ra7cyK.Pu3TLcFtPrWE6Y2H9KN2.o5kgYg0os1LgfuiscwkNK4zFwEnLWePIe7KR0r/70SG2xpxMx5Q'
+        token_endpoint_auth_method: client_secret_basic
+        require_pkce: true
+        pkce_challenge_method: S256
+        redirect_uris:
+          - https://pbs.lundmark.tech
+          - https://10.0.1.16:8007
+        scopes:
+          - openid
+          - profile
+          - email
+        response_types:
+          - code
+        grant_types:
+          - authorization_code
+
       - client_id: immich
         client_name: Immich
         client_secret: '$pbkdf2-sha512$310000$orsMTRKPXEF3bLdz3Ub5zw$MEy3LcYJZJqLZzsw4bZD95aFWumNTCqvRkqnhwp6tCjpHA.Ja2oH66ZGGiooQO.tMjOul01QjMNUNApbix.xXw'

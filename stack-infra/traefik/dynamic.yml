@@ -128,6 +128,11 @@ http:
         - authelia
       service: adguardhome
 
+    # Proxmox Backup Server LXC (10.0.1.16, handles own auth)
+    pbs:
+      rule: 'Host(`pbs.lundmark.tech`)'
+      service: pbs
+
     # Proxmox (no authelia middleware - Proxmox handles auth itself via OIDC)
     proxmox:
       rule: 'Host(`hypervisor.lundmark.tech`)'
@@ -274,6 +279,12 @@ http:
       loadBalancer:
         servers:
           - url: 'http://10.0.1.19:32400'
+        passHostHeader: true
+
+    pbs:
+      loadBalancer:
+        servers:
+          - url: 'https://10.0.1.16:8007'
         passHostHeader: true
 
     proxmox:

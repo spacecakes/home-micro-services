@@ -99,6 +99,22 @@ Configure under Control Panel > Domain/LDAP > SSO Client > OAuth:
 
 Note: DSM uses `client_secret_post`. DSM does **not** auto-create users — the Authelia username (`preferred_username`) must match an existing DSM local/LDAP account. Do **not** put DSM behind the `authelia@file` forward auth middleware — it conflicts with the OIDC callback redirect.
 
+### Proxmox Backup Server
+
+Configure in the PBS web UI under Configuration > Access Control > Realms > Add > OpenID Connect:
+
+| Field           | Value                                                         |
+| --------------- | ------------------------------------------------------------- |
+| Realm           | `authelia`                                                    |
+| Issuer URL      | `https://auth.lundmark.tech`                                  |
+| Client ID       | `pbs`                                                         |
+| Client Key      | contents of `secrets/oidc_pbs_secret`                         |
+| Autocreate User | Checked (or manually create matching users)                   |
+| Username Claim  | `preferred_username`                                          |
+| Scopes          | `openid profile email`                                        |
+
+Note: PBS uses the same OIDC flow as Proxmox VE (`client_secret_basic` + PKCE). After adding the realm, users can log in by selecting the `authelia` realm on the PBS login page. You may need to grant permissions to the auto-created user (`user@authelia`) under Access Control > Permissions.
+
 The client secrets (plain text) are stored in the `secrets/` directory (see Secrets table below).
 
 ## Adding a new OIDC client
@@ -138,3 +154,4 @@ All secrets are in the `secrets/` directory (git-ignored):
 | `oidc_portainer_secret` | Portainer OIDC client secret (plain text)    |
 | `oidc_immich_secret`    | Immich OIDC client secret (plain text)       |
 | `oidc_dsm_secret`       | Synology DSM OIDC client secret (plain text) |
+| `oidc_pbs_secret`       | PBS OIDC client secret (plain text)           |

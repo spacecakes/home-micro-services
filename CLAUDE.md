@@ -21,15 +21,15 @@ External access (no VPN): `watch.lundmark.tech` and `home.lundmark.tech` are CNA
 
 ## Stack Organization
 
-| Stack          | Purpose                                                                                                                                 |
-| -------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
-| `stack-infra`  | Core infra: Traefik, Homepage dashboard, Portainer, Dockge, Uptime Kuma, dockerproxy, Glances, File Browser, Tautulli                    |
-| `stack-auth`   | Authelia SSO + Redis session backend                                                                                                    |
-| `stack-ops`    | apcupsd + apcupsd2 (dual UPS monitoring, monitor-only), ops-toolbox (UPS monitoring + PVE host backup), Watchtower                    |
-| `stack-arr`    | Sonarr, Radarr, Lidarr, Bazarr, Prowlarr, NZBHydra2, SABnzbd, qBittorrent, Seerr, Aurral                                                |
-| `stack-nas`    | Portainer Edge Agent, Dockge Agent, Watchtower, AdGuard Home, Uptime Kuma — **runs on the Synology NAS (`10.0.1.2`), not the home server** |
+| Stack          | Purpose                                              |
+| -------------- | ---------------------------------------------------- |
+| `stack-infra`  | Core infra: reverse proxy, dashboard, monitoring     |
+| `stack-auth`   | Authelia SSO + Redis session backend                 |
+| `stack-ops`    | UPS monitoring, PVE host backup, auto-updates        |
+| `stack-arr`    | Media automation (*arr apps, downloaders, requests)   |
+| `stack-nas`    | NAS-side agents — **runs on the Synology NAS (`10.0.1.2`), not the home server** |
 
-`stack-nas` is checked into this repo for versioning but deployed on the NAS. All other stacks run on the home server.
+See each stack's `docker-compose.yml` for the full list of services. `stack-nas` is checked into this repo for versioning but deployed on the NAS.
 
 ### Stack startup order matters
 
@@ -50,21 +50,7 @@ Multi-network services need explicit `traefik.docker.network=traefik-proxy`.
 
 ### Static routes in dynamic.yml
 
-Non-Docker services (Synology apps, UniFi, UPS NMCs, LXCs, VMs) are routed via `stack-infra/traefik/dynamic.yml`, not Docker labels. When adding routes for things outside Docker, edit dynamic.yml. Key static routes:
-
-- `dsm/drive/backup/downloads/files/vm.lundmark.tech` → Synology NAS `10.0.1.2:5001` (path-prefixed)
-- `network.lundmark.tech` → UniFi `10.0.1.1`
-- `ups1/ups2.lundmark.tech` → APC NMC web interfaces
-- `photos.lundmark.tech` → Immich LXC `10.0.1.18:2283`
-- `dns1.lundmark.tech` → AdGuard Home LXC `10.0.1.10`
-- `dns-sync.lundmark.tech` → AdGuard Home Sync LXC `10.0.1.10:8080`
-- `dns2.lundmark.tech` → NAS AdGuard `10.0.1.2:3000`
-- `watch.lundmark.tech` → Plex LXC `10.0.1.19:32400`
-- `homebridge.lundmark.tech` → Homebridge LXC `10.0.1.13:8581`
-- `cameras.lundmark.tech` → Scrypted LXC `10.0.1.12:10443`
-- `home.lundmark.tech` → Home Assistant OS VM `10.0.1.7:8123`
-- `bot.lundmark.tech` → OpenClaw AI assistant VM `10.0.1.9:18789`
-- `hypervisor.lundmark.tech` → Proxmox `10.0.1.3:8006`
+Non-Docker services (Synology apps, UniFi, UPS NMCs, LXCs, VMs) are routed via `stack-infra/traefik/dynamic.yml`, not Docker labels. When adding routes for things outside Docker, edit dynamic.yml. See that file for the full list of routers and services.
 
 ### Authelia middleware
 
@@ -81,54 +67,15 @@ Backend-only services use `traefik.enable=false`. Services that only need intra-
 
 ## Custom Images
 
-Two services use `image:` + `build:` in compose. `docker compose up -d` uses the cached image; pass `--build` only when source changes.
-
-| Image                | Source                   | Stack       |
-| -------------------- | ------------------------ | ----------- |
-| `apcupsd:latest`     | `stack-ops/apcupsd/`     | `stack-ops` |
-| `ops-toolbox:latest` | `stack-ops/ops-toolbox/` | `stack-ops` |
-
-### apcupsd
-
-Debian-slim container running apcupsd in SNMP mode. The `UPS_DEVICE` env var sets the NMC IP (entrypoint.sh substitutes it into the baked-in config). Both instances are monitor-only — they serve UPS status to ops-toolbox via the NIS protocol. Graceful host shutdown is handled by NUT on the Proxmox host (see below).
-
-- **apcupsd** (Rack UPS, `10.0.1.5`, port 3551)
-- **apcupsd2** (Desktop UPS, `10.0.1.6`, port 3552)
+Some services use `image:` + `build:` in compose (grep for `build:` in compose files). `docker compose up -d` uses the cached image; pass `--build` only when source changes. Each image's `Dockerfile` and source live in the same directory as the service.
 
 ### NUT (Network UPS Tools) — runs on Proxmox host, not Docker
 
-NUT server runs directly on the Proxmox host (`10.0.1.3`) using the `snmp-ups` driver to monitor both APC UPS units via their NMCs (SNMPv3). Config files in `/etc/nut/` on the host, backed up daily to NAS via ops-toolbox.
-
-- **`rack-ups`** (Smart-UPS X 1500, NMC at `10.0.1.5`) — triggers Proxmox shutdown on battery via `upssched` (30s grace period)
-- **`desktop-ups`** (Smart-UPS 750, NMC at `10.0.1.6`) — monitored, no shutdown action
-
-Clients: Proxmox `upsmon` (local, master), Home Assistant NUT integration (`10.0.1.3:3493`, slave). The apcupsd Docker containers remain for ops-toolbox UPS status display only.
-
-### ops-toolbox
-
-Alpine multi-stage build: Node builds the Vue 3 + Vite + Tailwind SPA, Alpine runtime runs Flask + rsync + openssh-client. Serves as the ops web UI with:
-
-- Pure Python NIS client for dual UPS monitoring (apcupsd + apcupsd2)
-- Daily rsync via cron (2am): Proxmox host config (`/etc/pve/`, `/etc/nut/`, `/etc/fstab`, `/etc/network/interfaces`, `/etc/modprobe.d/`, `/etc/modules`, `/etc/sysctl.conf`, `/etc/apt/sources.list.d/`) → NAS backup (`/destination/` via NFS volume `nfs-backup-pve-host`)
-- Flask API for manual PVE backup trigger
-- Vue 3 SPA baked into image (`dist/`); `app.py` bind-mounted for backend changes without rebuild
-- All config via environment variables (UPS hosts, PVE host, SSH key path, backup destination)
-- SSH key for PVE backup stored in `data/ssh/` (gitignored, bind-mounted read-only)
+NUT server runs directly on the Proxmox host (`10.0.1.3`) using the `snmp-ups` driver to monitor both APC UPS units via their NMCs (SNMPv3). Config files in `/etc/nut/` on the host, backed up daily to NAS via ops-toolbox. The apcupsd Docker containers are monitor-only — they serve UPS status to ops-toolbox via the NIS protocol. Graceful host shutdown is handled by NUT, not apcupsd.
 
 ## Homepage Dashboard
 
-When adding or renaming a service, update `stack-infra/homepage/services.yaml` and `proxmox-notes.md` (the Proxmox LXC notes template — Markdown format, copy-paste into Proxmox notes field). Format:
-
-```yaml
-- Service Name:
-    icon: name.png # or /icons/custom.svg
-    href: https://x.lundmark.tech/
-    description: Short description
-    container: container_name # optional, for Docker status
-    server: local-docker # or homecloud-docker for NAS
-```
-
-Two Docker servers: `local-docker` (via dockerproxy on localhost:2375) and `homecloud-docker` (NAS at 10.0.1.2:2375).
+When adding or renaming a service, update `stack-infra/homepage/services.yaml` (follow the existing format in that file) and `proxmox-notes.md`. Two Docker servers: `local-docker` (via dockerproxy) and `homecloud-docker` (NAS).
 
 ## Environment Variables
 
@@ -153,17 +100,4 @@ Volume naming convention: `nfs-{share}` (e.g. `nfs-media`, `nfs-music`, `nfs-dow
 
 ## Proxmox LXC/VM Services (outside Docker)
 
-Services migrated out of Docker to dedicated Proxmox LXCs/VMs. NFS mounts inside privileged LXCs use `/etc/fstab`; unprivileged LXCs use host bind mounts. Prefer privileged with internal fstab for services needing NAS access (supports Proxmox snapshots).
-
-| Service        | Type           | IP           | Notes                                                     |
-| -------------- | -------------- | ------------ | --------------------------------------------------------- |
-| AdGuard Home   | LXC            | `10.0.1.10`  | Primary DNS, also handles `*.lundmark.tech` DNS rewrite   |
-| Homebridge     | LXC            | `10.0.1.13`  |                                                           |
-| Scrypted       | LXC            | `10.0.1.12`  | Camera management                                         |
-| Plex           | LXC (native)   | `10.0.1.19`  | Privileged, GPU passthrough, NFS via internal fstab       |
-| Immich         | LXC (native)   | `10.0.1.18`  | Community script install, internal upload library          |
-| Home Assistant | VM (HAOS)      | `10.0.1.7`   |                                                           |
-| OpenClaw       | VM             | `10.0.1.9`   | AI assistant                                              |
-| Tailscale      | LXC            |              | VPN access                                                |
-
-Proxmox backs up all LXCs/VMs to the NAS. The ops-toolbox daily rsync also backs up `/etc/fstab` from the Proxmox host.
+Some services run in dedicated Proxmox LXCs/VMs instead of Docker. IPs and hostnames are in `stack-infra/traefik/dynamic.yml`. Prefer privileged LXCs with internal `/etc/fstab` for NFS mounts (supports Proxmox snapshots). Proxmox backs up all LXCs/VMs to the NAS; ops-toolbox also rsyncs PVE host config daily.
