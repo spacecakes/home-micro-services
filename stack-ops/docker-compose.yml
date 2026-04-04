@@ -74,43 +74,6 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
 
-  # LAN bandwidth testing server (connect with: iperf3 -c <server-ip>)
-  iperf3:
-    <<: *common
-    restart: 'no'
-    container_name: iperf3
-    image: networkstatic/iperf3:latest
-    command: -s
-    ports:
-      - '5201:5201'
-    labels:
-      - 'traefik.enable=false'
-
-  # Video encoder & converter
-  handbrake:
-    <<: *common
-    restart: 'no'
-    container_name: handbrake
-    image: lscr.io/linuxserver/handbrake:latest
-    environment:
-      PUID: 1000
-      PGID: 1000
-      TZ: Europe/Stockholm
-    devices:
-      - /dev/dri:/dev/dri
-    networks:
-      - default
-      - traefik-proxy
-    labels:
-      - 'traefik.docker.network=traefik-proxy'
-      - 'traefik.http.routers.handbrake.rule=Host(`encoder.lundmark.tech`)'
-      - 'traefik.http.routers.handbrake.middlewares=authelia@file'
-      - 'traefik.http.services.handbrake.loadbalancer.server.port=3000'
-    volumes:
-      - /srv/docker/stack-ops/data/handbrake:/config
-      - nfs-media:/media:ro
-      - /srv/docker/temp/handbrake:/output
-
 volumes:
   nfs-backup-nodes:
     driver: local
@@ -118,12 +81,6 @@ volumes:
       type: nfs
       o: 'addr=10.0.1.2,soft,timeo=50,vers=4.1,noatime'
       device: ':/volume1/backup-nodes'
-  nfs-media:
-    driver: local
-    driver_opts:
-      type: nfs
-      o: 'addr=10.0.1.2,soft,timeo=50,vers=4.1,noatime'
-      device: ':/volume1/media'
 
 networks:
   traefik-proxy:

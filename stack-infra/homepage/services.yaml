@@ -70,12 +70,6 @@
         description: Subtitle downloader for Sonarr & Radarr
         container: bazarr
         server: local-docker
-    - HandBrake:
-        icon: handbrake.png
-        href: https://encoder.lundmark.tech/
-        description: Video encoder & converter
-        container: handbrake
-        server: local-docker
 
 - Downloads:
     - SABnzbd:

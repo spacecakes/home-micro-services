@@ -4,7 +4,7 @@ Update this file whenever changes are made so it is always up to date.
 
 ## Repository Overview
 
-Home server Docker infrastructure. ~40 containerized services across 7 compose stacks, reverse-proxied through Traefik with Authelia SSO. Some services have been migrated to dedicated Proxmox LXCs. Proxmox snapshots handle container/LXC backup; ops-toolbox backs up PVE host config daily to the NAS.
+Home server Docker infrastructure. ~30 containerized services across 6 compose stacks, reverse-proxied through Traefik with Authelia SSO. Some services have been migrated to dedicated Proxmox LXCs. Proxmox snapshots handle container/LXC backup; ops-toolbox backs up PVE host config daily to the NAS.
 
 Domain: `lundmark.tech` (wildcard TLS via Cloudflare DNS challenge).
 
@@ -24,13 +24,9 @@ External access (no VPN): `watch.lundmark.tech` and `home.lundmark.tech` are CNA
 | Stack          | Purpose                                                                                                                                 |
 | -------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
 | `stack-infra`  | Core infra: Traefik, Homepage dashboard, Portainer, Dockge, Uptime Kuma, dockerproxy, Glances, File Browser, Tautulli                    |
-| `stack-dns`    | Legacy AdGuard Home + sync containers (now running in Proxmox LXC `10.0.1.10`; kept for rollback, normally stopped)                     |
 | `stack-auth`   | Authelia SSO + Redis session backend                                                                                                    |
-| `stack-ops`    | apcupsd + apcupsd2 (dual UPS monitoring, monitor-only), ops-toolbox (UPS monitoring + PVE host backup), Watchtower, iperf3, HandBrake |
+| `stack-ops`    | apcupsd + apcupsd2 (dual UPS monitoring, monitor-only), ops-toolbox (UPS monitoring + PVE host backup), Watchtower                    |
 | `stack-arr`    | Sonarr, Radarr, Lidarr, Bazarr, Prowlarr, NZBHydra2, SABnzbd, qBittorrent, Seerr, Aurral                                                |
-| `stack-plex`   | Empty (Plex migrated to LXC `10.0.1.19`, Tautulli moved to `stack-infra`)                                                              |
-| `stack-home`   | Empty (Homebridge & Scrypted migrated to LXCs)                                                                                          |
-| `stack-immich` | Empty (Immich migrated to LXC `10.0.1.18`)                                                                                              |
 | `stack-nas`    | Portainer Edge Agent, Dockge Agent, Watchtower, AdGuard Home, iCloudPD — **runs on the Synology NAS (`10.0.1.2`), not the home server** |
 
 `stack-nas` is checked into this repo for versioning but deployed on the NAS. All other stacks run on the home server.
@@ -154,7 +150,7 @@ Volume naming convention: `nfs-{share}` (e.g. `nfs-media`, `nfs-music`, `nfs-dow
 - **Restart policy**: `unless-stopped` (most), `always` (critical: AdGuard, Immich, Redis)
 - **Data directories**: `/srv/docker/stack-*/data/` for persistent state
 - **Watchtower opt-out**: `com.centurylinklabs.watchtower.enable=false` on services needing manual control
-- **GPU passthrough**: `/dev/dri` for Intel Quick Sync (HandBrake). Plex and Immich now run in their own LXCs with GPU passthrough configured in Proxmox.
+- **GPU passthrough**: Plex and Immich run in their own LXCs with GPU passthrough configured in Proxmox.
 
 ## Proxmox LXC/VM Services (outside Docker)
 
