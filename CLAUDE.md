@@ -27,7 +27,7 @@ External access (no VPN): `watch.lundmark.tech` and `home.lundmark.tech` are CNA
 | `stack-auth`   | Authelia SSO + Redis session backend                                                                                                    |
 | `stack-ops`    | apcupsd + apcupsd2 (dual UPS monitoring, monitor-only), ops-toolbox (UPS monitoring + PVE host backup), Watchtower                    |
 | `stack-arr`    | Sonarr, Radarr, Lidarr, Bazarr, Prowlarr, NZBHydra2, SABnzbd, qBittorrent, Seerr, Aurral                                                |
-| `stack-nas`    | Portainer Edge Agent, Dockge Agent, Watchtower, AdGuard Home, iCloudPD — **runs on the Synology NAS (`10.0.1.2`), not the home server** |
+| `stack-nas`    | Portainer Edge Agent, Dockge Agent, Watchtower, AdGuard Home, Uptime Kuma — **runs on the Synology NAS (`10.0.1.2`), not the home server** |
 
 `stack-nas` is checked into this repo for versioning but deployed on the NAS. All other stacks run on the home server.
 
@@ -56,7 +56,6 @@ Non-Docker services (Synology apps, UniFi, UPS NMCs, LXCs, VMs) are routed via `
 - `network.lundmark.tech` → UniFi `10.0.1.1`
 - `ups1/ups2.lundmark.tech` → APC NMC web interfaces
 - `photos.lundmark.tech` → Immich LXC `10.0.1.18:2283`
-- `icloudpd/icloudpd-shared.lundmark.tech` → NAS `10.0.1.2:8080/8081`
 - `dns1.lundmark.tech` → AdGuard Home LXC `10.0.1.10`
 - `dns-sync.lundmark.tech` → AdGuard Home Sync LXC `10.0.1.10:8080`
 - `dns2.lundmark.tech` → NAS AdGuard `10.0.1.2:3000`
@@ -136,7 +135,7 @@ Two Docker servers: `local-docker` (via dockerproxy on localhost:2375) and `home
 Each stack has its own `.env` (gitignored). Key variables:
 
 - `stack-infra`: `CLOUDFLARE_API_TOKEN`, `HOMEPAGE_UNIFI_PASSWORD`
-- `stack-nas`: `PORTAINER_EDGE_ID`, `PORTAINER_EDGE_KEY`, `APPLE_ID`, `ICLOUD_SHARED_LIBRARY`
+- `stack-nas`: `PORTAINER_EDGE_ID`, `PORTAINER_EDGE_KEY`
 
 ## NAS Mounts
 

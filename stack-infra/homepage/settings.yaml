@@ -27,24 +27,21 @@ layout:
   Favorites:
     tab: Services
     style: row
-    columns: 6
+    columns: 5
     disableCollapse: true
     header: false
+  Media:
+    tab: Services
+    style: row
+    columns: 4
   Home:
     tab: Services
     style: row
     columns: 4
-  Photos:
-    tab: Services
-    style: row
-    columns: 3
-  Media:
-    tab: Services
-    style: row
-    columns: 3
   Downloads:
     tab: Services
-    initiallyCollapsed: true
+    style: row
+    columns: 4
   Storage:
     tab: Admin
     style: row

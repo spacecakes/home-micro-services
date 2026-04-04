@@ -107,18 +107,6 @@ http:
         - authelia
       service: uptime-kuma
 
-    # Synology containers
-    icloudpd:
-      rule: 'Host(`icloudpd.lundmark.tech`)'
-      middlewares:
-        - authelia
-      service: icloudpd
-
-    icloudpd-shared:
-      rule: 'Host(`icloudpd-shared.lundmark.tech`)'
-      middlewares:
-        - authelia
-      service: icloudpd-shared
 
     # AdGuard Home LXC (10.0.1.10)
     adguardhome-primary:
@@ -215,17 +203,6 @@ http:
           - url: 'http://10.0.1.2:3001'
         passHostHeader: true
 
-    icloudpd:
-      loadBalancer:
-        servers:
-          - url: 'http://10.0.1.2:8080'
-        passHostHeader: true
-
-    icloudpd-shared:
-      loadBalancer:
-        servers:
-          - url: 'http://10.0.1.2:8081'
-        passHostHeader: true
 
     adguardhome-primary:
       loadBalancer:
