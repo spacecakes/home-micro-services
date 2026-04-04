@@ -181,8 +181,6 @@ http:
     # Immich LXC (10.0.1.18)
     immich:
       rule: 'Host(`photos.lundmark.tech`)'
-      middlewares:
-        - authelia
       service: immich
 
     # Plex LXC (10.0.1.19)
