@@ -90,7 +90,7 @@ identity_providers:
         pkce_challenge_method: S256
         redirect_uris:
           - https://pbs.lundmark.tech
-          - https://10.0.1.16:8007
+          - https://10.0.1.20:8007
         scopes:
           - openid
           - profile
