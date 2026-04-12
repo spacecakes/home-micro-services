@@ -1,23 +1,18 @@
 # CLAUDE.md — Project Guide
 
-Update this file whenever changes are made so it is always up to date.
+Update this file whenever changes are made so it is always up to date. **Do not put sensitive information (IPs, emails, domains, URLs, secrets, LXC IDs) in this file — it is checked into git.** Use `dynamic.yml`, `.env` files, or Proxmox itself as the source of truth for those details.
 
 ## Repository Overview
 
 Home server Docker infrastructure. ~30 containerized services across 6 compose stacks, reverse-proxied through Traefik with Authelia SSO. Some services have been migrated to dedicated Proxmox LXCs. PBS (LXC) backs up all VMs/LXCs; ops-toolbox backs up PVE host config and UPS NMC configs to the NAS.
 
-Domain: `lundmark.tech` (wildcard TLS via Cloudflare DNS challenge).
+Domain: wildcard TLS via Cloudflare DNS challenge (see compose labels and dynamic.yml for the actual domain).
 
 ### DNS Resolution
 
-`*.lundmark.tech` resolves to `10.0.1.4` (Docker LXC where Traefik runs) via three layers:
+The wildcard domain resolves to the Docker LXC (Traefik). AdGuard Home is the primary LAN DNS, with a secondary instance on a Raspberry Pi using keepalived for failover. Cloudflare has matching A/CNAME records as a fallback. Tailscale split DNS forwards domain queries to AdGuard. See `dynamic.yml` for IPs.
 
-- **UniFi**: DHCP hands out AdGuard (`10.0.1.10`) as DNS + has local A records for `lundmark.tech` / `*.lundmark.tech` → `10.0.1.4`.
-- **AdGuard Home** (`10.0.1.10`): DNS rewrites for `lundmark.tech` and `*.lundmark.tech` → `10.0.1.4`. Primary DNS for LAN clients.
-- **Cloudflare**: A record `lundmark.tech` → `10.0.1.4`, CNAME `*.lundmark.tech` → `lundmark.tech`. Fallback for clients not using AdGuard.
-- **Tailscale**: Split DNS configured to forward `lundmark.tech` queries to AdGuard (`10.0.1.10`) so VPN clients resolve correctly.
-
-External access (no VPN): `watch.lundmark.tech` and `home.lundmark.tech` are CNAME'd to `public.lundmark.tech` (public IP) with Cloudflare proxy enabled. Router port-forwards to Plex LXC (`10.0.1.19:32400`) and Home Assistant VM (`10.0.1.7:8123`).
+External access: select subdomains are CNAME'd to the public IP via Cloudflare proxy, with router port-forwards to the relevant LXCs/VMs.
 
 ## Stack Organization
 
@@ -27,13 +22,13 @@ External access (no VPN): `watch.lundmark.tech` and `home.lundmark.tech` are CNA
 | `stack-auth`   | Authelia SSO + Redis session backend                 |
 | `stack-ops`    | UPS monitoring, PVE host backup, auto-updates        |
 | `stack-arr`    | Media automation (*arr apps, downloaders, requests)   |
-| `stack-nas`    | NAS-side agents — **runs on the Synology NAS (`10.0.1.2`), not the home server** |
+| `stack-nas`    | NAS-side agents — **runs on the Synology NAS, not the home server** |
 
 See each stack's `docker-compose.yml` for the full list of services. `stack-nas` is checked into this repo for versioning but deployed on the NAS.
 
 ### Stack startup order matters
 
-`stack-infra` first (Traefik), then `stack-auth` (Authelia), then the rest. AdGuard Home now runs in a Proxmox LXC (`10.0.1.10`), not Docker.
+`stack-infra` first (Traefik), then `stack-auth` (Authelia), then the rest. AdGuard Home now runs in a Proxmox LXC, not Docker.
 
 ## Routing & Traefik
 
@@ -41,7 +36,7 @@ See each stack's `docker-compose.yml` for the full list of services. `stack-nas`
 
 ```yaml
 labels:
-  - 'traefik.http.routers.{name}.rule=Host(`{name}.lundmark.tech`)'
+  - 'traefik.http.routers.{name}.rule=Host(`{name}.<domain>`)'
   - 'traefik.http.routers.{name}.middlewares=authelia@file'
   - 'traefik.http.services.{name}.loadbalancer.server.port={port}'
 ```
@@ -54,7 +49,7 @@ Non-Docker services (Synology apps, UniFi, UPS NMCs, LXCs, VMs) are routed via `
 
 ### Authelia middleware
 
-`authelia@file` is defined in `dynamic.yml` as a forward-auth middleware pointing to `http://authelia:9091`. Add it to any route that should require SSO. Services without it (e.g. DSM) handle their own auth.
+`authelia@file` is defined in `dynamic.yml` as a forward-auth middleware. Add it to any route that should require SSO. Services without it (e.g. DSM) handle their own auth.
 
 ### Services that disable Traefik
 
@@ -71,7 +66,7 @@ Some services use `image:` + `build:` in compose (grep for `build:` in compose f
 
 ### NUT (Network UPS Tools) — runs on Proxmox host, not Docker
 
-NUT server runs directly on the Proxmox host (`10.0.1.3`) using the `snmp-ups` driver to monitor both APC UPS units via their NMCs (SNMPv3). Config files in `/etc/nut/` on the host, backed up daily to NAS via ops-toolbox. The apcupsd Docker containers are monitor-only — they serve UPS status to ops-toolbox via the NIS protocol. Graceful host shutdown is handled by NUT, not apcupsd.
+NUT server runs directly on the Proxmox host using the `snmp-ups` driver to monitor both APC UPS units via their NMCs. Config files in `/etc/nut/` on the host, backed up daily to NAS via ops-toolbox. The apcupsd Docker containers are monitor-only — they serve UPS status to ops-toolbox via the NIS protocol. Graceful host shutdown is handled by NUT, not apcupsd.
 
 ## Homepage Dashboard
 
@@ -79,14 +74,14 @@ When adding or renaming a service, update `stack-infra/homepage/services.yaml` (
 
 ## Backup Architecture
 
-### Tier 1: PBS (LXC 110, 10.0.1.20)
-Proxmox Backup Server in an LXC with NFS backend on Synology (datastore: Synology-NFS). Backs up all VMs/LXCs except the two PBS instances (109, 110). Twice daily, with GC daily at 06:00 and verify weekly Sundays.
+### Tier 1: PBS (LXC)
+Proxmox Backup Server in an LXC with NFS backend on Synology. Backs up all VMs/LXCs except the PBS instances themselves. Twice daily, with GC daily and verify weekly.
 
 ### Tier 2: PBS instances → NAS (vzdump)
-Weekly vzdump of PBS VMs 109+110 to NAS. This is the disaster recovery bootstrap — if PVE dies, restore PBS LXC from NAS, then restore everything else from PBS. The backup data is already on the NAS (NFS), so even an old vzdump works.
+Weekly vzdump of PBS instances to NAS. This is the disaster recovery bootstrap — if PVE dies, restore PBS LXC from NAS, then restore everything else from PBS. The backup data is already on the NAS (NFS), so even an old vzdump works.
 
 ### Tier 3: Config backup (ops-toolbox)
-Flask app in stack-ops rsyncs PVE host configs and FTP-downloads UPS NMC configs to NAS. Web UI at ops-toolbox.lundmark.tech.
+Flask app in stack-ops rsyncs PVE host configs and FTP-downloads UPS NMC configs to NAS.
 
 ### Tier 4: NAS-to-NAS replication
 Synology 1 → Synology 2: Snapshot Replication for PBS data, Active Backup for Business for vzdump archives, Hyper Backup for general files.
@@ -95,18 +90,17 @@ Synology 1 → Synology 2: Snapshot Replication for PBS data, Active Backup for 
 Critical data on Synology C2. Not backup infra — too expensive at volume.
 
 ### Notifications
-PVE alerts → `g.lundmark+pve@gmail.com`, PBS alerts → `g.lundmark+pbs@gmail.com` (error-only).
+PVE and PBS send email alerts (configured in their respective UIs, not in this repo).
 
 ## Environment Variables
 
 Each stack has its own `.env` (gitignored). Key variables:
 
-- `stack-infra`: `CLOUDFLARE_API_TOKEN`, `HOMEPAGE_UNIFI_PASSWORD`
-- `stack-nas`: `PORTAINER_EDGE_ID`, `PORTAINER_EDGE_KEY`
+See each stack's `.env` for the specific variables used.
 
 ## NAS Mounts
 
-NFS shares from `10.0.1.2` are mounted via Docker's native NFS volume driver, defined inline in each stack's `docker-compose.yml`. No host-level fstab or systemd configuration needed — `docker compose up -d` handles mounting automatically.
+NFS shares from the Synology NAS are mounted via Docker's native NFS volume driver, defined inline in each stack's `docker-compose.yml`. No host-level fstab or systemd configuration needed — `docker compose up -d` handles mounting automatically.
 
 Volume naming convention: `nfs-{share}` (e.g. `nfs-media`, `nfs-music`, `nfs-downloads`). Sub-paths get their own volumes (e.g. `nfs-downloads-seeding`, `nfs-photos-immich`).
 
