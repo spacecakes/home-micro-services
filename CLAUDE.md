@@ -4,7 +4,7 @@ Update this file whenever changes are made so it is always up to date.
 
 ## Repository Overview
 
-Home server Docker infrastructure. ~30 containerized services across 6 compose stacks, reverse-proxied through Traefik with Authelia SSO. Some services have been migrated to dedicated Proxmox LXCs. Proxmox snapshots handle container/LXC backup; ops-toolbox backs up PVE host config daily to the NAS.
+Home server Docker infrastructure. ~30 containerized services across 6 compose stacks, reverse-proxied through Traefik with Authelia SSO. Some services have been migrated to dedicated Proxmox LXCs. PBS (LXC) backs up all VMs/LXCs; ops-toolbox backs up PVE host config and UPS NMC configs to the NAS.
 
 Domain: `lundmark.tech` (wildcard TLS via Cloudflare DNS challenge).
 
@@ -77,6 +77,26 @@ NUT server runs directly on the Proxmox host (`10.0.1.3`) using the `snmp-ups` d
 
 When adding or renaming a service, update `stack-infra/homepage/services.yaml` (follow the existing format in that file) and `proxmox-notes.md`. Two Docker servers: `local-docker` (via dockerproxy) and `homecloud-docker` (NAS).
 
+## Backup Architecture
+
+### Tier 1: PBS (LXC 110, 10.0.1.20)
+Proxmox Backup Server in an LXC with NFS backend on Synology (datastore: Synology-NFS). Backs up all VMs/LXCs except the two PBS instances (109, 110). Twice daily, with GC daily at 06:00 and verify weekly Sundays.
+
+### Tier 2: PBS instances → NAS (vzdump)
+Weekly vzdump of PBS VMs 109+110 to NAS. This is the disaster recovery bootstrap — if PVE dies, restore PBS LXC from NAS, then restore everything else from PBS. The backup data is already on the NAS (NFS), so even an old vzdump works.
+
+### Tier 3: Config backup (ops-toolbox)
+Flask app in stack-ops rsyncs PVE host configs and FTP-downloads UPS NMC configs to NAS. Web UI at ops-toolbox.lundmark.tech.
+
+### Tier 4: NAS-to-NAS replication
+Synology 1 → Synology 2: Snapshot Replication for PBS data, Active Backup for Business for vzdump archives, Hyper Backup for general files.
+
+### Tier 5: Cloud
+Critical data on Synology C2. Not backup infra — too expensive at volume.
+
+### Notifications
+PVE alerts → `g.lundmark+pve@gmail.com`, PBS alerts → `g.lundmark+pbs@gmail.com` (error-only).
+
 ## Environment Variables
 
 Each stack has its own `.env` (gitignored). Key variables:
@@ -100,4 +120,4 @@ Volume naming convention: `nfs-{share}` (e.g. `nfs-media`, `nfs-music`, `nfs-dow
 
 ## Proxmox LXC/VM Services (outside Docker)
 
-Some services run in dedicated Proxmox LXCs/VMs instead of Docker. IPs and hostnames are in `stack-infra/traefik/dynamic.yml`. Prefer privileged LXCs with internal `/etc/fstab` for NFS mounts (supports Proxmox snapshots). Proxmox backs up all LXCs/VMs to the NAS; ops-toolbox also rsyncs PVE host config daily.
+Some services run in dedicated Proxmox LXCs/VMs instead of Docker. IPs and hostnames are in `stack-infra/traefik/dynamic.yml`. Prefer privileged LXCs with internal `/etc/fstab` for NFS mounts (supports Proxmox snapshots). PBS backs up all LXCs/VMs (except the PBS instances themselves). PBS instances are backed up weekly to the NAS as vzdump files (bootstrap for disaster recovery). ops-toolbox rsyncs PVE host config and UPS NMC configs to NAS.

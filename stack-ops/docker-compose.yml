@@ -43,7 +43,7 @@ services:
       PVE_HOST: root@10.0.1.3
       PVE_SSH_KEY: /app/ssh/id_ed25519
       PVE_DIR: pve-host
-      PVE_SRCS: /etc/pve/,/etc/nut/,/etc/fstab,/etc/network/interfaces,/etc/modprobe.d/,/etc/modules,/etc/sysctl.d/,/etc/apt/sources.list.d/
+      PVE_SRCS: /etc/pve/,/etc/nut/,/etc/fstab,/etc/network/interfaces,/etc/modprobe.d/,/etc/modules,/etc/sysctl.d/,/etc/apt/sources.list.d/,/root/.claude/
       # UPS NMC config (FTP)
       NMC_HOSTS: 'rack-ups:10.0.1.5,desktop-ups:10.0.1.6'
       NMC_USER: apc
@@ -53,7 +53,7 @@ services:
       - default
       - traefik-proxy
     volumes:
-      - nfs-backup-nodes:/destination
+      - /mnt/nas/backup-nodes:/destination
       - /srv/docker/stack-ops/data/ssh:/app/ssh:ro
       - /srv/docker/stack-ops/ops-toolbox/app.py:/app/app.py:ro
     labels:
@@ -73,14 +73,6 @@ services:
       - 'traefik.enable=false'
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-
-volumes:
-  nfs-backup-nodes:
-    driver: local
-    driver_opts:
-      type: nfs
-      o: 'addr=10.0.1.2,soft,timeo=50,vers=4.1,noatime'
-      device: ':/volume1/backup-nodes'
 
 networks:
   traefik-proxy:

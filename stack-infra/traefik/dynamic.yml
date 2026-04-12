@@ -121,12 +121,12 @@ http:
         - authelia
       service: adguardhome-sync
 
-    # AdGuard Home on NAS
-    adguardhome:
+    # AdGuard Home secondary on Raspberry Pi (10.0.1.22)
+    adguardhome-secondary:
       rule: 'Host(`dns2.lundmark.tech`)'
       middlewares:
         - authelia
-      service: adguardhome
+      service: adguardhome-secondary
 
     # Proxmox Backup Server LXC (10.0.1.20, handles own auth)
     pbs:
@@ -208,7 +208,6 @@ http:
           - url: 'http://10.0.1.2:3001'
         passHostHeader: true
 
-
     adguardhome-primary:
       loadBalancer:
         servers:
@@ -221,10 +220,10 @@ http:
           - url: 'http://10.0.1.10:8080'
         passHostHeader: true
 
-    adguardhome:
+    adguardhome-secondary:
       loadBalancer:
         servers:
-          - url: 'http://10.0.1.2:3000'
+          - url: 'http://10.0.1.22:8083'
         passHostHeader: true
 
     unifi:

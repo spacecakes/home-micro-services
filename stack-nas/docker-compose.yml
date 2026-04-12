@@ -53,18 +53,6 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
 
-  adguardhome:
-    container_name: adguardhome
-    image: adguard/adguardhome
-    ports:
-      - 53:53/tcp
-      - 53:53/udp
-      - 3000:3000/tcp
-    volumes:
-      - /volume1/docker/stack-nas/data/adguardhome/work:/opt/adguardhome/work
-      - /volume1/docker/stack-nas/data/adguardhome/config:/opt/adguardhome/conf
-    restart: unless-stopped
-
   uptime-kuma:
     container_name: uptime-kuma
     image: louislam/uptime-kuma:latest
