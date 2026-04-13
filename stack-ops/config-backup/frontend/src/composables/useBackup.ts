@@ -63,9 +63,9 @@ export function useBackup(): BackupState {
     } catch {
       fails.value++
       if (fails.value >= 3) {
-        log.value = 'Error: ops-toolbox container is not reachable. Polling stopped \u2014 reload page to retry.'
+        log.value = 'Error: config-backup container is not reachable. Polling stopped \u2014 reload page to retry.'
       } else {
-        log.value = 'Error: ops-toolbox container is not reachable. Retrying...'
+        log.value = 'Error: config-backup container is not reachable. Retrying...'
       }
     }
   }

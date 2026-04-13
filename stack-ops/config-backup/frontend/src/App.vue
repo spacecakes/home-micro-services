@@ -2,7 +2,6 @@
 import { provide } from 'vue'
 import { Icon } from '@iconify/vue'
 import { useBackup } from './composables/useBackup'
-import UpsPanel from './components/UpsPanel.vue'
 import ConfigBackupPanel from './components/ConfigBackupPanel.vue'
 
 const backup = useBackup()
@@ -12,8 +11,8 @@ provide('backup', backup)
 <template>
   <div class="mb-5 flex flex-wrap items-center justify-between gap-3">
     <h1 class="flex items-center gap-2.5 text-xl font-bold tracking-tight">
-      <Icon icon="lucide:layout-dashboard" class="h-6 w-6 text-gray-500" />
-      Ops Dashboard
+      <Icon icon="lucide:shield-check" class="h-6 w-6 text-purple-400" />
+      Config Backup
     </h1>
     <div class="flex items-center gap-3">
       <BaseBadge :color="backup.statusColor.value" :pulse="backup.running.value">
@@ -25,9 +24,5 @@ provide('backup', backup)
       </label>
     </div>
   </div>
-  <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-    <ConfigBackupPanel />
-    <UpsPanel title="Rack UPS" api-url="/api/ups" />
-    <UpsPanel title="Desktop UPS" api-url="/api/ups2" />
-  </div>
+  <ConfigBackupPanel />
 </template>

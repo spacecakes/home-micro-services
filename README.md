@@ -20,12 +20,9 @@ Docker services are discovered via labels. Non-Docker services (LXCs, VMs, NAS) 
 ### How backups work
 
 ```
-ops-toolbox (Docker container)
-├── Hourly:  rsync /srv/docker/ → NAS /volume1/backup-homeserver/docker/
-└── Daily:   SSH into Proxmox host (10.0.1.3), rsync:
-             ├── /etc/pve/     → NAS /volume1/backup-homeserver/pve-host/etc/pve/
-             ├── /etc/nut/     → NAS /volume1/backup-homeserver/pve-host/etc/nut/
-             └── /etc/fstab    → NAS /volume1/backup-homeserver/pve-host/etc/fstab
+config-backup (Docker container)
+├── Daily:   SSH into Proxmox host, rsync host configs → NAS
+└── Manual:  FTP-download UPS NMC configs → NAS
 
 Proxmox Backup Server
 └── Nightly: Snapshot all LXCs/VMs → NAS
@@ -37,7 +34,7 @@ Docker config is version-controlled in this repo AND container data rsynced to N
 
 | Location | Services |
 |---|---|
-| **Docker LXC** (`10.0.1.4`) | Traefik, Authelia, Homepage, arr stack (Sonarr/Radarr/etc), ops-toolbox, apcupsd, Watchtower, Tautulli, Uptime Kuma, Portainer, Dockge, Glances, File Browser, HandBrake |
+| **Docker LXC** (`10.0.1.4`) | Traefik, Authelia, Homepage, arr stack (Sonarr/Radarr/etc), config-backup, Watchtower, Tautulli, Uptime Kuma, Portainer, Dockge, Glances, File Browser, HandBrake |
 | **Plex LXC** (`10.0.1.19`) | Plex (native .deb, privileged, GPU passthrough, NFS via internal fstab) |
 | **Immich LXC** (TBD) | Immich (native via community script, internal upload library) |
 | **AdGuard LXC** (`10.0.1.10`) | AdGuard Home + Sync |

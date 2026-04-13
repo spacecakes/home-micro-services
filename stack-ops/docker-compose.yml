@@ -2,41 +2,13 @@ x-common: &common
   restart: unless-stopped
 
 services:
-  # Rack UPS monitoring (APC NMC via SNMP, monitor-only — shutdown handled by NUT on Proxmox)
-  apcupsd:
+  config-backup:
     <<: *common
-    container_name: apcupsd
-    image: apcupsd:latest
-    build: ./apcupsd
+    container_name: config-backup
+    image: config-backup:latest
+    build: ./config-backup
+    command: /bin/sh -c "echo '0 2 * * * curl -sX POST http://localhost:8000/backup/pve' | crontab - && crond -l 2 && python3 /app/app.py"
     environment:
-      - UPS_DEVICE=10.0.1.5
-    ports:
-      - '3551:3551'
-    labels:
-      - 'traefik.enable=false'
-
-  # Desktop UPS monitoring (monitor-only, no host shutdown)
-  apcupsd2:
-    <<: *common
-    container_name: apcupsd2
-    image: apcupsd:latest
-    build: ./apcupsd
-    environment:
-      - UPS_DEVICE=10.0.1.6
-    ports:
-      - '3552:3551'
-    labels:
-      - 'traefik.enable=false'
-
-  ops-toolbox:
-    <<: *common
-    container_name: ops-toolbox
-    image: ops-toolbox:latest
-    build: ./ops-toolbox
-    command: /bin/sh -c "echo '0 2 * * * curl -sX POST http://localhost:8000/backup/run' | crontab - && crond -l 2 && python3 /app/app.py"
-    environment:
-      # UPS monitoring (apcupsd NIS)
-      UPS_HOSTS: apcupsd,apcupsd2
       # Backup root (NFS mount)
       BACKUP_DST: /destination
       # PVE host config (rsync over SSH)
@@ -44,7 +16,7 @@ services:
       PVE_SSH_KEY: /app/ssh/id_ed25519
       PVE_DIR: pve-host
       PVE_SRCS: /etc/pve/,/etc/nut/,/etc/fstab,/etc/network/interfaces,/etc/modprobe.d/,/etc/modules,/etc/sysctl.d/,/etc/apt/sources.list.d/,/root/.claude/
-      # UPS NMC config (FTP)
+      # UPS NMC config (FTP, manual backup only)
       NMC_HOSTS: 'rack-ups:10.0.1.5,desktop-ups:10.0.1.6'
       NMC_USER: apc
       NMC_PASS: ${NMC_PASS}
@@ -55,11 +27,11 @@ services:
     volumes:
       - /mnt/nas/backup-nodes:/destination
       - /srv/docker/stack-ops/data/ssh:/app/ssh:ro
-      - /srv/docker/stack-ops/ops-toolbox/app.py:/app/app.py:ro
+      - /srv/docker/stack-ops/config-backup/app.py:/app/app.py:ro
     labels:
-      - 'traefik.http.routers.ops.rule=Host(`ops.lundmark.tech`)'
-      - 'traefik.http.routers.ops.middlewares=authelia@file'
-      - 'traefik.http.services.ops.loadbalancer.server.port=8000'
+      - 'traefik.http.routers.config-backup.rule=Host(`ops.lundmark.tech`)'
+      - 'traefik.http.routers.config-backup.middlewares=authelia@file'
+      - 'traefik.http.services.config-backup.loadbalancer.server.port=8000'
       - 'traefik.docker.network=traefik-proxy'
 
   watchtower:

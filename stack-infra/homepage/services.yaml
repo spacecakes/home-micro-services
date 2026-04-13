@@ -188,11 +188,11 @@
         description: System monitoring
         container: glances
         server: local-docker
-    - Ops Toolbox:
+    - Config Backup:
         icon: /icons/ops-toolbox.svg
         href: https://ops.lundmark.tech/
-        description: UPS monitoring & PVE host backup
-        container: ops-toolbox
+        description: PVE host config & NMC backup
+        container: config-backup
         server: local-docker
     - APC UPS (Rack):
         icon: /icons/apc.svg

@@ -6,7 +6,6 @@ import { timeAgo } from '../utils'
 
 const backup = inject<BackupState>('backup')!
 
-const isRunning = computed(() => backup.action.value.includes('config-backup'))
 const logEl = ref<HTMLDivElement | null>(null)
 
 interface Target {
@@ -15,6 +14,7 @@ interface Target {
   detail: string
   items: string[]
   dest: string
+  schedule: string
 }
 
 const targets = ref<Target[]>([])
@@ -66,19 +66,10 @@ async function clearLog(): Promise<void> {
 </script>
 
 <template>
-  <BaseCard class="col-span-full">
+  <BaseCard>
     <div>
-      <div class="flex flex-wrap items-center gap-2">
-        <h2 class="inline-flex items-center gap-1.5 text-lg font-semibold">
-          <Icon icon="lucide:shield-check" class="h-5 w-5 text-purple-400" />
-          Config Backup
-        </h2>
-        <BaseBadge v-if="isRunning" color="yellow" :pulse="true">
-          {{ backup.statusText.value }}
-        </BaseBadge>
-      </div>
-      <p class="mt-1.5 text-xs text-gray-500">
-        Daily backup of infrastructure config to NAS.
+      <p class="mt-1 text-xs text-gray-500">
+        PVE host config backed up daily at 02:00. NMC config snapshots are manual.
         <span v-if="backup.lastBackup.value" class="inline-flex items-center gap-1">
           <Icon icon="lucide:clock" class="h-3 w-3" />
           Last: {{ timeAgo(backup.lastBackup.value) }}
@@ -96,7 +87,7 @@ async function clearLog(): Promise<void> {
         <div class="flex items-center gap-1.5 text-xs font-medium text-gray-400">
           <Icon :icon="iconMap[t.icon] || 'lucide:folder'" class="h-3.5 w-3.5 shrink-0" />
           {{ t.name }}
-          <span class="ml-auto text-gray-600">{{ t.detail }}</span>
+          <span class="ml-auto rounded bg-gray-800 px-1.5 py-0.5 text-[10px] text-gray-500">{{ t.schedule }}</span>
         </div>
         <div class="mt-1.5 flex flex-wrap gap-1">
           <span
@@ -112,8 +103,11 @@ async function clearLog(): Promise<void> {
     </div>
 
     <div class="mt-3 flex items-center gap-2">
-      <BaseButton variant="green" icon="lucide:play" :disabled="backup.running.value" :loading="isRunning" @click="backup.runAction('/backup/run')">
-        Run backup
+      <BaseButton variant="green" icon="lucide:play" :disabled="backup.running.value" :loading="backup.action.value.startsWith('PVE')" @click="backup.runAction('/backup/pve')">
+        Run PVE backup
+      </BaseButton>
+      <BaseButton icon="lucide:camera" :disabled="backup.running.value" :loading="backup.action.value.startsWith('NMC')" @click="backup.runAction('/backup/nmc')">
+        Snapshot NMC
       </BaseButton>
       <BaseButton icon="lucide:trash-2" @click="clearLog">Clear log</BaseButton>
     </div>

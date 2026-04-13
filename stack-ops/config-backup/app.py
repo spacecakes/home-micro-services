@@ -1,7 +1,6 @@
 import os
 import re
 import socket
-import struct
 import subprocess
 import threading
 import datetime
@@ -17,9 +16,6 @@ app = Flask(__name__, static_folder="dist", static_url_path="")
 LOG_FILE = "/var/log/backup.log"
 LOG_MAX_LINES = 5000
 
-# UPS monitoring (apcupsd NIS, always port 3551)
-UPS_HOSTS = [h.strip() for h in os.environ["UPS_HOSTS"].split(",")]
-
 # Backup root (NFS mount)
 BACKUP_DST = os.environ.get("BACKUP_DST", "/destination")
 
@@ -29,7 +25,7 @@ PVE_SSH_KEY = os.environ["PVE_SSH_KEY"]
 PVE_DIR = os.environ.get("PVE_DIR", "pve-host")
 PVE_SRCS = [s.strip() for s in os.environ["PVE_SRCS"].split(",")]
 
-# UPS NMC config backup (FTP) — NMC_HOSTS format: "name:ip,name:ip"
+# UPS NMC config snapshot (FTP, manual only) — NMC_HOSTS format: "name:ip,name:ip"
 NMC_USER = os.environ.get("NMC_USER", "apc")
 NMC_PASS = os.environ.get("NMC_PASS", "")
 NMC_DIR = os.environ.get("NMC_DIR", "apc-ups")
@@ -81,7 +77,7 @@ def _init_last_backup_cache():
             content = f.read()
     except FileNotFoundError:
         return
-    matches = re.findall(r"==== Config backup completed at (.+?) ====", content)
+    matches = re.findall(r"==== .+ completed at (.+?) ====", content)
     if matches:
         last_backup_cache = matches[-1]
 
@@ -99,107 +95,7 @@ def _truncate_log():
 
 
 # ---------------------------------------------------------------------------
-# apcupsd NIS client (pure Python, no apcupsd package needed)
-# ---------------------------------------------------------------------------
-
-def query_apcupsd(host, port=3551):
-    """Query apcupsd NIS and return status dict."""
-    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    sock.settimeout(5)
-    try:
-        sock.connect((host, port))
-        cmd = b"status"
-        sock.send(struct.pack("!H", len(cmd)) + cmd)
-
-        result = {}
-        while True:
-            length_bytes = _recv_exact(sock, 2)
-            if not length_bytes:
-                break
-            length = struct.unpack("!H", length_bytes)[0]
-            if length == 0:
-                break
-            data = _recv_exact(sock, length)
-            if not data:
-                break
-            line = data.decode("utf-8", errors="replace").strip()
-            if ":" in line:
-                key, _, value = line.partition(":")
-                result[key.strip()] = value.strip()
-        return {"ok": True, "data": result}
-    except Exception as e:
-        return {"ok": False, "error": str(e)}
-    finally:
-        sock.close()
-
-
-def _recv_exact(sock, n):
-    buf = b""
-    while len(buf) < n:
-        chunk = sock.recv(n - len(buf))
-        if not chunk:
-            return None
-        buf += chunk
-    return buf
-
-
-# ---------------------------------------------------------------------------
 # Backup targets
-# ---------------------------------------------------------------------------
-
-def _backup_pve(log, dry_run=False):
-    """Rsync PVE host config files over SSH."""
-    log(f"\n[PVE host] {PVE_HOST} -> {PVE_DIR}/")
-    pve_dst = _dst(PVE_DIR)
-    rc = 0
-    for src in PVE_SRCS:
-        # rsync trailing-slash semantics: dirs need trailing / to sync contents,
-        # single files need their parent dir as destination
-        if src.endswith("/"):
-            dst = os.path.join(pve_dst, src.strip("/")) + "/"
-        else:
-            dst = os.path.join(pve_dst, os.path.dirname(src).strip("/")) + "/"
-        os.makedirs(dst, exist_ok=True)
-        log(f"--- {src} -> {dst}")
-        ret = _rsync(f"{PVE_HOST}:{src}", dst, log, dry_run=dry_run)
-        if ret != 0:
-            log(f"    FAILED (exit {ret})\n")
-            rc = ret
-        else:
-            log(f"    OK\n")
-    return rc
-
-
-def _backup_nmc(log, dry_run=False):
-    """Download config.ini from each UPS NMC via FTP."""
-    if not NMC_HOSTS or not NMC_PASS:
-        log("\n[UPS NMC] skipped (NMC_HOSTS or NMC_PASS not set)")
-        return 0
-    log(f"\n[UPS NMC] {len(NMC_HOSTS)} devices -> {NMC_DIR}/")
-    rc = 0
-    nmc_dst = _dst(NMC_DIR)
-    os.makedirs(nmc_dst, exist_ok=True)
-    encoded_pass = quote(NMC_PASS, safe="")
-    for name, ip in NMC_HOSTS:
-        dst = os.path.join(nmc_dst, f"{name}.ini")
-        log(f"--- NMC {ip} ({name}) -> {dst}" + (" (dry-run)" if dry_run else ""))
-        if dry_run:
-            continue
-        url = f"ftp://{NMC_USER}:{encoded_pass}@{ip}/config.ini"
-        result = subprocess.run(
-            ["curl", "-s", "--connect-timeout", "10", "--use-ascii", "-o", dst, url],
-            capture_output=True, text=True,
-        )
-        if result.returncode != 0:
-            log(f"    FAILED (exit {result.returncode}): {result.stderr.strip()}\n")
-            rc = result.returncode
-        else:
-            log(f"    OK ({os.path.getsize(dst)} bytes)\n")
-    return rc
-
-
-# ---------------------------------------------------------------------------
-# Background runner
 # ---------------------------------------------------------------------------
 
 class LogWriter:
@@ -232,33 +128,84 @@ def _rsync(src, dst, log, dry_run=False):
     return result.returncode
 
 
-def run_config_backup(dry_run=False):
+def _backup_pve(log, dry_run=False):
+    """Rsync PVE host config files over SSH."""
+    log(f"\n[PVE host] {PVE_HOST} -> {PVE_DIR}/")
+    pve_dst = _dst(PVE_DIR)
+    rc = 0
+    for src in PVE_SRCS:
+        if src.endswith("/"):
+            dst = os.path.join(pve_dst, src.strip("/")) + "/"
+        else:
+            dst = os.path.join(pve_dst, os.path.dirname(src).strip("/")) + "/"
+        os.makedirs(dst, exist_ok=True)
+        log(f"--- {src} -> {dst}")
+        ret = _rsync(f"{PVE_HOST}:{src}", dst, log, dry_run=dry_run)
+        if ret != 0:
+            log(f"    FAILED (exit {ret})\n")
+            rc = ret
+        else:
+            log(f"    OK\n")
+    return rc
+
+
+def _backup_nmc(log, dry_run=False):
+    """Download config.ini from each UPS NMC via FTP."""
+    if not NMC_HOSTS or not NMC_PASS:
+        log("\n[UPS NMC] skipped (NMC_HOSTS or NMC_PASS not set)")
+        return 0
+    log(f"\n[UPS NMC] {len(NMC_HOSTS)} devices -> {NMC_DIR}/")
+    rc = 0
+    nmc_dst = _dst(NMC_DIR)
+    os.makedirs(nmc_dst, exist_ok=True)
+    encoded_pass = quote(NMC_PASS, safe="")
+    for name, ip in NMC_HOSTS:
+        dst = os.path.join(nmc_dst, f"{name}.ini")
+        log(f"--- NMC {ip} ({name}) -> {dst}" + (" (dry-run)" if dry_run else ""))
+        if dry_run:
+            continue
+        # Check reachability before attempting FTP — offline NMCs are skipped, not failures
+        try:
+            s = socket.create_connection((ip, 21), timeout=5)
+            s.close()
+        except OSError:
+            log(f"    SKIPPED (offline)\n")
+            continue
+        url = f"ftp://{NMC_USER}:{encoded_pass}@{ip}/config.ini"
+        result = subprocess.run(
+            ["curl", "-s", "--connect-timeout", "10", "--use-ascii", "-o", dst, url],
+            capture_output=True, text=True,
+        )
+        if result.returncode != 0:
+            log(f"    FAILED (exit {result.returncode}): {result.stderr.strip()}\n")
+            rc = result.returncode
+        else:
+            log(f"    OK ({os.path.getsize(dst)} bytes)\n")
+    return rc
+
+
+# ---------------------------------------------------------------------------
+# Background runner
+# ---------------------------------------------------------------------------
+
+def _run_backup(label, backup_fn, dry_run=False):
     global running, action, last_backup_cache, last_error
     with _lock:
         if running:
             return
         running = True
-    label = "Config backup dry-run" if dry_run else "Config backup"
-    action = "config-backup-dry" if dry_run else "config-backup"
+    suffix = " dry-run" if dry_run else ""
+    action = f"{label}{'-dry' if dry_run else ''}"
     with open(LOG_FILE, "a") as f:
         log = LogWriter(f)
-        log(f"==== {label} started at {_now()} ====")
-        rc = 0
-
-        ret = _backup_pve(log, dry_run=dry_run)
-        if ret != 0:
-            rc = ret
-
-        ret = _backup_nmc(log, dry_run=dry_run)
-        if ret != 0:
-            rc = ret
-
+        log(f"==== {label}{suffix} started at {_now()} ====")
+        rc = backup_fn(log, dry_run=dry_run)
         ts = _now()
         if rc != 0:
-            log(f"==== {label} FAILED (exit {rc}) at {ts} ====")
-            last_error = f"{label} failed (exit {rc}) at {ts}"
+            log(f"==== {label}{suffix} FAILED (exit {rc}) at {ts} ====")
+            last_error = f"{label}{suffix} failed (exit {rc}) at {ts}"
         else:
-            log(f"==== {label} completed at {ts} ====")
+            log(f"==== {label}{suffix} completed at {ts} ====")
             if not dry_run:
                 last_backup_cache = ts
             last_error = None
@@ -269,21 +216,7 @@ def run_config_backup(dry_run=False):
 
 
 # ---------------------------------------------------------------------------
-# API routes — UPS
-# ---------------------------------------------------------------------------
-
-@app.route("/api/ups")
-def api_ups():
-    return jsonify(query_apcupsd(UPS_HOSTS[0]))
-
-
-@app.route("/api/ups2")
-def api_ups2():
-    return jsonify(query_apcupsd(UPS_HOSTS[1]) if len(UPS_HOSTS) > 1 else {"ok": False, "error": "No second UPS configured"})
-
-
-# ---------------------------------------------------------------------------
-# API routes — Config Backup
+# API routes
 # ---------------------------------------------------------------------------
 
 @app.route("/api/targets")
@@ -295,6 +228,7 @@ def api_targets():
             "detail": PVE_HOST.split("@")[-1],
             "items": PVE_SRCS,
             "dest": PVE_DIR,
+            "schedule": "Daily 02:00",
         },
     ]
     if NMC_HOSTS and NMC_PASS:
@@ -304,6 +238,7 @@ def api_targets():
             "detail": f"{len(NMC_HOSTS)} device{'s' if len(NMC_HOSTS) != 1 else ''}",
             "items": [f"{name} ({ip})" for name, ip in NMC_HOSTS],
             "dest": NMC_DIR,
+            "schedule": "Manual",
         })
     return jsonify(targets=targets)
 
@@ -319,10 +254,17 @@ def api_status():
     )
 
 
-@app.route("/backup/run", methods=["POST"])
-def backup_run():
+@app.route("/backup/pve", methods=["POST"])
+def backup_pve():
     dry = request.args.get("dry") == "1"
-    threading.Thread(target=run_config_backup, args=(dry,), daemon=True).start()
+    threading.Thread(target=_run_backup, args=("PVE config backup", _backup_pve, dry), daemon=True).start()
+    return "ok"
+
+
+@app.route("/backup/nmc", methods=["POST"])
+def backup_nmc():
+    dry = request.args.get("dry") == "1"
+    threading.Thread(target=_run_backup, args=("NMC config snapshot", _backup_nmc, dry), daemon=True).start()
     return "ok"
 
 
