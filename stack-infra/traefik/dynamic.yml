@@ -181,18 +181,18 @@ http:
       rule: 'Host(`watch.lundmark.tech`)'
       service: plex
 
-    # APC UPS
-    apcups1:
+    # UPS
+    eaton-ups:
       rule: 'Host(`ups1.lundmark.tech`)'
       middlewares:
         - authelia
-      service: apcups1
+      service: eaton-ups
 
-    apcups2:
+    apcups:
       rule: 'Host(`ups2.lundmark.tech`)'
       middlewares:
         - authelia
-      service: apcups2
+      service: apcups
 
   services:
     synology-dsm: *synology-service
@@ -232,13 +232,13 @@ http:
           - url: 'https://10.0.1.1'
         passHostHeader: true
 
-    apcups1:
+    eaton-ups:
       loadBalancer:
         servers:
-          - url: 'http://10.0.1.5'
+          - url: 'https://10.0.1.25'
         passHostHeader: true
 
-    apcups2:
+    apcups:
       loadBalancer:
         servers:
           - url: 'http://10.0.1.6'
