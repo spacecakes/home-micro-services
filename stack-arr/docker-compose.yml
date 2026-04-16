@@ -56,8 +56,8 @@ services:
     volumes:
       - /srv/docker/stack-arr/data/sabnzbd:/config
       - /mnt/downloads:/downloads
-      - /mnt/nas/downloads:/downloads-nas
-      - /mnt/nas/media:/media
+      - nfs-downloads:/downloads-nas
+      - nfs-media:/media
 
   qbittorrent:
     <<: *common
@@ -74,8 +74,8 @@ services:
     volumes:
       - /srv/docker/stack-arr/data/qbittorrent:/config
       - /mnt/downloads:/downloads
-      - /mnt/nas/downloads:/downloads-nas
-      - /mnt/nas/media:/media
+      - nfs-downloads:/downloads-nas
+      - nfs-media:/media
 
   sonarr:
     <<: *common
@@ -88,7 +88,7 @@ services:
     volumes:
       - /srv/docker/stack-arr/data/sonarr:/config
       - /mnt/downloads:/downloads
-      - /mnt/nas/media:/media
+      - nfs-media:/media
     depends_on:
       - prowlarr
       - nzbhydra
@@ -106,7 +106,7 @@ services:
     volumes:
       - /srv/docker/stack-arr/data/radarr:/config
       - /mnt/downloads:/downloads
-      - /mnt/nas/media:/media
+      - nfs-media:/media
     depends_on:
       - prowlarr
       - nzbhydra
@@ -123,7 +123,7 @@ services:
       - 'traefik.http.routers.bazarr.middlewares=authelia@file'
     volumes:
       - /srv/docker/stack-arr/data/bazarr:/config
-      - /mnt/nas/media:/media
+      - nfs-media:/media
 
   lidarr:
     <<: *common
@@ -136,7 +136,7 @@ services:
     volumes:
       - /srv/docker/stack-arr/data/lidarr:/config
       - /mnt/downloads:/downloads
-      - /mnt/nas/music:/music
+      - nfs-music:/music
     depends_on:
       - prowlarr
       - nzbhydra
@@ -155,8 +155,8 @@ services:
     volumes:
       - /srv/docker/stack-arr/data/nzbhydra:/config
       - /mnt/downloads:/downloads
-      - /mnt/nas/downloads:/downloads-nas
-      - /mnt/nas/media:/media
+      - nfs-downloads:/downloads-nas
+      - nfs-media:/media
 
   prowlarr:
     <<: *common
@@ -168,6 +168,26 @@ services:
       - 'traefik.http.routers.prowlarr.middlewares=authelia@file'
     volumes:
       - /srv/docker/stack-arr/data/prowlarr:/config
+
+volumes:
+  nfs-media:
+    driver: local
+    driver_opts:
+      type: nfs
+      o: 'addr=10.0.1.2,soft,timeo=50,vers=4.1,noatime'
+      device: ':/volume1/media'
+  nfs-downloads:
+    driver: local
+    driver_opts:
+      type: nfs
+      o: 'addr=10.0.1.2,soft,timeo=50,vers=4.1,noatime'
+      device: ':/volume1/downloads'
+  nfs-music:
+    driver: local
+    driver_opts:
+      type: nfs
+      o: 'addr=10.0.1.2,soft,timeo=50,vers=4.1,noatime'
+      device: ':/volume1/music'
 
 networks:
   traefik-proxy:

@@ -25,7 +25,7 @@ services:
       - default
       - traefik-proxy
     volumes:
-      - /mnt/nas/backup-nodes:/destination
+      - nfs-backup-nodes:/destination
       - /srv/docker/stack-ops/data/ssh:/app/ssh:ro
       - /srv/docker/stack-ops/config-backup/app.py:/app/app.py:ro
     labels:
@@ -45,6 +45,14 @@ services:
       - 'traefik.enable=false'
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
+
+volumes:
+  nfs-backup-nodes:
+    driver: local
+    driver_opts:
+      type: nfs
+      o: 'addr=10.0.1.2,soft,timeo=50,vers=4.1,noatime'
+      device: ':/volume1/backup-nodes'
 
 networks:
   traefik-proxy:

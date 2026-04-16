@@ -100,9 +100,11 @@ See each stack's `.env` for the specific variables used.
 
 ## NAS Mounts
 
-NFS shares from the Synology NAS are mounted via Docker's native NFS volume driver, defined inline in each stack's `docker-compose.yml`. No host-level fstab or systemd configuration needed — `docker compose up -d` handles mounting automatically.
+NFS shares from the Synology NAS are mounted via Docker's native NFS volume driver, defined inline in each stack's `docker-compose.yml`. No host-level fstab or systemd configuration needed — `docker compose up -d` handles mounting automatically, and if the NAS isn't ready Docker's restart policy retries until it is.
 
-Volume naming convention: `nfs-{share}` (e.g. `nfs-media`, `nfs-music`, `nfs-downloads`). Sub-paths get their own volumes (e.g. `nfs-downloads-seeding`, `nfs-photos-immich`).
+Do NOT use `/etc/fstab` + host bind mounts on the Docker LXC, even for "consistency" with other LXCs. Bind mounts don't follow NFS remounts: if Docker starts before the NFS mount (the usual case with `bg,nofail`), containers pin to the empty stub dir and stay broken until manually restarted.
+
+Volume naming convention: `nfs-{share}` (e.g. `nfs-media`, `nfs-music`, `nfs-downloads`). Sub-paths get their own volumes (e.g. `nfs-downloads-seeding`, `nfs-photos-immich`). Requires `nfs-common` on the host for the kernel mount helpers.
 
 ## Common Patterns
 
