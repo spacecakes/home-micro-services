@@ -25,7 +25,7 @@ services:
     volumes:
       - /srv/docker/stack-infra/data/traefik/letsencrypt:/letsencrypt
       - /srv/docker/stack-infra/traefik/traefik.yml:/traefik.yml:ro
-      - /srv/docker/stack-infra/traefik/dynamic.yml:/dynamic.yml:ro
+      - /srv/docker/stack-infra/traefik:/traefik-config:ro
       - /var/run/docker.sock:/var/run/docker.sock:ro
 
   # Docker management

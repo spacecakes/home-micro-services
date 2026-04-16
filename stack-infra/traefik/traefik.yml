@@ -29,7 +29,7 @@ providers:
     # Strip stack name and set default route to <service>.lundmark.tech
     defaultRule: 'Host(`{{ coalesce (index .Labels "com.docker.compose.service") (normalize .Name) }}.lundmark.tech`)'
   file:
-    filename: /dynamic.yml
+    filename: /traefik-config/dynamic.yml
     watch: true
 
 certificatesResolvers:

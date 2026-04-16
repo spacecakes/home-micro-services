@@ -194,6 +194,13 @@ http:
         - authelia
       service: apcups
 
+    # Change Detection LXC (10.0.1.28)
+    changedetection:
+      rule: 'Host(`changes.lundmark.tech`)'
+      middlewares:
+        - authelia
+      service: changedetection
+
   services:
     synology-dsm: *synology-service
     synology-drive: *synology-service
@@ -278,6 +285,12 @@ http:
       loadBalancer:
         servers:
           - url: 'http://10.0.1.19:32400'
+        passHostHeader: true
+
+    changedetection:
+      loadBalancer:
+        servers:
+          - url: 'http://10.0.1.28:5000'
         passHostHeader: true
 
     pbs:

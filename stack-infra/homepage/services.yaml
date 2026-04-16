@@ -170,6 +170,11 @@
         siteMonitor: https://dns-sync.lundmark.tech/
 
 - Monitoring:
+    - Change Detection:
+        icon: changedetection-io.png
+        href: https://changes.lundmark.tech/
+        description: Website change monitoring
+        siteMonitor: https://changes.lundmark.tech/
     - Tautulli:
         icon: tautulli.png
         href: https://stats.lundmark.tech/
