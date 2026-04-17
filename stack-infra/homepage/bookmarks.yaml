@@ -6,9 +6,9 @@
     - Tailscale Admin Console:
         - abbr: TS
           href: https://login.tailscale.com/admin/machines/
-    - NextDNS:
-        - abbr: ND
-          href: https://my.nextdns.io/
+    - Pushover Dashboard:
+        - abbr: PO
+          href: https://pushover.net/
     - C2 Storage:
         - abbr: C2
           href: https://eu.c2.synology.com/storage/
@@ -35,6 +35,12 @@
     - Unifi docs:
         - abbr: UD
           href: https://help.ui.com/hc/en-us/
+    - Cloudflare docs:
+        - abbr: CD
+          href: https://developers.cloudflare.com/
+    - Joker docs:
+        - abbr: JD
+          href: https://joker.com/support/
 
 - Resources:
     - Github Repo:
@@ -46,3 +52,18 @@
     - Proxmox VE Helper Scripts:
         - abbr: PHS
           href: https://community-scripts.github.io/
+    - Home Assistant Community:
+        - abbr: HAC
+          href: https://community.home-assistant.io/
+    - r/homelab subreddit:
+        - abbr: HL
+          href: https://www.reddit.com/r/homelab/
+    - r/selfhosted subreddit:
+        - abbr: SH
+          href: https://www.reddit.com/r/selfhosted/
+    - r/homeserver subreddit:
+        - abbr: HS
+          href: https://www.reddit.com/r/homeserver/
+    - r/Proxmox subreddit:
+        - abbr: PMX
+          href: https://www.reddit.com/r/Proxmox/

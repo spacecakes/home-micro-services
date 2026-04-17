@@ -113,6 +113,7 @@ Volume naming convention: `nfs-{share}` (e.g. `nfs-media`, `nfs-music`, `nfs-dow
 - **Data directories**: `/srv/docker/stack-*/data/` for persistent state
 - **Watchtower opt-out**: `com.centurylinklabs.watchtower.enable=false` on services needing manual control
 - **GPU passthrough**: Plex and Immich run in their own LXCs with GPU passthrough configured in Proxmox.
+- **VPN sidecar**: qbittorrent runs in gluetun's network namespace (WireGuard, `custom` provider). Traefik labels and the torrent port live on gluetun; a `qbittorrent` network alias on gluetun keeps *arr DNS lookups working. WG creds in `stack-arr/.env`.
 
 ## Proxmox LXC/VM Services (outside Docker)
 

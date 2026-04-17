@@ -59,18 +59,47 @@ services:
       - nfs-downloads:/downloads-nas
       - nfs-media:/media
 
-  qbittorrent:
-    <<: *common
-    container_name: qbittorrent
-    image: linuxserver/qbittorrent:latest
+  gluetun:
+    image: qmcgaw/gluetun:latest
+    container_name: gluetun
+    restart: unless-stopped
+    cap_add:
+      - NET_ADMIN
+    devices:
+      - /dev/net/tun:/dev/net/tun
+    networks:
+      default:
+        aliases:
+          - qbittorrent
+      traefik-proxy:
+    environment:
+      TZ: Europe/Stockholm
+      VPN_SERVICE_PROVIDER: custom
+      VPN_TYPE: wireguard
+      VPN_ENDPOINT_IP: ${WG_ENDPOINT_IP}
+      VPN_ENDPOINT_PORT: ${WG_ENDPOINT_PORT}
+      WIREGUARD_PUBLIC_KEY: ${WG_PUBLIC_KEY}
+      WIREGUARD_PRIVATE_KEY: ${WG_PRIVATE_KEY}
+      WIREGUARD_PRESHARED_KEY: ${WG_PRESHARED_KEY:-}
+      WIREGUARD_ADDRESSES: ${WG_ADDRESSES}
+      FIREWALL_OUTBOUND_SUBNETS: 172.16.0.0/12
     labels:
       - 'traefik.docker.network=traefik-proxy'
       - 'traefik.http.routers.qbittorrent.rule=Host(`torrents.lundmark.tech`)'
       - 'traefik.http.routers.qbittorrent.middlewares=authelia@file'
       - 'traefik.http.services.qbittorrent.loadbalancer.server.port=8080'
-    ports:
-      - '6881:6881'
-      - '6881:6881/udp'
+
+  qbittorrent:
+    restart: unless-stopped
+    container_name: qbittorrent
+    image: linuxserver/qbittorrent:latest
+    network_mode: "service:gluetun"
+    depends_on:
+      - gluetun
+    environment:
+      PUID: 1000
+      PGID: 1000
+      TZ: Europe/Stockholm
     volumes:
       - /srv/docker/stack-arr/data/qbittorrent:/config
       - /mnt/downloads:/downloads
