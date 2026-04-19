@@ -42,6 +42,10 @@ layout:
     tab: Services
     style: row
     columns: 4
+  Reading:
+    style: row
+    columns: 2
+
   Storage:
     tab: Admin
     style: row

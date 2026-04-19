@@ -71,6 +71,7 @@ services:
       default:
         aliases:
           - qbittorrent
+          - transmission
       traefik-proxy:
     environment:
       TZ: Europe/Stockholm
@@ -87,7 +88,12 @@ services:
       - 'traefik.docker.network=traefik-proxy'
       - 'traefik.http.routers.qbittorrent.rule=Host(`torrents.lundmark.tech`)'
       - 'traefik.http.routers.qbittorrent.middlewares=authelia@file'
+      - 'traefik.http.routers.qbittorrent.service=qbittorrent'
       - 'traefik.http.services.qbittorrent.loadbalancer.server.port=8080'
+      - 'traefik.http.routers.transmission.rule=Host(`transmission.lundmark.tech`)'
+      - 'traefik.http.routers.transmission.middlewares=authelia@file'
+      - 'traefik.http.routers.transmission.service=transmission'
+      - 'traefik.http.services.transmission.loadbalancer.server.port=9091'
 
   qbittorrent:
     restart: unless-stopped
@@ -102,6 +108,23 @@ services:
       TZ: Europe/Stockholm
     volumes:
       - /srv/docker/stack-arr/data/qbittorrent:/config
+      - /mnt/downloads:/downloads
+      - nfs-downloads:/downloads-nas
+      - nfs-media:/media
+
+  transmission:
+    restart: unless-stopped
+    container_name: transmission
+    image: linuxserver/transmission:latest
+    network_mode: "service:gluetun"
+    depends_on:
+      - gluetun
+    environment:
+      PUID: 1000
+      PGID: 1000
+      TZ: Europe/Stockholm
+    volumes:
+      - /srv/docker/stack-arr/data/transmission:/config
       - /mnt/downloads:/downloads
       - nfs-downloads:/downloads-nas
       - nfs-media:/media

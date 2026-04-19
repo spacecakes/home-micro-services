@@ -201,6 +201,11 @@ http:
         - authelia
       service: changedetection
 
+    # FreshRSS LXC (10.0.1.29, handles own auth — API clients need direct access)
+    freshrss:
+      rule: 'Host(`rss.lundmark.tech`)'
+      service: freshrss
+
   services:
     synology-dsm: *synology-service
     synology-drive: *synology-service
@@ -291,6 +296,12 @@ http:
       loadBalancer:
         servers:
           - url: 'http://10.0.1.28:5000'
+        passHostHeader: true
+
+    freshrss:
+      loadBalancer:
+        servers:
+          - url: 'http://10.0.1.29'
         passHostHeader: true
 
     pbs:
