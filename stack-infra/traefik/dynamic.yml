@@ -36,6 +36,12 @@ http:
       addPrefix:
         prefix: '/vm'
 
+    guacamole-root-redirect:
+      redirectRegex:
+        regex: '^https?://[^/]+/?$'
+        replacement: 'https://desktop.lundmark.tech/guacamole/'
+        permanent: false
+
     default-headers:
       headers:
         frameDeny: true
@@ -206,6 +212,14 @@ http:
       rule: 'Host(`rss.lundmark.tech`)'
       service: freshrss
 
+    # Guacamole LXC (10.0.1.27, handles own auth — remote desktop gateway)
+    # Tomcat serves the app at /guacamole/, so root hits get bounced there
+    guacamole:
+      rule: 'Host(`desktop.lundmark.tech`)'
+      middlewares:
+        - guacamole-root-redirect
+      service: guacamole
+
   services:
     synology-dsm: *synology-service
     synology-drive: *synology-service
@@ -302,6 +316,12 @@ http:
       loadBalancer:
         servers:
           - url: 'http://10.0.1.29'
+        passHostHeader: true
+
+    guacamole:
+      loadBalancer:
+        servers:
+          - url: 'http://10.0.1.27:8080'
         passHostHeader: true
 
     pbs:

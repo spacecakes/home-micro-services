@@ -121,6 +121,17 @@
         description: Personal AI assistant
         siteMonitor: https://bot.lundmark.tech/
 
+- Workstations:
+    - Windows VM:
+        icon: windows-11.png
+        href: https://desktop.lundmark.tech/guacamole/#/client/MQBjAG15c3Fs
+        description: Windows 11 Pro via Guacamole
+    - Guacamole:
+        icon: guacamole.png
+        href: https://desktop.lundmark.tech/
+        description: Remote desktop gateway
+        siteMonitor: https://desktop.lundmark.tech/
+
 - Storage:
     - DSM (homecloud):
         icon: /icons/synology-dsm.png

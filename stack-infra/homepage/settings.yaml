@@ -24,6 +24,7 @@ hideErrors: true
 #   blur: md # sm, "", md, xl... see https://tailwindcss.com/docs/backdrop-blur
 
 layout:
+# Services tab
   Favorites:
     tab: Services
     style: row
@@ -45,7 +46,11 @@ layout:
   Reading:
     style: row
     columns: 2
+  Workstations:
+    style: row
+    columns: 2
 
+# Admin tab
   Storage:
     tab: Admin
     style: row
