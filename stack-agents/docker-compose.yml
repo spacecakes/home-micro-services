@@ -6,7 +6,7 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
       - /volume1/@docker/volumes:/var/lib/docker/volumes:ro
       - /:/host
-      - /volume1/docker/stack-nas/data/portainer-agent:/data
+      - /volume1/docker/stack-agents/data/portainer-agent:/data
     restart: always
     environment:
       - EDGE=1
@@ -39,7 +39,7 @@ services:
       - 5011:5001
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - /volume1/docker/stack-nas/data/dockge-agent:/app/data
+      - /volume1/docker/stack-agents/data/dockge-agent:/app/data
       - /volume1/docker:/opt/stacks
     environment:
       DOCKGE_STACKS_DIR: /opt/stacks
@@ -60,6 +60,6 @@ services:
     ports:
       - 3001:3001
     volumes:
-      - /volume1/docker/stack-nas/data/uptime-kuma:/app/data
+      - /volume1/docker/stack-agents/data/uptime-kuma:/app/data
       - /var/run/docker.sock:/var/run/docker.sock:ro
 
