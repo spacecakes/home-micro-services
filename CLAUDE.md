@@ -16,19 +16,19 @@ External access: select subdomains are CNAME'd to the public IP via Cloudflare p
 
 ## Stack Organization
 
-| Stack          | Purpose                                              |
-| -------------- | ---------------------------------------------------- |
-| `stack-infra`  | Core infra: reverse proxy, dashboard, monitoring     |
-| `stack-auth`   | Authelia SSO + Redis session backend                 |
-| `stack-ops`    | Config backup (PVE host + NMC), auto-updates         |
-| `stack-arr`    | Media automation (*arr apps, downloaders, requests)   |
-| `stack-nas`    | NAS-side agents — **runs on the Synology NAS, not the home server** |
+| Stack           | Purpose                                                                                  |
+| --------------- | ---------------------------------------------------------------------------------------- |
+| `stack-infra`   | Core infra: reverse proxy, dashboard, monitoring                                         |
+| `stack-auth`    | Authelia SSO + Redis session backend                                                     |
+| `stack-ops`     | Config backup (PVE host + NMC), auto-updates                                             |
+| `stack-arr`     | Media automation (*arr apps, downloaders, requests) — **runs on the NAS**                |
+| `stack-agents`  | Remote-management agents (Portainer, Dockge, dockerproxy, watchtower, uptime-kuma) — **runs on the NAS** |
 
-See each stack's `docker-compose.yml` for the full list of services. `stack-nas` is checked into this repo for versioning but deployed on the NAS.
+`stack-infra`, `stack-auth`, and `stack-ops` run on the Docker LXC on PVE. `stack-arr` and `stack-agents` are checked into this repo for versioning but deployed on the Synology NAS via Container Manager.
 
 ### Stack startup order matters
 
-`stack-infra` first (Traefik), then `stack-auth` (Authelia), then the rest. AdGuard Home now runs in a Proxmox LXC, not Docker.
+On PVE: `stack-infra` first (Traefik), then `stack-auth` (Authelia), then `stack-ops`. On the NAS: `gluetun` must be healthy before qbittorrent/transmission start (handled by `depends_on`). AdGuard Home runs in a Proxmox LXC, not Docker.
 
 ## Routing & Traefik
 
@@ -58,7 +58,7 @@ Backend-only services use `traefik.enable=false`.
 ## Networking
 
 - **`traefik-proxy`**: External Docker network shared across all stacks. Needed for Traefik routing and cross-stack container DNS.
-- **DNS override**: Some stacks (`stack-arr`) set explicit Cloudflare/Google DNS to bypass AdGuard filtering.
+- **DNS override**: gluetun on the NAS handles DNS for qbittorrent/transmission via its own resolver; other NAS containers use DSM's resolver. PVE-side containers use the Docker LXC's resolver (AdGuard via the LAN).
 
 ## Custom Images
 
@@ -98,13 +98,13 @@ Each stack has its own `.env` (gitignored). Key variables:
 
 See each stack's `.env` for the specific variables used.
 
-## NAS Mounts
+## NAS Storage Access
 
-NFS shares from the Synology NAS are mounted via Docker's native NFS volume driver, defined inline in each stack's `docker-compose.yml`. No host-level fstab or systemd configuration needed — `docker compose up -d` handles mounting automatically, and if the NAS isn't ready Docker's restart policy retries until it is.
+For stacks running on **PVE Docker LXC** that need NAS data: use Docker's native NFS volume driver, defined inline in each stack's `docker-compose.yml`. Naming convention: `nfs-{share}` (e.g. `nfs-photos-immich`). Requires `nfs-common` on the LXC.
 
-Do NOT use `/etc/fstab` + host bind mounts on the Docker LXC, even for "consistency" with other LXCs. Bind mounts don't follow NFS remounts: if Docker starts before the NFS mount (the usual case with `bg,nofail`), containers pin to the empty stub dir and stay broken until manually restarted.
+Do NOT use `/etc/fstab` + host bind mounts on the Docker LXC. Bind mounts don't follow NFS remounts: if Docker starts before the NFS mount (the usual case with `bg,nofail`), containers pin to the empty stub dir and stay broken until manually restarted.
 
-Volume naming convention: `nfs-{share}` (e.g. `nfs-media`, `nfs-music`, `nfs-downloads`). Sub-paths get their own volumes (e.g. `nfs-downloads-seeding`, `nfs-photos-immich`). Requires `nfs-common` on the host for the kernel mount helpers.
+For stacks running on the **NAS itself** (`stack-arr`, `stack-agents`): bind-mount `/volume1/<share>` directly. No NFS in the container path, and same-volume bind mounts preserve `st_dev` so cross-share hardlinks work (the reason `stack-arr` was migrated off PVE).
 
 ## Common Patterns
 
@@ -113,7 +113,7 @@ Volume naming convention: `nfs-{share}` (e.g. `nfs-media`, `nfs-music`, `nfs-dow
 - **Data directories**: `/srv/docker/stack-*/data/` for persistent state
 - **Watchtower opt-out**: `com.centurylinklabs.watchtower.enable=false` on services needing manual control
 - **GPU passthrough**: Plex and Immich run in their own LXCs with GPU passthrough configured in Proxmox.
-- **VPN sidecar**: qbittorrent runs in gluetun's network namespace (WireGuard, `custom` provider). Traefik labels and the torrent port live on gluetun; a `qbittorrent` network alias on gluetun keeps *arr DNS lookups working. WG creds in `stack-arr/.env`.
+- **VPN sidecar**: qbittorrent and transmission run in gluetun's network namespace (WireGuard, `custom` provider). On the NAS, gluetun publishes the qbit/transmission ports to the host so PVE-side Traefik can reach them via static routes in `dynamic.yml`. Network aliases (`qbittorrent`, `transmission`) on gluetun keep *arr DNS lookups working. WireGuard runs in userspace mode on DSM (no kernel WG module). WG creds in `stack-arr/.env`.
 
 ## Proxmox LXC/VM Services (outside Docker)
 

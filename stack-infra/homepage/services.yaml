@@ -35,37 +35,37 @@
         href: https://requests.lundmark.tech/
         description: Request movies & TV
         container: seerr
-        server: local-docker
+        server: homecloud-docker
     - Sonarr:
         icon: sonarr.png
         href: https://tv.lundmark.tech/
         description: TV show management
         container: sonarr
-        server: local-docker
+        server: homecloud-docker
     - Radarr:
         icon: radarr.png
         href: https://movies.lundmark.tech/
         description: Movie management
         container: radarr
-        server: local-docker
+        server: homecloud-docker
     - Bazarr:
         icon: bazarr.png
         href: https://subtitles.lundmark.tech/
         description: Subtitle management
         container: bazarr
-        server: local-docker
+        server: homecloud-docker
     - Lidarr:
         icon: lidarr.png
         href: https://music.lundmark.tech/
         description: Music management
         container: lidarr
-        server: local-docker
+        server: homecloud-docker
     - Aurral:
         icon: /icons/aurral.svg
         href: https://request-music.lundmark.tech/
         description: Request music
         container: aurral
-        server: local-docker
+        server: homecloud-docker
 
 - Downloads:
     - SABnzbd:
@@ -73,31 +73,31 @@
         href: https://usenet.lundmark.tech/
         description: Usenet downloader for *arr apps
         container: sabnzbd
-        server: local-docker
+        server: homecloud-docker
     - qBittorrent:
         icon: qbittorrent.png
         href: https://torrents.lundmark.tech/
         description: Torrent downloader for *arr apps
         container: qbittorrent
-        server: local-docker
+        server: homecloud-docker
     - Transmission:
         icon: transmission.png
         href: https://transmission.lundmark.tech/
         description: Alt torrent client for large torrents
         container: transmission
-        server: local-docker
+        server: homecloud-docker
     - Prowlarr:
         icon: prowlarr.png
         href: https://indexers.lundmark.tech/
         description: Indexer management
         container: prowlarr
-        server: local-docker
+        server: homecloud-docker
     - NZBHydra2:
         icon: nzbhydra2.png
         href: https://search.lundmark.tech/
         description: Meta search for indexers
         container: nzbhydra
-        server: local-docker
+        server: homecloud-docker
 
 - Home:
     - Home Assistant OS:
