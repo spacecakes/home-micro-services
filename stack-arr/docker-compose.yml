@@ -1,23 +1,44 @@
+# Runs on the PVE Docker LXC. Reverse-proxied by Traefik via Docker labels.
+#
+# Hardlink layout:
+#   /volume1/media/.downloads/  ← SAB complete + qBit save path (NFS-mounted as /media)
+#   /volume1/media/{tv,movies}  ← *arr library (same NFS mount)
+#
+# Single nfs-media mount → same st_dev → hardlinks work for movies/TV imports.
+# Music uses a separate share; Lidarr import is a same-server cross-mount copy
+# (small files, acceptable cost).
+
 x-common: &common
   restart: unless-stopped
+  networks:
+    - default
+    - traefik-proxy
   environment:
-    PUID: 1026
-    PGID: 100
+    PUID: 1000
+    PGID: 1000
     TZ: Europe/Stockholm
 
 services:
   seerr:
-    restart: unless-stopped
+    <<: *common
     image: ghcr.io/seerr-team/seerr:latest
     init: true
     container_name: seerr
     environment:
-      # No PGID/PUID supported, runs as 1000
+      LOG_LEVEL: debug
       TZ: Europe/Stockholm
     volumes:
-      - /volume1/docker/stack-arr/data/seerr/config:/app/config
-    ports:
-      - 5055:5055
+      - /srv/docker/stack-arr/data/seerr/config:/app/config
+    labels:
+      - 'traefik.docker.network=traefik-proxy'
+      - 'traefik.http.routers.seerr.rule=Host(`requests.lundmark.tech`)'
+      - 'traefik.http.routers.seerr.middlewares=authelia@file'
+    healthcheck:
+      test: ['CMD-SHELL', 'wget --spider -q http://127.0.0.1:5055 || exit 1']
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 60s
     depends_on:
       - sonarr
       - radarr
@@ -27,12 +48,20 @@ services:
     container_name: aurral
     image: ghcr.io/lklynet/aurral:latest
     environment:
-      DOWNLOAD_FOLDER: /mnt/downloads
+      - DOWNLOAD_FOLDER=/mnt/downloads
     volumes:
-      - /volume1/downloads:/app/downloads
-      - /volume1/docker/stack-arr/data/aurral:/app/backend/data
-    ports:
-      - 3010:3001
+      - /mnt/downloads:/app/downloads
+      - /srv/docker/stack-arr/data/aurral:/app/backend/data
+    labels:
+      - 'traefik.docker.network=traefik-proxy'
+      - 'traefik.http.routers.aurral.rule=Host(`request-music.lundmark.tech`)'
+      - 'traefik.http.services.aurral.loadbalancer.server.port=3001'
+    healthcheck:
+      test: ['CMD-SHELL', 'wget --spider -q http://127.0.0.1:3001 || exit 1']
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 60s
     depends_on:
       - lidarr
 
@@ -40,17 +69,26 @@ services:
     <<: *common
     container_name: sabnzbd
     image: linuxserver/sabnzbd:latest
+    labels:
+      - 'traefik.docker.network=traefik-proxy'
+      - 'traefik.http.routers.sabnzbd.rule=Host(`usenet.lundmark.tech`)'
+      - 'traefik.http.routers.sabnzbd.middlewares=authelia@file'
     volumes:
-      - /volume1/docker/stack-arr/data/sabnzbd:/config
-      - /volume1/downloads:/downloads
-      - /volume1/media:/media
-    ports:
-      - 8090:8080
+      - /srv/docker/stack-arr/data/sabnzbd:/config
+      - /mnt/downloads:/incomplete
+      - nfs-downloads:/media/.downloads
+      - nfs-downloads-nas:/downloads-nas
+    healthcheck:
+      test: ['CMD-SHELL', 'wget --spider -q http://127.0.0.1:8080 || exit 1']
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 60s
 
   gluetun:
-    <<: *common
     image: qmcgaw/gluetun:latest
     container_name: gluetun
+    restart: unless-stopped
     cap_add:
       - NET_ADMIN
     devices:
@@ -59,7 +97,7 @@ services:
       default:
         aliases:
           - qbittorrent
-          - transmission
+      traefik-proxy:
     environment:
       TZ: Europe/Stockholm
       VPN_SERVICE_PROVIDER: custom
@@ -71,44 +109,53 @@ services:
       WIREGUARD_PRESHARED_KEY: ${WG_PRESHARED_KEY:-}
       WIREGUARD_ADDRESSES: ${WG_ADDRESSES}
       FIREWALL_OUTBOUND_SUBNETS: 172.16.0.0/12
-    ports:
-      - 8080:8080  # qbittorrent
-      - 9091:9091  # transmission
+    labels:
+      - 'traefik.docker.network=traefik-proxy'
+      - 'traefik.http.routers.qbittorrent.rule=Host(`torrents.lundmark.tech`)'
+      - 'traefik.http.routers.qbittorrent.middlewares=authelia@file'
+      - 'traefik.http.services.qbittorrent.loadbalancer.server.port=8080'
+    # gluetun has its own HEALTHCHECK in the image — no need to redefine
 
   qbittorrent:
-    <<: *common
+    restart: unless-stopped
     container_name: qbittorrent
     image: linuxserver/qbittorrent:latest
-    network_mode: "service:gluetun"
+    network_mode: 'service:gluetun'
     depends_on:
       - gluetun
+    environment:
+      PUID: 1000
+      PGID: 1000
+      TZ: Europe/Stockholm
     volumes:
-      - /volume1/docker/stack-arr/data/qbittorrent:/config
-      - /volume1/downloads:/downloads
-      - /volume1/media:/media
-
-  transmission:
-    <<: *common
-    container_name: transmission
-    image: linuxserver/transmission:latest
-    network_mode: "service:gluetun"
-    depends_on:
-      - gluetun
-    volumes:
-      - /volume1/docker/stack-arr/data/transmission:/config
-      - /volume1/downloads:/downloads
-      - /volume1/media:/media
+      - /srv/docker/stack-arr/data/qbittorrent:/config
+      - /mnt/downloads:/incomplete
+      - nfs-downloads:/media/.downloads
+      - nfs-downloads-nas:/downloads-nas
+    healthcheck:
+      test: ['CMD-SHELL', 'wget --spider -q http://127.0.0.1:8080 || exit 1']
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 90s
 
   sonarr:
     <<: *common
     container_name: sonarr
     image: linuxserver/sonarr:latest
+    labels:
+      - 'traefik.docker.network=traefik-proxy'
+      - 'traefik.http.routers.sonarr.rule=Host(`tv.lundmark.tech`)'
+      - 'traefik.http.routers.sonarr.middlewares=authelia@file'
     volumes:
-      - /volume1/docker/stack-arr/data/sonarr:/config
-      - /volume1/downloads:/downloads
-      - /volume1/media:/media
-    ports:
-      - 8989:8989
+      - /srv/docker/stack-arr/data/sonarr:/config
+      - nfs-media:/media
+    healthcheck:
+      test: ['CMD-SHELL', 'wget --spider -q http://127.0.0.1:8989 || exit 1']
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 60s
     depends_on:
       - prowlarr
       - nzbhydra
@@ -119,12 +166,19 @@ services:
     <<: *common
     container_name: radarr
     image: linuxserver/radarr:latest
+    labels:
+      - 'traefik.docker.network=traefik-proxy'
+      - 'traefik.http.routers.radarr.rule=Host(`movies.lundmark.tech`)'
+      - 'traefik.http.routers.radarr.middlewares=authelia@file'
     volumes:
-      - /volume1/docker/stack-arr/data/radarr:/config
-      - /volume1/downloads:/downloads
-      - /volume1/media:/media
-    ports:
-      - 7878:7878
+      - /srv/docker/stack-arr/data/radarr:/config
+      - nfs-media:/media
+    healthcheck:
+      test: ['CMD-SHELL', 'wget --spider -q http://127.0.0.1:7878 || exit 1']
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 60s
     depends_on:
       - prowlarr
       - nzbhydra
@@ -135,22 +189,41 @@ services:
     <<: *common
     container_name: bazarr
     image: linuxserver/bazarr:latest
+    labels:
+      - 'traefik.docker.network=traefik-proxy'
+      - 'traefik.http.routers.bazarr.rule=Host(`subtitles.lundmark.tech`)'
+      - 'traefik.http.routers.bazarr.middlewares=authelia@file'
     volumes:
-      - /volume1/docker/stack-arr/data/bazarr:/config
-      - /volume1/media:/media
-    ports:
-      - 6767:6767
+      - /srv/docker/stack-arr/data/bazarr:/config
+      - nfs-media:/media
+    healthcheck:
+      test: ['CMD-SHELL', 'wget --spider -q http://127.0.0.1:6767 || exit 1']
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 60s
+    depends_on:
+      - sonarr
+      - radarr
 
   lidarr:
     <<: *common
     container_name: lidarr
     image: linuxserver/lidarr:latest
+    labels:
+      - 'traefik.docker.network=traefik-proxy'
+      - 'traefik.http.routers.lidarr.rule=Host(`music.lundmark.tech`)'
+      - 'traefik.http.routers.lidarr.middlewares=authelia@file'
     volumes:
-      - /volume1/docker/stack-arr/data/lidarr:/config
-      - /volume1/downloads:/downloads
-      - /volume1/music:/music
-    ports:
-      - 8686:8686
+      - /srv/docker/stack-arr/data/lidarr:/config
+      - nfs-media:/media
+      - nfs-music:/music
+    healthcheck:
+      test: ['CMD-SHELL', 'wget --spider -q http://127.0.0.1:8686 || exit 1']
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 60s
     depends_on:
       - prowlarr
       - nzbhydra
@@ -161,18 +234,87 @@ services:
     <<: *common
     container_name: nzbhydra
     image: linuxserver/nzbhydra2:latest
+    labels:
+      - 'traefik.docker.network=traefik-proxy'
+      - 'traefik.http.routers.nzbhydra.rule=Host(`search.lundmark.tech`)'
+      - 'traefik.http.routers.nzbhydra.middlewares=authelia@file'
     volumes:
-      - /volume1/docker/stack-arr/data/nzbhydra:/config
-      - /volume1/downloads:/downloads
-      - /volume1/media:/media
-    ports:
-      - 5076:5076
+      - /srv/docker/stack-arr/data/nzbhydra:/config
+    healthcheck:
+      # nzbhydra2 image lacks wget; uses curl instead
+      test: ['CMD-SHELL', 'curl -fsS http://127.0.0.1:5076 -o /dev/null || exit 1']
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 60s
 
   prowlarr:
     <<: *common
     container_name: prowlarr
-    image: linuxserver/prowlarr:develop
+    image: linuxserver/prowlarr:latest
+    labels:
+      - 'traefik.docker.network=traefik-proxy'
+      - 'traefik.http.routers.prowlarr.rule=Host(`indexers.lundmark.tech`)'
+      - 'traefik.http.routers.prowlarr.middlewares=authelia@file'
     volumes:
-      - /volume1/docker/stack-arr/data/prowlarr:/config
-    ports:
-      - 9696:9696
+      - /srv/docker/stack-arr/data/prowlarr:/config
+    healthcheck:
+      test: ['CMD-SHELL', 'wget --spider -q http://127.0.0.1:9696 || exit 1']
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 60s
+
+  recyclarr:
+    image: ghcr.io/recyclarr/recyclarr:latest
+    container_name: recyclarr
+    restart: unless-stopped
+    user: '1000:1000'
+    networks:
+      - default
+      - traefik-proxy
+    environment:
+      TZ: Europe/Stockholm
+      SONARR_API_KEY: ${SONARR_API_KEY}
+      RADARR_API_KEY: ${RADARR_API_KEY}
+    volumes:
+      - /srv/docker/stack-arr/data/recyclarr:/config
+    depends_on:
+      - sonarr
+      - radarr
+
+volumes:
+  nfs-media:
+    driver: local
+    driver_opts:
+      type: nfs
+      o: 'addr=10.0.1.2,hard,timeo=600,vers=4.1,noatime'
+      device: ':/volume1/media'
+  # Narrow mount for download clients — they only need .downloads, not the
+  # whole library. Mounted at /media/.downloads inside their containers so
+  # absolute paths align with what *arr sees via nfs-media.
+  nfs-downloads:
+    driver: local
+    driver_opts:
+      type: nfs
+      o: 'addr=10.0.1.2,hard,timeo=600,vers=4.1,noatime'
+      device: ':/volume1/media/.downloads'
+  # General-purpose downloads share for non-*arr stuff (manual grabs, ISOs,
+  # software, etc.). Only mounted in SAB/qBit, never in *arr — keeps random
+  # files out of the media library.
+  nfs-downloads-nas:
+    driver: local
+    driver_opts:
+      type: nfs
+      o: 'addr=10.0.1.2,hard,timeo=600,vers=4.1,noatime'
+      device: ':/volume1/downloads'
+  nfs-music:
+    driver: local
+    driver_opts:
+      type: nfs
+      o: 'addr=10.0.1.2,hard,timeo=600,vers=4.1,noatime'
+      device: ':/volume1/music'
+
+networks:
+  traefik-proxy:
+    external: true
