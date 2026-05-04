@@ -152,8 +152,6 @@ http:
     # UniFi Controller
     unifi:
       rule: 'Host(`network.lundmark.tech`)'
-      middlewares:
-        - authelia
       service: unifi
 
     # OpenClaw AI assistant VM
