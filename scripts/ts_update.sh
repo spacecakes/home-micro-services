@@ -4,6 +4,9 @@
 # This is because Synology's package center is far behind Tailscale's own release.
 # Also fixes issue with outbound connections breaking after update.
 
+PATH=/usr/local/bin:/usr/bin:/bin:/usr/syno/bin:/var/packages/Tailscale/target/bin
+export PATH
+
 days_to_wait=1
 
 # By default the mail is sent to eventmail1 in /usr/syno/etc/synosmtp.conf
@@ -47,6 +50,51 @@ fix_daemon_capabilities() {
     fi
 }
 
+send_mail() {
+    local prev="$1" new="$2"
+    local cfgfile="/usr/syno/etc/synosmtp.conf"
+    local thehost sender_name sender_mail mail_to sprefix dsmv dryrunmsg maninstmsg
+    thehost=$(hostname)
+    sender_name=$(grep 'smtp_from_name' "$cfgfile" | sed -n 's/.*"\([^"]*\)".*/\1/p')
+    sender_mail=$(grep 'smtp_from_mail' "$cfgfile" | sed -n 's/.*"\([^"]*\)".*/\1/p')
+    sender_mail=${sender_mail:-$(grep 'eventmail1' "$cfgfile" | sed -n 's/.*"\([^"]*\)".*/\1/p')}
+    mail_to=$(grep "$mailtovar" "$cfgfile" | sed -n 's/.*"\([^"]*\)".*/\1/p')
+    [[ "$mailtovar" == *"@"* ]] && mail_to=${mail_to:-$mailtovar}
+    sprefix=$(grep 'eventsubjectprefix' "$cfgfile" | sed -n 's/.*"\([^"]*\)".*/\1/p')
+    dsmv=$(grep 'majorversion' /etc.defaults/VERSION | cut -d\" -f2)
+    [ "$run_type" == "--dry-run" ] && dryrunmsg="*** WARNING *** : This is only a dry run"$'\n\n'
+    [ "$dryrunmsg" != "" ] && maninstmsg=$'\n'"Download a DSM${dsmv} version from here if you want to manually install:"$'\n\n'"https://pkgs.tailscale.com/stable/#spks"$'\n'
+
+    if [ -z "$mail_to" ]; then
+        logger -t ts_update "no mail recipient in $cfgfile (key=$mailtovar); update notification skipped ($prev -> $new)"
+        return 1
+    fi
+
+    echo "Sending notification to $mail_to"
+    local mail_output
+    mail_output=$(ssmtp "$mail_to" 2>&1 << __EOF
+From: "$sender_name" <$sender_mail>
+date:$(date -R)
+To: <$mail_to>
+Subject: $sprefix The Tailscale package on $thehost was automatically updated
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+
+${dryrunmsg}After a waiting period of $days_to_wait days, the Tailscale package on $thehost was updated.
+
+Previous version: $prev
+New version: $new
+$maninstmsg
+ From $sender_name
+__EOF
+)
+    local rc=$?
+    if [ "$rc" -ne 0 ]; then
+        logger -t ts_update "ssmtp failed (rc=$rc): $mail_output"
+        return 1
+    fi
+}
+
 send_mail_and_upgrade() {
     # Check the new version file or generate it if missing/outdated
     performed_update=false
@@ -60,7 +108,7 @@ send_mail_and_upgrade() {
         echo "New upstream version $2 detected (installed: $1), starting ${days_to_wait}-day wait"
         echo "$2" > "$new_version_file"
     fi
-    
+
     # Install Tailscale upgrade if waiting period has elapsed
     if [ "$(find "$new_version_file" -mmin +${minutes_to_wait})" ];then
         echo "Wait period elapsed, updating Tailscale $1 -> $2"
@@ -73,59 +121,37 @@ send_mail_and_upgrade() {
             performed_update=true
         else
             echo "Update failed (exit code $retval)"
+            logger -t ts_update "tailscale update failed on $(hostname) (rc=$retval, $1 -> $2)"
         fi
     else
         echo "Still waiting (need ${days_to_wait} days before updating $1 -> $2)"
     fi
     [ "$performed_update" != "true" ] && return
     fix_daemon_capabilities "post"
-    #echo sending email
-    cfgfile="/usr/syno/etc/synosmtp.conf"
-    thehost=$(hostname)
-    sender_name=$(grep 'smtp_from_name' $cfgfile | sed -n 's/.*"\([^"]*\)".*/\1/p')
-    sender_mail=$(grep 'smtp_from_mail' $cfgfile | sed -n 's/.*"\([^"]*\)".*/\1/p')
-    sender_mail=${sender_mail:-$(grep 'eventmail1' $cfgfile | sed -n 's/.*"\([^"]*\)".*/\1/p')}
-    mail_to=$(grep "$mailtovar" $cfgfile | sed -n 's/.*"\([^"]*\)".*/\1/p')
-    [[ "$mailtovar" == *"@"* ]] && mail_to=${mail_to:-$mailtovar}
-    sprefix=$(grep 'eventsubjectprefix' $cfgfile | sed -n 's/.*"\([^"]*\)".*/\1/p')
-    dsmv=$(grep 'majorversion' /etc.defaults/VERSION | cut -d\" -f2)
-    [ "$run_type" == "--dry-run" ] && dryrunmsg="*** WARNING *** : This is only a dry run"$'\n\n'
-    [ "$dryrunmsg" != "" ] && maninstmsg=$'\n'"Download a DSM${dsmv} version from here if you want to manually install:"$'\n\n'"https://pkgs.tailscale.com/stable/#spks"$'\n'
-    if [ "$mail_to" = "" ];then
-        echo "No mail recipient configured, skipping notification"
-        return
-    fi
-    echo "Sending notification to $mail_to"
-    ssmtp "$mail_to" << __EOF
-From: "$sender_name" <$sender_mail>
-date:$(date -R)
-To: <$mail_to>
-Subject: $sprefix The Tailscale package on $thehost was automatically updated
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-
-${dryrunmsg}After a waiting period of $days_to_wait days, the Tailscale package on $thehost was updated.
-
-Previous version: $1
-New version: $2
-$maninstmsg
- From $sender_name
-__EOF
+    send_mail "$1" "$2"
 }
 
-if [ "$EUID" -ne 0 ];  then
-    echo "Please run as root"
-    exit
-fi
+main() {
+    if [ "$EUID" -ne 0 ]; then
+        echo "Please run as root"
+        exit 1
+    fi
 
-ts_version=$(tailscale version --upstream --json)
-current_v=$(echo "$ts_version" | grep 'short":' | cut -d\" -f4)
-upstream_v=$(echo "$ts_version" | grep 'upstream":' | cut -d\" -f4)
-#upstream_v=${current_v}b # hack to fake a pending update
+    local ts_version current_v upstream_v
+    ts_version=$(tailscale version --upstream --json)
+    current_v=$(echo "$ts_version" | grep 'short":' | cut -d\" -f4)
+    upstream_v=$(echo "$ts_version" | grep 'upstream":' | cut -d\" -f4)
+    #upstream_v=${current_v}b # hack to fake a pending update
 
-if [ "$current_v" != "$upstream_v" ];then
-    send_mail_and_upgrade "$current_v" "$upstream_v"
-else
-    echo "Tailscale $current_v is up to date"
+    if [ "$current_v" != "$upstream_v" ]; then
+        send_mail_and_upgrade "$current_v" "$upstream_v"
+    else
+        echo "Tailscale $current_v is up to date"
+    fi
+    exit 0
+}
+
+# Only run main when executed directly, not when sourced (for testing send_mail)
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+    main "$@"
 fi
-exit 0

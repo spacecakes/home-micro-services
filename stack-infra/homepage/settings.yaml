@@ -24,13 +24,13 @@ hideErrors: true
 #   blur: md # sm, "", md, xl... see https://tailwindcss.com/docs/backdrop-blur
 
 layout:
-# Services tab
   Favorites:
-    tab: Services
     style: row
     columns: 5
     disableCollapse: true
     header: false
+
+# Services tab
   Media:
     tab: Services
     style: row
@@ -44,9 +44,11 @@ layout:
     style: row
     columns: 4
   Reading:
+    tab: Services
     style: row
     columns: 2
   Workstations:
+    tab: Services
     style: row
     columns: 2
 

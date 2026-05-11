@@ -1,12 +1,12 @@
 /* Larger icons for the Favorites row — only when Services tab is active */
 @media (min-width: 1024px) {
-    #tabs:has(li:first-child > [aria-selected="true"]) + #layout-groups > .services-group:first-of-type {
+     #layout-groups > .services-group:first-of-type {
         & a {
             width: auto !important;
         }
         & img {
-            width: 54px !important;
-            height: 54px !important;
+            width: 48px !important;
+            height: 48px !important;
         }
         & li div > div {
             padding: 8px;

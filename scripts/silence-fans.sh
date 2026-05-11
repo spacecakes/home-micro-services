@@ -3,6 +3,9 @@
 # Only modifies DUAL_MODE_LOW (quiet mode), leaves cool mode untouched
 # Run via Task Scheduler as root (triggered on boot)
 
+PATH=/usr/local/bin:/usr/bin:/bin:/usr/syno/bin:/usr/syno/sbin
+export PATH
+
 SCEMD="/usr/syno/etc.defaults/scemd.xml"
 BACKUP="/usr/syno/etc.defaults/scemd.xml.bak"
 
