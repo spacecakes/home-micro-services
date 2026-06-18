@@ -38,6 +38,12 @@ services:
     <<: *common
     container_name: authelia-redis
     image: redis:alpine
+    command:
+      - redis-server
+      - --maxmemory
+      - 256mb
+      - --maxmemory-policy
+      - allkeys-lru
     volumes:
       - /srv/docker/stack-auth/data/redis:/data
     labels:
