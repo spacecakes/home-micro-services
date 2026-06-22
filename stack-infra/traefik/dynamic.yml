@@ -188,14 +188,10 @@ http:
     # UPS
     eaton-ups:
       rule: 'Host(`ups1.lundmark.tech`)'
-      middlewares:
-        - authelia
       service: eaton-ups
 
     apcups:
       rule: 'Host(`ups2.lundmark.tech`)'
-      middlewares:
-        - authelia
       service: apcups
 
     # Change Detection LXC (10.0.1.28)
