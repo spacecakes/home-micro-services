@@ -32,7 +32,6 @@ services:
     labels:
       - 'traefik.docker.network=traefik-proxy'
       - 'traefik.http.routers.seerr.rule=Host(`requests.lundmark.tech`)'
-      - 'traefik.http.routers.seerr.middlewares=authelia@file'
     healthcheck:
       test: ['CMD-SHELL', 'wget --spider -q http://127.0.0.1:5055 || exit 1']
       interval: 30s
