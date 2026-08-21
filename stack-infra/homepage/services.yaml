@@ -136,12 +136,6 @@
         icon: /icons/synology-dsm.png
         href: https://offsite.lemming-escalator.ts.net/
         description: Off-site NAS management
-    - File Browser:
-        icon: filebrowser.png
-        href: https://files-server.lundmark.tech/
-        description: Server file explorer
-        container: filebrowser
-        server: local-docker
     - Synology Drive:
         icon: /icons/synology-drive.png
         href: https://drive.lundmark.tech/
