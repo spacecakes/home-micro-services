@@ -17,7 +17,7 @@ services:
       PVE_DIR: pve-host
       PVE_SRCS: /etc/pve/,/etc/nut/,/etc/fstab,/etc/network/interfaces,/etc/modprobe.d/,/etc/modules,/etc/sysctl.d/,/etc/apt/sources.list.d/,/root/.claude/
       # UPS NMC config (FTP, manual backup only)
-      NMC_HOSTS: 'rack-ups:10.0.1.5,desktop-ups:10.0.1.6'
+      NMC_HOSTS: 'desktop-ups:10.0.1.6'
       NMC_USER: apc
       NMC_PASS: ${NMC_PASS}
       NMC_DIR: apc-ups
@@ -29,6 +29,7 @@ services:
       - /srv/docker/stack-ops/data/ssh:/app/ssh:ro
       - /srv/docker/stack-ops/config-backup/app.py:/app/app.py:ro
     labels:
+      - 'traefik.enable=true'
       - 'traefik.http.routers.config-backup.rule=Host(`ops.lundmark.tech`)'
       - 'traefik.http.routers.config-backup.middlewares=authelia@file'
       - 'traefik.http.services.config-backup.loadbalancer.server.port=8000'

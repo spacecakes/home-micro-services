@@ -25,12 +25,13 @@ services:
     init: true
     container_name: seerr
     environment:
-      LOG_LEVEL: debug
+      LOG_LEVEL: info
       TZ: Europe/Stockholm
     volumes:
       - /srv/docker/stack-arr/data/seerr/config:/app/config
     labels:
       - 'traefik.docker.network=traefik-proxy'
+      - 'traefik.enable=true'
       - 'traefik.http.routers.seerr.rule=Host(`requests.lundmark.tech`)'
     healthcheck:
       test: ['CMD-SHELL', 'wget --spider -q http://127.0.0.1:5055 || exit 1']
@@ -47,16 +48,24 @@ services:
     container_name: aurral
     image: ghcr.io/lklynet/aurral:latest
     environment:
-      - DOWNLOAD_FOLDER=/mnt/downloads
+      - DOWNLOAD_FOLDER=/app/downloads
     volumes:
       - /mnt/downloads:/app/downloads
       - /srv/docker/stack-arr/data/aurral:/app/backend/data
     labels:
       - 'traefik.docker.network=traefik-proxy'
+      - 'traefik.enable=true'
       - 'traefik.http.routers.aurral.rule=Host(`request-music.lundmark.tech`)'
       - 'traefik.http.services.aurral.loadbalancer.server.port=3001'
     healthcheck:
-      test: ['CMD-SHELL', 'wget --spider -q http://127.0.0.1:3001 || exit 1']
+      # image has only node, no wget/curl
+      test:
+        [
+          'CMD',
+          'node',
+          '-e',
+          "require('http').get('http://127.0.0.1:3001',r=>process.exit(r.statusCode<500?0:1)).on('error',()=>process.exit(1))",
+        ]
       interval: 30s
       timeout: 5s
       retries: 3
@@ -70,6 +79,7 @@ services:
     image: linuxserver/sabnzbd:latest
     labels:
       - 'traefik.docker.network=traefik-proxy'
+      - 'traefik.enable=true'
       - 'traefik.http.routers.sabnzbd.rule=Host(`usenet.lundmark.tech`)'
       - 'traefik.http.routers.sabnzbd.middlewares=authelia@file'
     volumes:
@@ -110,6 +120,7 @@ services:
       FIREWALL_OUTBOUND_SUBNETS: 172.16.0.0/12
     labels:
       - 'traefik.docker.network=traefik-proxy'
+      - 'traefik.enable=true'
       - 'traefik.http.routers.qbittorrent.rule=Host(`torrents.lundmark.tech`)'
       - 'traefik.http.routers.qbittorrent.middlewares=authelia@file'
       - 'traefik.http.services.qbittorrent.loadbalancer.server.port=8080'
@@ -119,6 +130,8 @@ services:
     restart: unless-stopped
     container_name: qbittorrent
     image: linuxserver/qbittorrent:latest
+    labels:
+      - 'traefik.enable=false'
     network_mode: 'service:gluetun'
     depends_on:
       - gluetun
@@ -144,6 +157,7 @@ services:
     image: linuxserver/sonarr:latest
     labels:
       - 'traefik.docker.network=traefik-proxy'
+      - 'traefik.enable=true'
       - 'traefik.http.routers.sonarr.rule=Host(`tv.lundmark.tech`)'
       - 'traefik.http.routers.sonarr.middlewares=authelia@file'
     volumes:
@@ -167,6 +181,7 @@ services:
     image: linuxserver/radarr:latest
     labels:
       - 'traefik.docker.network=traefik-proxy'
+      - 'traefik.enable=true'
       - 'traefik.http.routers.radarr.rule=Host(`movies.lundmark.tech`)'
       - 'traefik.http.routers.radarr.middlewares=authelia@file'
     volumes:
@@ -190,6 +205,7 @@ services:
     image: linuxserver/bazarr:latest
     labels:
       - 'traefik.docker.network=traefik-proxy'
+      - 'traefik.enable=true'
       - 'traefik.http.routers.bazarr.rule=Host(`subtitles.lundmark.tech`)'
       - 'traefik.http.routers.bazarr.middlewares=authelia@file'
     volumes:
@@ -211,6 +227,7 @@ services:
     image: linuxserver/lidarr:latest
     labels:
       - 'traefik.docker.network=traefik-proxy'
+      - 'traefik.enable=true'
       - 'traefik.http.routers.lidarr.rule=Host(`music.lundmark.tech`)'
       - 'traefik.http.routers.lidarr.middlewares=authelia@file'
     volumes:
@@ -235,6 +252,7 @@ services:
     image: linuxserver/nzbhydra2:latest
     labels:
       - 'traefik.docker.network=traefik-proxy'
+      - 'traefik.enable=true'
       - 'traefik.http.routers.nzbhydra.rule=Host(`search.lundmark.tech`)'
       - 'traefik.http.routers.nzbhydra.middlewares=authelia@file'
     volumes:
@@ -253,6 +271,7 @@ services:
     image: linuxserver/prowlarr:latest
     labels:
       - 'traefik.docker.network=traefik-proxy'
+      - 'traefik.enable=true'
       - 'traefik.http.routers.prowlarr.rule=Host(`indexers.lundmark.tech`)'
       - 'traefik.http.routers.prowlarr.middlewares=authelia@file'
     volumes:
@@ -267,6 +286,8 @@ services:
   recyclarr:
     image: ghcr.io/recyclarr/recyclarr:latest
     container_name: recyclarr
+    labels:
+      - 'traefik.enable=false'
     restart: unless-stopped
     user: '1000:1000'
     networks:

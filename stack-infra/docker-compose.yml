@@ -16,9 +16,10 @@ services:
       - '443:443'
       - '80:80'
     labels:
+      - 'traefik.enable=true'
       - 'traefik.http.routers.traefik.rule=Host(`proxy.lundmark.tech`)'
       - 'traefik.http.routers.traefik.middlewares=authelia@file'
-      - 'traefik.http.services.traefik.loadbalancer.server.port=8080'
+      - 'traefik.http.routers.traefik.service=api@internal'
       - 'com.centurylinklabs.watchtower.enable=false'
     environment:
       CLOUDFLARE_DNS_API_TOKEN: ${CLOUDFLARE_API_TOKEN}
@@ -26,7 +27,8 @@ services:
       - /srv/docker/stack-infra/data/traefik/letsencrypt:/letsencrypt
       - /srv/docker/stack-infra/traefik/traefik.yml:/traefik.yml:ro
       - /srv/docker/stack-infra/traefik:/traefik-config:ro
-      - /var/run/docker.sock:/var/run/docker.sock:ro
+    depends_on:
+      - dockerproxy
 
   # Docker management
   dockerproxy:
@@ -55,6 +57,7 @@ services:
       - '8000:8000' # Edge agent tunnel
       - '9000:9000' # Portainer UI/API
     labels:
+      - 'traefik.enable=true'
       - 'traefik.http.routers.portainer.rule=Host(`containers.lundmark.tech`)'
       - 'traefik.http.services.portainer.loadbalancer.server.port=9000'
     volumes:
@@ -68,6 +71,7 @@ services:
     container_name: dockge
     image: louislam/dockge:latest
     labels:
+      - 'traefik.enable=true'
       - 'traefik.http.routers.dockge.rule=Host(`stacks.lundmark.tech`)'
       - 'traefik.http.routers.dockge.middlewares=authelia@file'
       - 'traefik.http.services.dockge.loadbalancer.server.port=5001'
@@ -92,6 +96,7 @@ services:
       HOMEPAGE_VAR_OPENCLAW_TOKEN: ${HOMEPAGE_OPENCLAW_TOKEN}
       HOMEPAGE_VAR_PROXMOX_TOKEN: ${HOMEPAGE_PROXMOX_TOKEN}
     labels:
+      - 'traefik.enable=true'
       - 'traefik.http.routers.homepage.rule=Host(`lundmark.tech`)'
       - 'traefik.http.routers.homepage.middlewares=authelia@file'
     volumes:
@@ -109,16 +114,18 @@ services:
     image: nicolargo/glances:latest-full
     pid: host
     labels:
+      - 'traefik.enable=true'
       - 'traefik.http.routers.glances.rule=Host(`glances.lundmark.tech`)'
       - 'traefik.http.routers.glances.middlewares=authelia@file'
       - 'traefik.http.services.glances.loadbalancer.server.port=61208'
     environment:
       GLANCES_OPT: '-w'
+      DOCKER_HOST: 'tcp://dockerproxy:2375'
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
       - /:/rootfs:ro
     depends_on:
       - traefik
+      - dockerproxy
 
   # Plex monitoring (Plex runs on LXC 10.0.1.19)
   tautulli:
@@ -136,6 +143,7 @@ services:
       - /srv/docker/stack-infra/data/tautulli:/config
     labels:
       - 'traefik.docker.network=traefik-proxy'
+      - 'traefik.enable=true'
       - 'traefik.http.routers.tautulli.rule=Host(`stats.lundmark.tech`)'
       - 'traefik.http.routers.tautulli.middlewares=authelia@file'
     depends_on:
@@ -147,6 +155,7 @@ services:
     container_name: filebrowser
     image: filebrowser/filebrowser:latest
     labels:
+      - 'traefik.enable=true'
       - 'traefik.http.routers.filebrowser.rule=Host(`files-server.lundmark.tech`)'
       - 'traefik.http.routers.filebrowser.middlewares=authelia@file'
       - 'traefik.http.services.filebrowser.loadbalancer.server.port=80'

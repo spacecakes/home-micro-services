@@ -10,6 +10,7 @@ services:
       - default
       - traefik-proxy
     labels:
+      - 'traefik.enable=true'
       - 'traefik.http.routers.authelia.rule=Host(`auth.lundmark.tech`)'
       - 'traefik.http.services.authelia.loadbalancer.server.port=9091'
       - 'traefik.docker.network=traefik-proxy'

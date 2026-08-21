@@ -1,6 +1,7 @@
+# Dashboard served via the traefik router (api@internal), not the insecure :8080 listener
 api:
   dashboard: true
-  insecure: true
+  insecure: false
 
 metrics:
   prometheus:
@@ -17,6 +18,8 @@ entryPoints:
   websecure:
     address: ':443'
     http:
+      middlewares:
+        - 'default-headers@file'
       tls:
         certResolver: letsencrypt
         domains:
@@ -26,7 +29,8 @@ entryPoints:
 
 providers:
   docker:
-    # Strip stack name and set default route to <service>.lundmark.tech
+    endpoint: 'tcp://dockerproxy:2375' # read-only proxy, not the raw socket
+    exposedByDefault: false # containers must opt in with traefik.enable=true
     defaultRule: 'Host(`{{ coalesce (index .Labels "com.docker.compose.service") (normalize .Name) }}.lundmark.tech`)'
   file:
     filename: /traefik-config/dynamic.yml
@@ -42,6 +46,3 @@ certificatesResolvers:
         resolvers:
           - '1.1.1.1:53'
           - '1.0.0.1:53'
-
-serversTransport:
-  insecureSkipVerify: true

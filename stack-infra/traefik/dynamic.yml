@@ -3,6 +3,7 @@ x-synology-service: &synology-service
     servers:
       - url: 'https://10.0.1.2:5001'
     passHostHeader: true
+    serversTransport: skip-verify@file
 
 http:
   middlewares:
@@ -45,7 +46,6 @@ http:
     default-headers:
       headers:
         frameDeny: true
-        sslRedirect: true
         browserXssFilter: true
         contentTypeNosniff: true
         forceSTSHeader: true
@@ -53,24 +53,20 @@ http:
         stsPreload: true
         stsSeconds: 31536000
 
-    default-whitelist:
-      ipWhiteList:
+    lan-only:
+      ipAllowList:
         sourceRange:
-          - '10.0.0.0/24'
-          - '192.168.0.0/16'
-          - '172.0.0.0/8'
+          - '10.0.1.0/24' # LAN
+          - '100.64.0.0/10' # Tailscale
+          - '172.16.0.0/12' # Docker bridge networks
+          - '127.0.0.1/32'
+
+  # Per-service opt-in for self-signed backends (attach via skip-verify@file)
+  serversTransports:
+    skip-verify:
+      insecureSkipVerify: true
 
   routers:
-    global-headers:
-      rule: 'HostRegexp(`{any:.+}`)'
-      entryPoints:
-        - websecure
-      middlewares:
-        - default-headers
-        - default-whitelist
-      service: noop@internal
-      priority: 10
-
     # Synology apps
     dsm:
       rule: 'Host(`dsm.lundmark.tech`)'
@@ -251,12 +247,14 @@ http:
         servers:
           - url: 'https://10.0.1.1'
         passHostHeader: true
+        serversTransport: skip-verify@file
 
     eaton-ups:
       loadBalancer:
         servers:
           - url: 'https://10.0.1.25'
         passHostHeader: true
+        serversTransport: skip-verify@file
 
     apcups:
       loadBalancer:
@@ -275,6 +273,7 @@ http:
         servers:
           - url: 'https://10.0.1.12:10443'
         passHostHeader: true
+        serversTransport: skip-verify@file
 
     homeassistant:
       loadBalancer:
@@ -323,9 +322,11 @@ http:
         servers:
           - url: 'https://10.0.1.20:8007'
         passHostHeader: true
+        serversTransport: skip-verify@file
 
     proxmox:
       loadBalancer:
         servers:
           - url: 'https://10.0.1.3:8006'
         passHostHeader: true
+        serversTransport: skip-verify@file
