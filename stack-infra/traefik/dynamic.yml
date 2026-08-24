@@ -45,7 +45,7 @@ http:
 
     default-headers:
       headers:
-        frameDeny: true
+        customFrameOptionsValue: SAMEORIGIN
         browserXssFilter: true
         contentTypeNosniff: true
         forceSTSHeader: true
