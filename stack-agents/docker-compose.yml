@@ -61,5 +61,8 @@ services:
       - 3001:3001
     volumes:
       - /volume1/docker/stack-agents/data/uptime-kuma:/app/data
-      - /var/run/docker.sock:/var/run/docker.sock:ro
+    # Docker monitors reach the socket via dockerproxy (read-only, POST=0).
+    # Configure in the UI: Settings -> Docker Hosts -> TCP -> tcp://dockerproxy:2375
+    depends_on:
+      - dockerproxy
 
