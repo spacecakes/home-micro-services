@@ -80,3 +80,25 @@ sudo /volume1/docker/scripts/ts.sh watchdog
 
 Set `update_args="--dry-run"` at the top of `ts.sh` to test `update` without
 installing anything.
+
+## Quieter fans (`silence-fans.sh`)
+
+Rewrites DSM's **Quiet mode** fan curve (`DUAL_MODE_LOW` in
+`/usr/syno/etc.defaults/scemd.xml`) with the values at the top of the script,
+then restarts `scemd`. **Cool mode** keeps Synology's curve, so you can switch
+between the two in **Control Panel > Hardware & Power**. The script sets
+absolute values, so running it again changes nothing. Each sensor's top step
+must stay at 255, so the fans can still reach full speed before DSM's
+overheat shutdown.
+
+| Task name | Create > | Schedule | User-defined script |
+| --- | --- | --- | --- |
+| Silence fans | Triggered Task > User-defined script | Event: **Boot-up** | `/volume1/docker/scripts/silence-fans.sh` |
+
+DSM updates restore the stock file, and the boot-up task applies the curve
+again.
+
+```sh
+DRY_RUN=1 /volume1/docker/scripts/silence-fans.sh   # show the diff, no root needed
+sudo /volume1/docker/scripts/silence-fans.sh        # apply
+```
