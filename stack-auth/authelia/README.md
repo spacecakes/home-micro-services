@@ -2,6 +2,8 @@
 
 ## User Management
 
+`users_database.yml` is git-ignored because it holds password hashes and emails. The live copy is on the Docker LXC, and the PBS backups of that LXC cover it.
+
 ### Change your password
 
 Generate a new hash:
@@ -154,13 +156,23 @@ docker logs authelia --since 10m 2>&1 | grep -iE "anonymous|successful"
 
 ### Session count
 
-Every anonymous request through forward-auth creates a Redis session that lives for `session.expiration` (30d). A healthy count is in the hundreds:
+Every request without a cookie that goes through forward-auth creates a Redis session that lives for `session.expiration` (30d). That includes requests matched by a `bypass` rule. A healthy count is in the low thousands at most, and it should only grow when real browsers visit:
 
 ```bash
 docker exec authelia-redis redis-cli dbsize
 ```
 
-If it's in the tens of thousands, something is polling a protected URL with GET (usually a monitor). Find it, fix it (see the HEAD bypass rule in `configuration.yml` and the Kuma notes in CLAUDE.md), then flush with `docker exec authelia-redis redis-cli flushdb`. This logs everyone out.
+If it keeps climbing, something is polling a protected URL without credentials, usually a monitor. Uptime Kuma must send basic auth as the `kuma` user (see the Kuma notes in CLAUDE.md). To find the culprit, look for repeated anonymous requests from a single IP:
+
+```bash
+docker logs authelia --since 10m 2>&1 | grep "username= " | grep -oE "ip=[0-9.]+ and object [^ ]+" | sort | uniq -c | sort -rn | head
+```
+
+Once it's fixed, flush with `docker exec authelia-redis redis-cli flushdb`. This logs everyone out.
+
+### Service accounts
+
+`kuma` is a password-only account for Uptime Kuma. It's limited to the NAS's IP by the `access_control` rule. Its password is stored only in Kuma's monitor settings. To rotate it, generate a new hash as above, update `users_database.yml`, and update the basic-auth password on every Kuma monitor that uses it. A daily cron job (`/etc/cron.d/authelia-prune-kuma` → `/usr/local/sbin/authelia-prune-kuma`) deletes kuma's successful logins older than 7 days, since Authelia records one for every check.
 
 ## Secrets
 

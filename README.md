@@ -57,7 +57,7 @@ Plex and HaOS web UIs are CNAME'd through Cloudflare proxy to the public IP. Rou
 
 Uptime Kuma runs on the NAS (so it still alerts when the Proxmox host is down) and alerts via Pushover. Each LXC/VM gets a ping monitor; each web service gets an HTTP monitor.
 
-HTTP monitors for services behind Authelia must use **HEAD, max redirects 0, and a real health path** (e.g. `/ping` on the *arr apps). Authelia has a bypass rule for HEAD requests from the NAS only. Otherwise the monitor follows the redirect to the Authelia login page and reports Authelia's health instead of the app's, and every check creates a new Redis session (this once piled up 170k sessions). Don't expose backend ports for monitoring — that bypasses Authelia for everyone.
+HTTP monitors for services behind Authelia must use **basic auth as the `kuma` user, HEAD, max redirects 0, and a real health path** (e.g. `/ping` on the *arr apps). Authelia allows `kuma` with one factor, and only from the NAS (`10.0.1.2`). Basic auth through forward-auth is stateless. Without it, the monitor gets redirected to the Authelia login page and reports Authelia's health instead of the app's. Every cookieless check also creates a new Redis session, and this once piled up 170k of them. A `bypass` rule doesn't avoid that: Authelia still creates the session. A daily cron on the Docker LXC prunes kuma's logins from Authelia's `authentication_logs` table. Don't expose backend ports for monitoring, because that bypasses Authelia for everyone.
 
 ## Cheatsheet
 

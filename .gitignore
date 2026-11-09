@@ -15,3 +15,4 @@ temp/
 
 # Misc
 .claude
+stack-auth/authelia/users_database.yml
