@@ -34,19 +34,30 @@ Docker config is version-controlled in this repo AND container data rsynced to N
 
 | Location | Services |
 |---|---|
-| **Docker LXC** (`10.0.1.4`) | Traefik, Authelia, Homepage, arr stack (Sonarr/Radarr/etc), config-backup, Watchtower, Tautulli, Uptime Kuma, Portainer, Dockge, Glances, File Browser, HandBrake |
+| **Docker LXC** (`10.0.1.4`) | Traefik, Authelia, Homepage, arr stack (Sonarr/Radarr/etc), config-backup, Watchtower, Tautulli, Portainer, Dockge, Glances, File Browser, HandBrake |
 | **Plex LXC** (`10.0.1.19`) | Plex (native .deb, privileged, GPU passthrough, NFS via internal fstab) |
-| **Immich LXC** (TBD) | Immich (native via community script, internal upload library) |
+| **Immich LXC** (`10.0.1.18`) | Immich (native via community script, internal upload library) |
 | **AdGuard LXC** (`10.0.1.10`) | AdGuard Home + Sync |
+| **Raspberry Pi** (`10.0.1.22`) | AdGuard Home secondary (keepalived failover) |
+| **PBS LXC** (`10.0.1.20`) | Proxmox Backup Server |
+| **Change Detection LXC** (`10.0.1.28`) | changedetection.io |
+| **FreshRSS LXC** (`10.0.1.29`) | FreshRSS |
+| **Guacamole LXC** (`10.0.1.27`) | Guacamole (remote desktop gateway) |
 | **Homebridge LXC** (`10.0.1.13`) | Homebridge |
 | **Scrypted LXC** (`10.0.1.12`) | Scrypted (cameras) |
 | **Home Assistant VM** (`10.0.1.7`) | HAOS |
 | **OpenClaw VM** (`10.0.1.9`) | AI assistant |
-| **Synology NAS** (`10.0.1.2`) | Portainer agent, Dockge agent, Watchtower, AdGuard (backup), iCloudPD |
+| **Synology NAS** (`10.0.1.2`) | Uptime Kuma, Portainer agent, Dockge agent, Watchtower, iCloudPD |
 
 ### External access (no VPN required)
 
 Plex and HaOS web UIs are CNAME'd through Cloudflare proxy to the public IP. Router port-forwards to Plex (`10.0.1.19:32400`) and Home Assistant (`10.0.1.7:8123`). Everything else requires VPN (Tailscale or to gateway).
+
+### Monitoring
+
+Uptime Kuma runs on the NAS (so it still alerts when the Proxmox host is down) and alerts via Pushover. Each LXC/VM gets a ping monitor; each web service gets an HTTP monitor.
+
+HTTP monitors for services behind Authelia must use **HEAD, max redirects 0, and a real health path** (e.g. `/ping` on the *arr apps). Authelia has a bypass rule for HEAD requests from the NAS only. Otherwise the monitor follows the redirect to the Authelia login page and reports Authelia's health instead of the app's, and every check creates a new Redis session (this once piled up 170k sessions). Don't expose backend ports for monitoring — that bypasses Authelia for everyone.
 
 ## Cheatsheet
 

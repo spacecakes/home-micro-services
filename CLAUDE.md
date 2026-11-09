@@ -51,6 +51,14 @@ Non-Docker services (Synology apps, UniFi, UPS NMCs, LXCs, VMs) are routed via `
 
 `authelia@file` is defined in `dynamic.yml` as a forward-auth middleware. Add it to any route that should require SSO. Services without it (e.g. DSM) handle their own auth.
 
+The only `access_control` rule is a bypass for HEAD requests from the NAS (Uptime Kuma). Keep it scoped to that source and method: GET from the NAS must still go through auth.
+
+### Uptime Kuma monitors
+
+Kuma runs on the NAS (`stack-agents`). Pushover is the only notification; every new monitor needs it attached. Monitors for services behind Authelia must be HEAD, max redirects 0, pointed at a health path that answers HEAD with 2xx (`/ping` for *arr apps, `/api/system/ping` Bazarr, `/status` Tautulli, `/healthz` AdGuard Sync). A GET or redirect-following monitor ends up checking Authelia instead of the app, and creates a Redis session per check. Never expose backend ports as a monitoring workaround — that bypasses Authelia.
+
+Editing monitors directly in `kuma.db` (SQLite, WAL): stop the container first (Kuma caches monitors in memory and overwrites edits), `PRAGMA wal_checkpoint(TRUNCATE)`, back up, edit, start. Avoid full scans of the `heartbeat` table while Kuma is running. History retention is 30 days (Settings → Monitor History).
+
 ### Services that disable Traefik
 
 Backend-only services use `traefik.enable=false`.

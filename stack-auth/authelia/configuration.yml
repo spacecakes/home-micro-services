@@ -15,6 +15,12 @@ authentication_backend:
 
 access_control:
   default_policy: two_factor
+  rules:
+    # Uptime Kuma on the NAS: status-only HEAD checks skip auth (no body, no session churn)
+    - domain: ['lundmark.tech', '*.lundmark.tech']
+      networks: ['10.0.1.2/32']
+      methods: ['HEAD']
+      policy: bypass
 
 session:
   expiration: 30d

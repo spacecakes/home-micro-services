@@ -140,6 +140,28 @@ For services without OIDC support, add this Traefik label to put them behind Aut
 
 No per-service config needed — the session cookie covers all `*.lundmark.tech`.
 
+## Troubleshooting
+
+### Dashboard loads without CSS / login forgotten on reload
+
+The usual cause is a stale duplicate `authelia_session` cookie in the browser (e.g. one scoped to a subdomain plus one for `lundmark.tech`). The browser sends both, Authelia reads the stale one, and subresources (CSS, icons) come back as a 302 to the login page with `text/html`. Fix it by deleting all cookies for `lundmark.tech` and its subdomains, then logging in again.
+
+To confirm it's this and not something else, check the Authelia logs for successful logins followed by anonymous requests from the same IP:
+
+```bash
+docker logs authelia --since 10m 2>&1 | grep -iE "anonymous|successful"
+```
+
+### Session count
+
+Every anonymous request through forward-auth creates a Redis session that lives for `session.expiration` (30d). A healthy count is in the hundreds:
+
+```bash
+docker exec authelia-redis redis-cli dbsize
+```
+
+If it's in the tens of thousands, something is polling a protected URL with GET (usually a monitor). Find it, fix it (see the HEAD bypass rule in `configuration.yml` and the Kuma notes in CLAUDE.md), then flush with `docker exec authelia-redis redis-cli flushdb`. This logs everyone out.
+
 ## Secrets
 
 All secrets are in the `secrets/` directory (git-ignored):
